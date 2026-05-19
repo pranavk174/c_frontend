@@ -1,0 +1,86 @@
+interface Email {
+  email: String!
+}
+
+type Otp implements Email {
+  email: String!
+  otp: String!
+}
+
+type User implements Email {
+  name: String!
+  id: Int!
+  user_name: String!
+  email: String!
+  bio: String
+  mobile: String!
+  profile_pic: String
+}
+
+input UserInput {
+  fname: String!
+  lname: String!
+  user_name: String!
+  email: String!
+  bio: String
+  mobile: String!
+  profile_pic: String
+}
+
+input UpdateUserInput {
+  name: String
+  bio: String
+  profile_pic: String
+}
+
+type data {
+  email: String!
+  id: Int!
+  is_verified: Boolean
+}
+union ResponseData = User | data
+type userApiResponse implements apiResponse {
+  message: String!
+  status: Int!
+  success: Boolean
+  data: ResponseData
+  error: String
+}
+
+input verifyOtpInput {
+  email: String!
+  otp: String!
+  device_id: String!
+  ip_address: String!
+  location: String!
+  device_name: String!
+}
+
+enum AccountStatus {
+  delete
+  DELETE
+  suspend
+  SUSPEND
+}
+
+input blockUserInput {
+  blocked_user_id: Int!
+  reason: String
+}
+
+extend type Query {
+  getUser: userApiResponse! @auth
+}
+
+extend type Mutation {
+  sendOtpMail(email: String!): userApiResponse!
+  verifyOtp(input: verifyOtpInput): userApiResponse!
+  createUser(input: UserInput): userApiResponse! @auth
+  updateUser(input: UpdateUserInput): userApiResponse! @auth
+  generateRefreshToken: userApiResponse!
+  logout: userApiResponse! @auth
+  deleteUser(action_type: AccountStatus!): userApiResponse! @auth
+  blockUser(input: blockUserInput!): userApiResponse! @auth
+  unBlockUser(input: blockUserInput!): userApiResponse! @auth
+  # loginUser(email:String!):userApiResponse!
+}

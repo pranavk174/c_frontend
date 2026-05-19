@@ -1,0 +1,68 @@
+input createStoryInput {
+  text_data: String
+  content: String
+  message_ids: [ID!]
+}
+
+type Story {
+  id: ID!
+  user_id: ID!
+  text_data: String
+  content: String
+  created_at: String!
+  updated_at: String!
+  expires_at: String!
+}
+
+type StoryData {
+  story: Story
+}
+
+input storyLikeInput {
+  id: ID!
+  like: Boolean!
+  reaction_id: Int
+}
+
+type StoriesData {
+  stories: [Story!]!
+}
+
+union storyResponseData = StoriesData | StoryData
+
+type storyApiResponse implements apiResponse {
+  message: String!
+  status: Int!
+  success: Boolean
+  data: storyResponseData
+  error: String
+}
+
+enum ForwardType {
+  private
+  group
+}
+input ForwardTargetInput {
+  type: ForwardType!
+  recipientId: Int
+  chatId: Int
+}
+input ForwardStoryInput {
+  storyId: Int!
+  message: String
+  targets: [ForwardTargetInput!]!
+}
+
+extend type Query {
+  getStoryById(id: ID!): storyApiResponse! @auth
+  getAllStories: storyApiResponse! @auth
+}
+
+extend type Mutation {
+  createStory(input: createStoryInput!): storyApiResponse! @auth
+  deleteStory(id: ID!): storyApiResponse! @auth
+  replyToStory(id: ID!, content: String!): storyApiResponse! @auth
+  seenStory(id: ID!): storyApiResponse! @auth
+  likeStory(input: storyLikeInput!): storyApiResponse! @auth
+  forwardStory(input: ForwardStoryInput!): storyApiResponse! @auth
+}

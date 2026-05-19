@@ -1,0 +1,120 @@
+"use client";
+
+import { useState } from "react";
+import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
+import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/User";
+import { getDeviceInfo } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+export default function VerifyOtp({ email }: { email: string }) {
+  const [step, setStep] = useState<"email" | "otp" | "profile">("email");
+  const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
+  const [otp, setOtp] = useState("");
+  console.log(email, "email....");
+  const [verifyOtp, { isLoading, isSuccess: isverifySuccess }] =
+    useVerifyOtpMutation();
+  const router = useRouter();
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length === 6) {
+      try {
+        const data = await getDeviceInfo();
+
+        const { device_id, ip_address, location, device_name } = data;
+
+        console.log(data, "dataaaaa");
+
+        const verified = await verifyOtp({
+          otp,
+          email,
+          device_id,
+          ip_address,
+          location: location?.city + "," + location?.country,
+          device_name,
+        }).unwrap();
+
+        if (verified?.errors || verified?.verifyOtp?.success === false) {
+          return;
+        }
+
+        router.replace("/");
+
+        // router.push("/chat");
+      } catch (error) {
+        // console.log(error?.data.errors[0].message, "errorrrr")
+        // alert(error?.data.errors[0].message)
+      }
+
+      // Verify OTP here, then redirect or go to profile
+      // window.location.href = "/";
+    }
+  };
+
+  const resendOtp = async () => {
+    try {
+      await login({ email }).unwrap();
+    } catch (error) {
+      console.log(error, "errorrrrrrr");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-wa-bg dark:bg-wa-bg-dark flex items-center justify-center p-4">
+      {/* WhatsApp Green Top Bar Background */}
+      <div className="absolute top-0 left-0 w-full h-[222px] bg-wa-primary dark:bg-wa-primary-dark hidden md:block z-0"></div>
+
+      <div className="bg-wa-panel dark:bg-wa-panel-dark w-full max-w-md rounded-lg shadow-lg overflow-hidden relative z-10 p-8">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-wa-primary dark:bg-wa-primary-dark rounded-full flex items-center justify-center mb-4">
+            <MessageSquare className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-light text-gray-800 dark:text-gray-100">
+            {"Verify your email"}
+          </h1>
+        </div>
+
+        <form onSubmit={handleOtpSubmit} className="space-y-6">
+          <div>
+            <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">
+              Enter the 6-digit code sent to <br />
+              <span className="font-semibold text-gray-800 dark:text-gray-100">
+                {email}
+              </span>
+            </p>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              placeholder="--- ---"
+              required
+              className="w-full border-b-2 border-wa-primary bg-transparent text-center text-3xl tracking-widest py-2 focus:outline-none focus:border-wa-primary-dark dark:text-white"
+            />
+          </div>
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={() => setStep("email")}
+              className="flex-none bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 p-3 rounded transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="submit"
+              disabled={otp.length !== 6}
+              className="flex-1 bg-wa-primary hover:bg-wa-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded transition-colors"
+            >
+              {isLoading ? "Verifying...." : "Verify"}
+            </button>
+          </div>
+        </form>
+        <button
+          onClick={resendOtp}
+          className="text-white bg-transparent cursor-pointer hover:text-gray-200 font-semibold text-center w-full mt-4 "
+        >
+          Resend OTP
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-wa-primary: #00a884;
+  --color-wa-primary-dark: #008069;
+  --color-wa-bg: #e0e0e0;
+  --color-wa-bg-dark: #111b21;
+  --color-wa-panel: #ffffff;
+  --color-wa-panel-dark: #202c33;
+  --color-wa-header: #f0f2f5;
+  --color-wa-header-dark: #202c33;
+  --color-wa-search: #f0f2f5;
+  --color-wa-search-dark: #202c33;
+  --color-wa-search-input: #ffffff;
+  --color-wa-search-input-dark: #2a3942;
+  --color-wa-msg-sent: #d9fdd3;
+  --color-wa-msg-sent-dark: #005c4b;
+  --color-wa-msg-received: #ffffff;
+  --color-wa-msg-received-dark: #202c33;
+  --color-wa-divider: #e9edef;
+  --color-wa-divider-dark: #222d34;
+  --color-wa-icon: #54656f;
+  --color-wa-icon-dark: #aebac1;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .chat-bg {
+    background-color: #efeae2;
+    background-image: url("https://static.whatsapp.net/rsrc.php/v3/yl/r/r-97H5Uo1-O.png");
+    background-repeat: repeat;
+    opacity: 0.4;
+  }
+  
+  .dark .chat-bg {
+    background-color: #0b141a;
+    background-image: url("https://static.whatsapp.net/rsrc.php/v3/yl/r/r-97H5Uo1-O.png");
+    opacity: 0.1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+} */
+
+/* .dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+} */
+
+
+/* Chrome, Edge, Safari */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+/* IE */
+.hide-scrollbar {
+  -ms-overflow-style: none;
 }
