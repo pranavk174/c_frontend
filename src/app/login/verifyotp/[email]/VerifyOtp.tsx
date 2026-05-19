@@ -4,12 +4,15 @@ import { useState } from "react";
 import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/User";
 import { getDeviceInfo } from "@/lib/utils";
+import { addUser } from "@/redux/slices/User";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 export default function VerifyOtp({ email }: { email: string }) {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const [otp, setOtp] = useState("");
   console.log(email, "email....");
+  const dispatch = useDispatch()
   const [verifyOtp, { isLoading, isSuccess: isverifySuccess }] =
     useVerifyOtpMutation();
   const router = useRouter();
@@ -36,6 +39,9 @@ export default function VerifyOtp({ email }: { email: string }) {
           return;
         }
 
+        console.log(verified.data.verifyOtp.data.id, "verified ddaaaaataaaa.")
+
+        dispatch(addUser(verified.data.verifyOtp.data))
         router.replace("/");
 
         // router.push("/chat");

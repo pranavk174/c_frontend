@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, use } from "react";
 import Link from "next/link";
+import { useSelector, UseSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import {
   Search,
   MoreVertical,
@@ -17,6 +19,7 @@ import { Chat, Message, MOCK_CHATS, MOCK_MESSAGES } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
+  useGetAllChatsQuery,
   useGetEmojisQuery,
   useGetSingleChatQuery,
   useReactMessageMutation,
@@ -29,9 +32,22 @@ type emoji = {
 };
 const ChatPage = ({ id }: { id: number }) => {
   // const resolvedParams = use(params);
-  const [reactMessage, {}] = useReactMessageMutation({});
+  const [reactMessage, { }] = useReactMessageMutation({});
+  const { data: chatDetails } = useGetAllChatsQuery(
+    {},
+    {
+      selectFromResult: ({ data, isLoading, isSuccess }) => {
+        return {
+          data: data?.data?.getAllChats?.data?.items?.filter((item: Chat) => item.chat_id === id)[0],
+          isLoading,
+          isSuccess,
+        };
+      },
+    },
+  );
   const [show, setShow] = useState<number | string | null>(null);
 
+  const { id: user_id } = useSelector((state: RootState) => state.userSlice)
   const { data, isLoading, isSuccess } = useGetSingleChatQuery(
     { chat_id: id },
     {
@@ -58,7 +74,7 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-  console.log(emojis, "emojissssssss");
+  console.log(emojis, "emojissssssss", chatDetails);
 
   //   console.log(data, "chat data is message");
   const chatId = id;
@@ -94,7 +110,7 @@ const ChatPage = ({ id }: { id: number }) => {
         message_id: msg_id,
         react_id,
       });
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -113,6 +129,9 @@ const ChatPage = ({ id }: { id: number }) => {
     setInputText("");
   };
 
+
+  console.log(chat, "chat detaillssss.")
+
   return (
     <div className="flex flex-col h-full w-full chat-bg relative">
       {/* Header */}
@@ -126,14 +145,14 @@ const ChatPage = ({ id }: { id: number }) => {
           </Link>
           <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0">
             <img
-              src={chat.profile_pic}
-              alt={chat.name}
+              src={chatDetails.profile_pic}
+              alt={chatDetails.name}
               className="w-full h-full object-cover"
             />
           </div>
           <div className="flex flex-col cursor-pointer">
-            <h2 className="text-base font-normal text-gray-900 dark:text-gray-100">
-              {chat.name}
+            <h2 className="text-base  font-normal text-gray-900 dark:text-gray-100">
+              {chatDetails.name}
             </h2>
             {/* {chat.isOnline ? (
               <span className="text-xs text-wa-icon dark:text-wa-icon-dark">online</span>
@@ -171,13 +190,16 @@ const ChatPage = ({ id }: { id: number }) => {
             </div>
           </div>
 
-          {data.map((msg: Message) => (
-            <div
+          {data.map((msg: Message) => {
+            const icons = emojis?.filter((emoji: emoji, idx: number) => msg.reactions.some(em => em.react_id === emoji.react_id))
+
+            console.log(icons, "icons....")
+            return < div
               key={msg.id}
               onMouseEnter={() => setActive(msg.id)}
               className={cn(
                 "flex justify-end",
-                msg.sender_id === 1 ? " " : " flex-row-reverse",
+                msg.sender_id === user_id ? " " : " flex-row-reverse",
               )}
             >
               <div className={`${active === msg.id ? "block" : "hidden"}`}>
@@ -201,9 +223,10 @@ const ChatPage = ({ id }: { id: number }) => {
                 </ol>
               </div>
 
-              <Messages msg={msg} emojis={emojis} />
+              <Messages msg={msg} user_id={user_id} emojis={icons} />
             </div>
-          ))}
+          }
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
@@ -242,7 +265,7 @@ const ChatPage = ({ id }: { id: number }) => {
           )}
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

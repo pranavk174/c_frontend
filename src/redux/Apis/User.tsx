@@ -122,6 +122,12 @@ export const UserApi = createApi({
                                         is_verified
                                         
                                         }
+                                        ... on User {
+                                        
+                                        id
+                                        user_name
+                                        email
+                                        }
                                         
                                         }
                                             }

@@ -28,13 +28,13 @@
     background-color: #efeae2;
     background-image: url("https://static.whatsapp.net/rsrc.php/v3/yl/r/r-97H5Uo1-O.png");
     background-repeat: repeat;
-    opacity: 0.4;
+    /* opacity: 0.4; */
   }
   
   .dark .chat-bg {
     background-color: #0b141a;
     background-image: url("https://static.whatsapp.net/rsrc.php/v3/yl/r/r-97H5Uo1-O.png");
-    opacity: 0.1;
+    /* opacity: 0.1; */
   }
 }
 
