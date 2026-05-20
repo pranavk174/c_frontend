@@ -14,6 +14,14 @@ export type Chat = {
   last_message: string;
   last_message_at: string;
 };
+export enum delete_type {
+  onlyme,
+  ONLYME,
+  OnlyMe,
+  Everyone,
+  everyone,
+  EVERYONE,
+}
 
 type reaction = {
   react_id: Number;
@@ -29,9 +37,9 @@ export interface Message {
   content: string;
   story_id: string | null;
   is_edited: boolean;
-  reply_to_message: Message | null;
+  reply_to_message: number | null;
   is_deleted: boolean;
-  reactions: [reaction];
+  reactions: reaction[];
 }
 
 export const MOCK_CHATS: Chat[] = [

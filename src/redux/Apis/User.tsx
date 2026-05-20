@@ -79,6 +79,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const UserApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
+  tagTypes: ["chats"],
   endpoints: (builder) => ({
     login: builder.mutation({
       query: ({ email }) => ({
@@ -172,10 +173,12 @@ export const UserApi = createApi({
             
             `,
         },
+        providesTags: ["chats"],
       }),
+      providesTags: ["chats"],
     }),
     getSingleChat: builder.query({
-      query: ({ chat_id }) => ({
+      query: ({ chat_ids }) => ({
         url: "",
         method: "POST",
         body: {
@@ -209,10 +212,11 @@ export const UserApi = createApi({
 }
           `,
           variables: {
-            input: { chat_ids: [parseInt(chat_id)] },
+            input: { chat_ids },
           },
         },
       }),
+      providesTags: ["chats"],
     }),
     getEmojis: builder.query({
       query: () => ({
@@ -239,7 +243,7 @@ export const UserApi = createApi({
       }),
     }),
     reactMessage: builder.mutation({
-      query: ({ message_id, react_id, chat_id }) => ({
+      query: ({ message_ids, react_id, chat_ids }) => ({
         url: "",
         method: "POST",
         body: {
@@ -254,13 +258,96 @@ message,success,status,error
                 `,
           variables: {
             input: {
-              chat_ids: [parseInt(chat_id)],
-              message_ids: [parseInt(message_id)],
+              chat_ids,
+              message_ids,
               reaction_id: parseInt(react_id),
             },
           },
         },
       }),
+      invalidatesTags: ["chats"],
+    }),
+
+    sendMessage: builder.mutation({
+      query: ({ content, chat_ids, reciever_ids, media }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+          mutation sendMessage( $input:ChatInput!){
+    sendMessage(input:$input){
+
+message,status,error,success
+
+    }
+}
+          `,
+          variables: {
+            input: {
+              content,
+              chat_ids,
+              reciever_ids,
+              media,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
+    }),
+    replyToMessage: builder.mutation({
+      query: ({ message_ids, chat_ids, content }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+          mutation replyMessage($input:ChatInput!){
+    replyMessage(input:$input){
+        message,status,success,error
+    }
+}
+          
+          
+          `,
+          variables: {
+            input: {
+              message_ids,
+              content,
+              chat_ids,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
+    }),
+    deleteMessages: builder.mutation({
+      query: ({ message_ids, chat_ids, delete_type }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+
+          mutation DeleteMessage($input:ChatInput!) {
+  deleteMessage(input:$input) {
+    message
+    status
+    success
+    error
+  }
+}
+          
+          `,
+          variables: {
+            input: {
+              delete_type,
+              message_ids,
+              chat_ids,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
     }),
   }),
 });
@@ -275,6 +362,9 @@ export const {
   useGetEmojisQuery,
   useLazyGetEmojisQuery,
   useReactMessageMutation,
+  useSendMessageMutation,
+  useReplyToMessageMutation,
+  useDeleteMessagesMutation,
 } = UserApi;
 
 // export const {useRegisterMutation} = UserApi
