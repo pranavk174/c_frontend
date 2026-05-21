@@ -10,7 +10,7 @@ import {
   Filter,
   CircleDashed,
 } from "lucide-react";
-import { Chat, MOCK_CHATS } from "@/lib/dummy";
+import { Chat } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { useGetAllChatsQuery } from "@/redux/Apis/User";
 export default function Sidebar() {
@@ -79,8 +79,9 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto bg-wa-panel dark:bg-wa-panel-dark">
         {filteredChats?.map((chat: Chat) => {
           const isActive = pathname === `/chat/${chat?.chat_id}`;
+          console.log(typeof chat?.chat_id, "royeeeeeetttee")
           return (
-            <Link href={`/chat/${chat?.chat_id}`} key={String(chat?.chat_id)}>
+            <Link href={`/chat/${chat?.chat_id}`} key={chat?.chat_id}>
               <div
                 className={cn(
                   "flex items-center px-4 py-3 hover:bg-wa-header dark:hover:bg-wa-header-dark cursor-pointer transition-colors",

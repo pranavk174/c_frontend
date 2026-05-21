@@ -1,4 +1,4 @@
-import { AppDispatch } from "@/Redux/store";
+import { AppDispatch } from "@/redux/store";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Socket } from "socket.io-client";

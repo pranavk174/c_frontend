@@ -1,3 +1,4 @@
+import { Message } from "@/lib/dummy";
 import {
   createApi,
   fetchBaseQuery,
@@ -178,7 +179,7 @@ export const UserApi = createApi({
       providesTags: ["chats"],
     }),
     getSingleChat: builder.query({
-      query: ({ chat_ids }) => ({
+      query: ({ chat_ids, limit = 20, cursor = null }) => ({
         url: "",
         method: "POST",
         body: {
@@ -187,6 +188,9 @@ export const UserApi = createApi({
     getChatById(input:$input){
         message,status,success,error,data{
         ... on SingleChat {
+
+        nextCursor,
+        hasMore,
                  items{
                      id ,
   sender_id ,
@@ -212,11 +216,52 @@ export const UserApi = createApi({
 }
           `,
           variables: {
-            input: { chat_ids },
+            input: { chat_ids, limit, cursor },
           },
         },
       }),
-      providesTags: ["chats"],
+      providesTags: (result) => {
+        console.log(result, "result.......")
+        return result
+          ? [
+            ...result.data.getChatById.data.items.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
+          : [{ type: "chats", id: "LIST" }]
+      },
+      serializeQueryArgs: ({ queryArgs, endpointName }) => {
+        // chat_ids se unique key banao, cursor ko ignore karo taaki merge ho sake
+        return `${endpointName}-${queryArgs.chat_ids?.join(",")}`;
+      },
+
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.cursor !== previousArg?.cursor;
+      },
+
+      merge: (currentCache, newData) => {
+        const currentItems = currentCache?.data?.getChatById?.data?.items ?? [];
+        const newItems = newData?.data?.getChatById?.data?.items ?? [];
+
+        const existingIds = new Set(currentItems.map((m: Message) => m.id));
+        const uniqueNewMessages = newItems.filter(
+          (msg: Message) => !existingIds.has(msg.id),
+        );
+
+        // purane messages ke upar naye (older) messages prepend karo
+        currentCache.data.getChatById.data.items = [
+          ...uniqueNewMessages,
+          ...currentItems,
+        ];
+
+        // nextCursor aur hasMore update karo
+        currentCache.data.getChatById.data.nextCursor =
+          newData.data.getChatById.data.nextCursor;
+        currentCache.data.getChatById.data.hasMore =
+          newData.data.getChatById.data.hasMore;
+      },
     }),
     getEmojis: builder.query({
       query: () => ({

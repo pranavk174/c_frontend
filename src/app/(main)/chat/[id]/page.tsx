@@ -3,10 +3,10 @@ import ChatPage from "./ChatPage";
 const page = async ({ params }: { params: { id: number } }) => {
   const { id } = await params;
 
-  console.log(id, "iddddddd");
+  console.log(typeof id, "iddddddd");
   return (
     <div>
-      <ChatPage id={id} />
+      <ChatPage id={Number(id)} />
     </div>
   );
 };

@@ -47,8 +47,12 @@ const Messages = ({
 
   const repliedMessage =
     msg.reply_to_message !== null
-      ? data.find((d) => parseInt(d.id) === msg.reply_to_message)
+      ? data.find((d) => d.id === msg.reply_to_message)
       : null;
+
+
+
+  // console.log(msg.sender_id === user_id, "condition.......", msg.sender_id, user_id)
 
   return (
     <div
@@ -80,7 +84,7 @@ const Messages = ({
           <div
             className={cn(
               "relative rounded-2xl px-3 py-2 shadow-sm text-sm break-words transition-all",
-              msg.sender_id === user_id
+              msg.sender_id == user_id
                 ? "bg-[#d9fdd3] dark:bg-[#005c4b] rounded-br-md text-[#111b21] dark:text-[#e9edef]"
                 : "bg-white dark:bg-[#202c33] rounded-bl-md text-[#111b21] dark:text-[#e9edef]",
             )}
@@ -128,7 +132,7 @@ const Messages = ({
             </div>
 
             {/* Reactions */}
-            {msg.reactions.length > 0 && (
+            {msg.reactions?.length > 0 && (
               <div className="absolute -bottom-3 right-2 flex items-center gap-1 bg-white dark:bg-[#202c33] border dark:border-[#2f3b43] rounded-full px-2 py-[2px] shadow-md">
                 <Smile size={10} className="text-yellow-500" />
 

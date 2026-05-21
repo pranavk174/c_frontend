@@ -1,0 +1,291 @@
+"use client"
+import { Chat, Message } from '@/lib/dummy';
+import { REFETCH_CHATS } from '@/lib/events';
+import { useAppDispatch } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
+import { UserApi, useReactMessageMutation } from '@/redux/Apis/User';
+
+import { motion } from 'framer-motion';
+import { data } from 'framer-motion/client';
+import React, { Dispatch, memo, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
+import Messages from './Messages';
+type emoji = {
+    react_id: number;
+    emoji: string;
+};
+
+interface chatListProps {
+    menu: boolean;
+    setMenu: Dispatch<SetStateAction<boolean>>
+    chat_id: number
+    chatDetails: Chat
+    setSelectedMessages: Dispatch<SetStateAction<number[]>>
+    setCursor: Dispatch<SetStateAction<number | null>>
+    setSelected: Dispatch<SetStateAction<number[]>>
+    hasMore: boolean
+    setShow: Dispatch<SetStateAction<string | number | null>>
+    setActive: Dispatch<SetStateAction<string | number | null>>
+    emojis: emoji[]
+    show: string | number | null
+    nextCursor: number
+    timerRef: RefObject<NodeJS.Timeout | null>
+    setReplyMessage: Dispatch<SetStateAction<Message | null>>
+    data: Message[]
+    active: string | number | null
+    isFetching: boolean
+    selectedMessages: number[]
+    user_id: number | null
+
+
+
+}
+const Chatlist = memo(({ setMenu, chat_id, setSelectedMessages, setCursor, setSelected, isFetching, data, nextCursor, hasMore, selectedMessages, timerRef, setActive, emojis, user_id, setShow, active, setReplyMessage, show }: chatListProps) => {
+
+    const [reactMessage, { }] = useReactMessageMutation({});
+    const [selectionMode, setSelectionMode] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [data.length]);
+
+
+    const bottomRef = useRef(null);
+    useEffect(() => {
+        const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore && !isFetching) {
+                console.log(entries, "entriesssssssss")
+                setCursor(() => nextCursor)
+            }
+        }, {
+            rootMargin: "500px",
+            threshold: 0,
+        })
+
+
+        if (bottomRef.current) observer.observe(bottomRef.current)
+
+        //  console.log("= data =================")
+        return () => observer.disconnect()
+    }, [data, nextCursor, hasMore]);
+
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop =
+                chatContainerRef.current.scrollHeight;
+        }
+    }, [data, nextCursor]);
+
+
+
+    const handleLike = async (msg_id: number, react_id: number) => {
+
+        console.log(chat_id, "chat_iddddddddd")
+        try {
+            await reactMessage({
+                chat_ids: [chat_id],
+                message_ids: [msg_id],
+                react_id,
+            });
+        } catch (error) { }
+    };
+    const toggleSelection = (ids: number) => {
+        // debugger;
+        setSelectedMessages((prev) => {
+            console.log(
+                typeof prev[0],
+                "type of fddddd",
+                prev,
+                prev.includes(ids),
+                ids,
+            );
+            if (prev.includes(ids)) {
+                const filtered = prev.filter((item) => item !== ids);
+
+                if (filtered.length === 0) {
+                    setSelectionMode(false);
+                }
+
+                console.log(filtered, "filteredddddd");
+                return filtered;
+            }
+
+            return [...prev, ids];
+        });
+    };
+
+
+    const handleLongPress = (id: number) => {
+        // console.log("Long Press Triggered");
+        setSelected((p) => [...p, id]);
+        setMenu(true);
+        setSelectionMode(true);
+        // toggleSelection(id);
+    };
+
+    const startPressTimer = (id: number) => {
+        timerRef.current = setTimeout(() => {
+            handleLongPress(id);
+
+            //
+        }, 500); // 500ms
+    };
+
+    const cancelPressTimer = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+    };
+    return (
+        <div className="flex-1  p-1 z-10">
+            <div ref={chatContainerRef} className="flex  flex-col space-y-2  overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full">
+                {/* Encrypted Notice */}
+
+                <div className="flex justify-center mb-4">
+                    <div ref={bottomRef} />
+                    <div className="bg-[#ffeecd] dark:bg-[#182229] text-[#54656f] dark:text-[#8696a0] text-xs px-4 py-2 rounded-lg text-center shadow-sm max-w-[60%]">
+                        <span className="inline-block mr-1">🔒</span>
+                        Messages and calls are end-to-end encrypted. No one outside of
+                        this chat, not even WhatsApp, can read or listen to them.
+                    </div>
+                </div>
+
+
+                {data.map((msg: Message) => {
+                    const icons = emojis?.filter((emoji: emoji) =>
+                        msg.reactions?.some((em) => em.react_id === emoji.react_id),
+                    );
+
+                    const isSelected = selectedMessages.includes(msg.id);
+
+                    return (
+                        <motion.div
+                            key={msg.id}
+                            onMouseDown={() => startPressTimer(msg.id)}
+                            onMouseUp={cancelPressTimer}
+                            onMouseLeave={cancelPressTimer}
+                            onTouchStart={() => startPressTimer(msg.id)}
+                            onTouchEnd={cancelPressTimer}
+                            onMouseEnter={() => setActive(msg.id)}
+                            onClick={() => {
+                                if (selectionMode) {
+                                    toggleSelection(msg.id);
+                                }
+                            }}
+                            className={cn(
+                                "group relative flex items-center px-2 py-[2px] justify-end transition-all duration-200",
+
+                                msg.sender_id == user_id ? "" : "flex-row-reverse",
+
+                                isSelected && "bg-[#ffffff0f] dark:bg-[#ffffff08]",
+                            )}
+                        >
+                            {/* Selection Checkbox */}
+                            {selectionMode && (
+                                <div
+                                    className={cn(
+                                        "absolute left-2 z-20 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+
+                                        isSelected
+                                            ? "bg-green-500 border-green-500 scale-100"
+                                            : "border-gray-400 scale-90",
+                                    )}
+                                >
+                                    {isSelected && (
+                                        <span className="text-white text-[10px]">✓</span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Message Actions */}
+                            <div
+                                className={cn(
+                                    "flex items-center gap-2 mx-2 transition-opacity duration-200",
+
+                                    active === msg.id ? "opacity-100" : "opacity-0",
+                                )}
+                            >
+                                <button
+                                    className="text-gray-500 hover:text-white transition p-1 rounded-full hover:bg-[#ffffff14]"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShow(msg.id);
+                                    }}
+                                >
+                                    <svg
+                                        className="w-3 h-3"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 14 8"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth="2"
+                                            d="m1 1 5.326 5.7a.909.909 0 0 0 1.348 0L13 1"
+                                        />
+                                    </svg>
+                                </button>
+
+                                {/* Emoji Picker */}
+                                <ol
+                                    className={cn(
+                                        "absolute top-0 z-50 flex gap-1 bg-white dark:bg-[#202c33] shadow-xl rounded-full px-2 py-1 border dark:border-[#2f3b43] transition-all",
+
+                                        show === msg.id
+                                            ? "opacity-100 scale-100"
+                                            : "opacity-0 scale-95 pointer-events-none",
+                                    )}
+                                >
+                                    {emojis?.map((em: emoji) => (
+                                        <li
+                                            key={em.react_id}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+
+                                                console.log(msg.id, "messgae id ", em.react_id)
+                                                handleLike(msg.id, em.react_id);
+                                            }}
+                                            className="cursor-pointer hover:scale-125 transition-transform"
+                                        >
+                                            {em.emoji}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
+
+                            {/* Message */}
+                            <div
+                                className={cn(
+                                    "transition-all duration-200  max-w-[70%]  ",
+
+                                    selectionMode && "ml-8",
+                                )}
+                            >
+                                <Messages
+                                    msg={msg}
+                                    user_id={user_id}
+                                    data={data}
+                                    emojis={icons}
+                                    setReplyMessage={setReplyMessage}
+                                />
+                            </div>
+                        </motion.div>
+                    );
+                })}
+
+
+
+            </div>
+        </div>
+    )
+})
+
+export default Chatlist
