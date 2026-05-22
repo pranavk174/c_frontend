@@ -1,8 +1,9 @@
 import { Chat } from '@/lib/dummy';
 import { menu } from 'framer-motion/client'
 import { ArrowLeft, CornerUpLeft, CornerUpRight, Info, Link, MoreVertical, Phone, Search, Trash, Video } from 'lucide-react'
-import React, { Dispatch, memo, SetStateAction } from 'react'
-
+import React, { Dispatch, memo, SetStateAction, useState } from 'react'
+import Modal from '../HOComponents/Modal';
+import WhatsappProfile from '../User/WhatsappProfile';
 interface chatHeadProps {
     menu: boolean;
     setShowModal: Dispatch<SetStateAction<boolean>>
@@ -10,6 +11,7 @@ interface chatHeadProps {
 }
 
 const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
+    const [open, setOpen] = useState<boolean>(false)
     return (
         <>
             {menu ? (
@@ -19,21 +21,10 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
                             <ArrowLeft className="w-5 h-5 text-wa-icon text-black" />
                         </button>
                         <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0">
-                            {/* <img
-              src={chatDetails.profile_pic}
-              alt={chatDetails.name}
-              className="w-full h-full object-cover"
-            /> */}
+
                         </div>
                         <div className="flex flex-col cursor-pointer">
-                            {/* <h2 className="text-base  font-normal text-gray-900 dark:text-gray-100">
-              {chatDetails.name}
-            </h2> */}
-                            {/* {chat.isOnline ? (
-              <span className="text-xs text-wa-icon dark:text-wa-icon-dark">online</span>
-            ) : (
-              <span className="text-xs text-wa-icon dark:text-wa-icon-dark">click here for contact info</span>
-            )} */}
+
                         </div>
                     </div>
                     <div className="flex items-center space-x-4 text-wa-icon dark:text-wa-icon-dark">
@@ -65,7 +56,8 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
                         >
                             <ArrowLeft className="w-5 h-5 text-wa-icon dark:text-wa-icon-dark" />
                         </Link>
-                        <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0">
+
+                        <div onClick={() => setOpen(p => !p)} className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0">
                             <img
                                 src={chatDetails?.profile_pic}
                                 alt={chatDetails?.name}
@@ -99,8 +91,20 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
                         </button>
                     </div>
                 </header>
-            )}</>
+            )}
+
+
+
+            <Modal open={open} setOpen={setOpen}>
+
+                <WhatsappProfile profile={chatDetails} />
+            </Modal>
+
+        </>
     )
 })
+
+
+Chathead.displayName = "chathead"
 
 export default Chathead

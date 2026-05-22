@@ -32,14 +32,17 @@ export interface Message {
   id: number;
   sender_id: number;
   created_at: string;
+  preview: string | null;
   seen_at: string | null;
   is_forwarded: boolean;
-  content: string;
+  content: string | null;
   story_id: number | null;
   is_edited: boolean;
-  reply_to_message: number | null;
+  reply_to_message_id: number | null;
   is_deleted: boolean;
   reactions: reaction[];
+  isLocal: boolean
+
 }
 
 

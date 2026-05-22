@@ -5,57 +5,164 @@ import { REFETCH_CHATS, REPLY_MESSAGE, SEND_MESSAGE } from '@/lib/events';
 import { useAppDispatch, useSocketEvents } from '@/lib/hooks';
 import { UserApi, useReplyToMessageMutation } from '@/redux/Apis/User';
 import { Mic, Paperclip, Send, Smile } from 'lucide-react'
-import React, { Dispatch, memo, SetStateAction, useMemo, useState } from 'react'
+import React, { Dispatch, FormEvent, memo, SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
 import MediaOptions from './MediaOptions';
+import { RootState } from '@/redux/store';
+import { useSelector } from 'react-redux';
 
 
 interface inputBoxProps {
     chatDetails: Chat
     replyMessage: Message | null
     setReplyMessage: Dispatch<SetStateAction<Message | null>>
+    setMessages: Dispatch<SetStateAction<Message[]>>
     scrollToBottom: () => void;
+    messages?: Message[];
     chat_id: number
+    startUpload: () => Promise<void>
+    cancelUpload: () => Promise<"success" | undefined>
+    uploadChunks: (id: string) => Promise<void>
+    pausedRef: React.RefObject<boolean>
+    setFile: React.Dispatch<React.SetStateAction<File | null>>
+    progress: number
+    uploadId: string,
+    file: File | null
+    inputText: string
+    setInputText: Dispatch<SetStateAction<string>>
+    handleSendMessage: (e: FormEvent<Element>) => Promise<void>
 
 }
 
-const Inputbox = memo(({ chatDetails, replyMessage, setReplyMessage, scrollToBottom, chat_id }: inputBoxProps) => {
-    const [inputText, setInputText] = useState("");
+const Inputbox = memo(({ startUpload, handleSendMessage, cancelUpload, file, inputText, setInputText, progress, uploadId, uploadChunks, pausedRef, setFile, chatDetails, replyMessage, messages, setMessages, setReplyMessage, scrollToBottom, chat_id }: inputBoxProps) => {
+    // const [inputText, setInputText] = useState("");
     const [open, setOpen] = useState(false);
     const socket = useSocket()
     const [replyToMessage] = useReplyToMessageMutation();
     const dispatch = useAppDispatch();
 
-    const handleSendMessage = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!inputText.trim() || !socket) return;
 
-        console.log(chatDetails, "chat detaillssssss", chatDetails);
-        const newMessage = {
-            chat_ids: [chat_id],
-            content: inputText,
-            reciever_ids: [chatDetails.user_id],
-            message_ids: [replyMessage?.id],
-        };
 
-        try {
-            if (replyMessage !== null) {
-                socket.emit(REPLY_MESSAGE, newMessage);
-                console.log("messege repliy sent...")
-                // await replyToMessage(newMessage).unwrap();
-                setReplyMessage(null);
-            } else {
-                socket.emit(SEND_MESSAGE, newMessage);
-                console.log("messege sent...")
-                // await sendMessage(newMessage);
-            }
-            scrollToBottom();
-        } catch (error) {
-            console.log(error, "error in sending message")
-        }
+    // const [file, setFile] = useState<File | null>(null);
+    // const [progress, setProgress] = useState(0);
+    // const [uploadId, setUploadId] = useState<string>("");
+    // const [currentChunk, setCurrentChunk] = useState(0);
+    // const controllerRef = useRef<AbortController | null>(null);
+    // const { id: user_id } = useSelector((state: RootState) => state.userSlice);
+    // const CHUNK_SIZE = 1024 * 1024;
+    // const pausedRef = useRef(false);
 
-        // setMessages([...messages, newMessage]);
-        setInputText("");
-    };
+    // const uploadChunks = useCallback(async (id: string) => {
+    //     try {
+    //         if (!file) return;
+    //         const totalChunk = Math.ceil(file.size / CHUNK_SIZE);
+
+    //         for (let i = currentChunk; i < totalChunk; i++) {
+    //             if (pausedRef.current === true) {
+    //                 return;
+    //             }
+
+    //             const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+    //             //  console.log();
+    //             const form = new FormData();
+    //             form.append("uploadId", id);
+    //             form.append("chunk", chunk);
+    //             form.append("index", i.toString());
+
+    //             await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/upload`, {
+    //                 method: "POST",
+    //                 body: form,
+    //                 signal: controllerRef.current?.signal,
+    //             });
+    //             setCurrentChunk(i + 1);
+    //             setProgress(Math.round(((i + 1) / totalChunk) * 100));
+    //         }
+
+    //         const done = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/finish`, {
+    //             method: "POST",
+    //             headers: { "Content-type": "application/json" },
+    //             body: JSON.stringify({
+    //                 uploadId: id,
+    //                 extension: file.name.split(".").pop(),
+    //             }),
+    //         });
+
+    //         if (done.ok) {
+    //             //  console.log(done);
+    //             alert("upload completed");
+    //         } else {
+    //             alert("error in uploading");
+    //         }
+    //     } catch (error) {
+    //         alert("error in uploading");
+    //     }
+    // }, [file, CHUNK_SIZE, currentChunk]);
+    // const startUpload = useCallback(async () => {
+    //     if (!file || currentChunk > 0) return;
+
+
+
+
+    //     setMessages(prev => [
+    //         ...prev,
+    //         {
+    //             id: (prev[prev.length - 1]?.id || 0) + 1,
+    //             sender_id: user_id ?? 2,
+    //             created_at: new Date().toISOString(),
+    //             seen_at: null,
+    //             story_id: null,
+    //             content: "meida_upload",
+    //             reply_to_message: null,
+    //             is_forwarded: false,
+    //             is_edited: false,
+    //             is_deleted: false,
+    //             reactions: [],
+    //             isLocal: true
+    //         }
+    //     ])
+
+    //     controllerRef.current = new AbortController();
+    //     const upload = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-type": "application/json",
+    //         }
+    //     });
+
+    //     const data = await upload.json();
+    //     console.log(data, "data....");
+    //     const id = data.uploadId;
+    //     setUploadId(id);
+
+    //     uploadChunks(id);
+    // }, [currentChunk, file, setMessages, user_id, uploadChunks]);
+
+
+
+    // const cancelUpload = useCallback(async () => {
+    //     controllerRef.current?.abort();
+
+    //     try {
+    //         const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/product/cancel`, {
+    //             method: "POST",
+    //             headers: {
+    //                 "Content-type": "application/json",
+    //             },
+    //             body: JSON.stringify({
+
+    //                 uploadId: uploadId,
+    //             }),
+    //         });
+
+    //         setProgress(0);
+    //         setCurrentChunk(0);
+    //         setUploadId("");
+    //         if (res.ok) {
+    //             return "success";
+    //         }
+    //     } catch (error) {
+    //         //  console.log(error, "errorrrrr");
+    //     }
+    // }, [uploadId]);
 
     const handler = useMemo(
         () => ({
@@ -85,7 +192,7 @@ const Inputbox = memo(({ chatDetails, replyMessage, setReplyMessage, scrollToBot
         }),
         [dispatch, chat_id],
     );
-
+    // console.log(inputText, "type fileeee.")
 
     useSocketEvents(socket, handler);
     return (
@@ -96,7 +203,7 @@ const Inputbox = memo(({ chatDetails, replyMessage, setReplyMessage, scrollToBot
                 </button>
 
                 <div>
-                    <MediaOptions open={open} setOpen={setOpen} />
+                    <MediaOptions setInputText={setInputText} inputText={inputText} file={file} pausedRef={pausedRef} setFile={setFile} progress={progress} uploadId={uploadId} open={open} uploadChunks={uploadChunks} cancelUpload={cancelUpload} startUpload={startUpload} setMessages={setMessages} messages={messages ?? []} setOpen={setOpen} />
                     <button onClick={() => setOpen(p => !p)} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
                         <Paperclip className="w-5 h-5" />
                     </button>
@@ -164,6 +271,10 @@ const Inputbox = memo(({ chatDetails, replyMessage, setReplyMessage, scrollToBot
         </footer>
     )
 })
+
+
+
+Inputbox.displayName = "Inputbox"
 
 
 export default Inputbox

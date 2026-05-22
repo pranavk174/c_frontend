@@ -197,10 +197,11 @@ export const UserApi = createApi({
   created_at,
   seen_at,
   is_forwarded ,
+  preview,
   content,
   story_id ,
   is_edited ,
-  reply_to_message ,
+  reply_to_message_id ,
   is_deleted ,
   reactions{
 
@@ -221,16 +222,16 @@ export const UserApi = createApi({
         },
       }),
       providesTags: (result) => {
-        console.log(result, "result.......")
+        console.log(result, "result.......");
         return result
           ? [
-            ...result.data.getChatById.data.items.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
-          : [{ type: "chats", id: "LIST" }]
+              ...result.data.getChatById.data.items.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
+          : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
         // chat_ids se unique key banao, cursor ko ignore karo taaki merge ho sake

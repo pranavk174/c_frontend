@@ -17,7 +17,7 @@ const Modal = ({
       <div className="inset-0 z-10 bg-black/50 absolute"></div>
 
       <div
-        className="absolute  transition-all duration-400 z-40"
+        className="absolute flex justify-center items-center w-full transition-all duration-400 z-40"
         style={{
           transform: `translateX(-${open ? 0 : 300}%)`,
         }}

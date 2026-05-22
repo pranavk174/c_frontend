@@ -36,10 +36,20 @@ interface chatListProps {
     selectedMessages: number[]
     user_id: number | null
 
+    startUpload: () => Promise<void>
+    cancelUpload: () => Promise<"success" | undefined>
+    uploadChunks: (id: string) => Promise<void>
+    setMessages: Dispatch<SetStateAction<Message[]>>, messages: Message[]
+    pausedRef: React.RefObject<boolean>
+    setFile: React.Dispatch<React.SetStateAction<File | null>>
+    progress: number
+    uploadId: string
+
 
 
 }
-const Chatlist = memo(({ setMenu, chat_id, setSelectedMessages, setCursor, setSelected, isFetching, data, nextCursor, hasMore, selectedMessages, timerRef, setActive, emojis, user_id, setShow, active, setReplyMessage, show }: chatListProps) => {
+const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
+    uploadChunks, pausedRef, progress, uploadId, setMenu, chat_id, setSelectedMessages, setCursor, setSelected, isFetching, data, nextCursor, hasMore, selectedMessages, timerRef, setActive, emojis, user_id, setShow, active, setReplyMessage, show }: chatListProps) => {
 
     const [reactMessage, { }] = useReactMessageMutation({});
     const [selectionMode, setSelectionMode] = useState(false);
@@ -271,6 +281,11 @@ const Chatlist = memo(({ setMenu, chat_id, setSelectedMessages, setCursor, setSe
                             >
                                 <Messages
                                     msg={msg}
+                                    pausedRef={pausedRef}
+                                    setFile={setFile}
+                                    progress={progress}
+                                    uploadId={uploadId}
+                                    uploadChunks={uploadChunks} cancelUpload={cancelUpload} startUpload={startUpload}
                                     user_id={user_id}
                                     data={data}
                                     emojis={icons}
@@ -288,4 +303,6 @@ const Chatlist = memo(({ setMenu, chat_id, setSelectedMessages, setCursor, setSe
     )
 })
 
+
+Chatlist.displayName = "chatlist"
 export default Chatlist

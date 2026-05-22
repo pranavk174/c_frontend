@@ -1,8 +1,10 @@
-import React, { useRef } from "react";
+import React, { Dispatch, SetStateAction, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Message } from "@/lib/dummy";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { Reply, CheckCheck, Check, Smile } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type emoji = {
   react_id: number;
@@ -15,18 +17,36 @@ interface messageProps {
   user_id: number | null;
   data: Message[];
   setReplyMessage: React.Dispatch<React.SetStateAction<Message | null>>;
+  startUpload: () => Promise<void>;
+  cancelUpload: () => Promise<"success" | undefined>;
+  uploadChunks: (id: string) => Promise<void>;
+  // setMessages: Dispatch<SetStateAction<Message[]>>
+
+  pausedRef: React.RefObject<boolean>;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  progress: number;
+  uploadId: string;
+  file: File | null;
 }
 
 const Messages = ({
   data,
   msg,
+  file,
   emojis,
   user_id,
+  startUpload,
   setReplyMessage,
+  setFile,
+  uploadChunks,
+  pausedRef,
+  progress,
+  uploadId,
+  cancelUpload,
 }: messageProps) => {
   const x = useMotionValue(0);
   const triggered = useRef(false);
-
+  const router = useRouter();
   const handleDragEnd = () => {
     if (x.get() > 90 && !triggered.current) {
       triggered.current = true;
@@ -46,11 +66,18 @@ const Messages = ({
   };
 
   const repliedMessage =
-    msg.reply_to_message !== null
-      ? data.find((d) => d.id === msg.reply_to_message)
+    msg.reply_to_message_id !== null
+      ? data.find((d) => d.id === msg.reply_to_message_id)
       : null;
 
-
+  console.log(
+    msg.content,
+    "message content",
+    msg,
+    repliedMessage,
+    msg.reply_to_message_id,
+    msg.reply_to_message_id !== null,
+  );
 
   // console.log(msg.sender_id === user_id, "condition.......", msg.sender_id, user_id)
 
@@ -110,7 +137,106 @@ const Messages = ({
             )}
 
             {/* Main Message */}
-            <div className="whitespace-pre-wrap break-words pr-12">
+            <div className="whitespace-pre-wrap break-words ">
+              {msg.preview && (
+                <div
+                  onClick={() =>
+                    router.push(`/photo/${encodeURIComponent(msg.preview!)}`)
+                  }
+                  className="relative w-[300px]  max-h-[320px] rounded-2xl overflow-hidden bg-black/10"
+                >
+                  {/* image */}
+                  {msg.preview && (
+                    <Image
+                      src={msg.preview}
+                      alt="upload"
+                      height={300}
+                      width={300}
+                      style={{ height: "auto", width: "auto" }}
+                      className={` w-full h-full object-cover ${msg.isLocal ? "blur-[3px]" : ""}   scale-105`}
+                    />
+                  )}
+
+                  {/* dark overlay */}
+                  {msg.isLocal && (
+                    <div className="absolute inset-0 bg-black/40" />
+                  )}
+
+                  {/* progress center */}
+                  {msg.isLocal && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                      {/* circular progress */}
+                      <div className="relative w-20 h-20">
+                        <svg className="w-20 h-20 rotate-[-90deg]">
+                          <circle
+                            cx="40"
+                            cy="40"
+                            r="34"
+                            stroke="rgba(255,255,255,0.2)"
+                            strokeWidth="5"
+                            fill="none"
+                          />
+
+                          <circle
+                            cx="40"
+                            cy="40"
+                            r="34"
+                            stroke="white"
+                            strokeWidth="5"
+                            fill="none"
+                            strokeDasharray={214}
+                            strokeDashoffset={
+                              214 - (214 * (progress || 0)) / 100
+                            }
+                            strokeLinecap="round"
+                          />
+                        </svg>
+
+                        <div className="absolute inset-0 flex items-center justify-center text-white text-sm font-semibold">
+                          {progress || 0}%
+                        </div>
+                      </div>
+
+                      {/* controls */}
+                      <div className="flex items-center gap-3">
+                        {/* pause/play */}
+                        <button
+                          // onClick={() => ()}
+                          onClick={() => {
+                            pausedRef.current = true;
+                          }}
+                          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition"
+                        >
+                          {"❚❚"}
+                        </button>
+                        <button
+                          // onClick={() => ()}
+                          onClick={() => {
+                            pausedRef.current = false;
+                            uploadChunks(uploadId);
+                          }}
+                          className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition"
+                        >
+                          {"▶"}
+                        </button>
+
+                        {/* cancel */}
+                        <button
+                          onClick={cancelUpload}
+                          className="w-10 h-10 rounded-full bg-red-500/80 flex items-center justify-center text-white hover:bg-red-500 transition"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* status */}
+                      <p className="text-white text-sm font-medium">
+                        {/* {msg.paused ? "Upload Paused" : "Uploading..."} */}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
               {msg.content}
             </div>
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Wrapper from "@/redux/Wrapper";
+import { ToastProvider } from "@/components/Utility/Toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,9 +21,14 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#e0e0e0] text-[#111b21] dark:bg-[#111b21] dark:text-[#e9edef] overflow-hidden">
         <Wrapper>
 
+          <ToastProvider>
 
-        {children}
-                </Wrapper>
+
+
+            {children}
+          </ToastProvider>
+
+        </Wrapper>
       </body>
     </html>
   );

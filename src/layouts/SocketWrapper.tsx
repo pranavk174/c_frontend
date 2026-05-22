@@ -1,5 +1,8 @@
 "use client";
 
+import { useToast } from "@/components/Utility/Toast";
+import { ERROR, REFETCH_CHATS } from "@/lib/events";
+import { useSocketEvents } from "@/lib/hooks";
 import { createContext, useMemo, useContext, ReactNode } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -29,6 +32,24 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       withCredentials: true,
     });
   }, []);
+  const { showToast } =
+    useToast();
+  const handler = useMemo(() => ({
+
+    [ERROR]: (data: string) => {
+
+      showToast(
+        data,
+        "error"
+      );
+    }
+
+
+
+
+  }), [])
+
+  useSocketEvents(socket, handler)
 
   // console.log(socket, "socket data//////");
 

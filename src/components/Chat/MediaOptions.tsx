@@ -12,15 +12,32 @@ import {
     MapPin,
     User,
 } from "lucide-react";
+import Uploader from "../Uploader/Uploader";
+import { Message } from "@/lib/dummy";
+import Modal from "../HOComponents/Modal";
+import MediaPreviewContent from "../ModalChilds/MediaPreviewContent";
 
 
 interface mediaOptionsProps {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>
+    setMessages: Dispatch<SetStateAction<Message[]>>
+    startUpload: () => Promise<void>
+    cancelUpload: () => Promise<"success" | undefined>
+    uploadChunks: (id: string) => Promise<void>
+    pausedRef: React.RefObject<boolean>
+    setFile: React.Dispatch<React.SetStateAction<File | null>>
+    progress: number
+    file: File | null
+    uploadId: string
+    messages: Message[]
+    inputText: string
+    setInputText: Dispatch<SetStateAction<string>>
+
 }
-const MediaOptions = ({ open, setOpen }: mediaOptionsProps) => {
+const MediaOptions = ({ messages, setInputText, inputText, file, open, pausedRef, progress, uploadId, setFile, startUpload, setOpen, cancelUpload, setMessages, uploadChunks }: mediaOptionsProps) => {
 
-
+    const [show, setShow] = useState(false)
     const imageRef = useRef<HTMLInputElement>(null);
     const documentRef = useRef<HTMLInputElement>(null);
     const audioRef = useRef<HTMLInputElement>(null);
@@ -35,16 +52,26 @@ const MediaOptions = ({ open, setOpen }: mediaOptionsProps) => {
             <input
                 ref={imageRef}
                 type="file"
+                onChange={(e) => {
+                    setFile(e.target.files?.[0] || null)
+
+                    if (e.target.files?.[0]) {
+                        setShow(p => !p)
+                    }
+
+
+
+                }}
                 accept="image/*"
                 hidden
-                onChange={(e) => console.log(e.target.files)}
+
             />
 
             <input
                 ref={documentRef}
                 type="file"
                 hidden
-                onChange={(e) => console.log(e.target.files)}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
 
             <input
@@ -52,8 +79,11 @@ const MediaOptions = ({ open, setOpen }: mediaOptionsProps) => {
                 type="file"
                 accept="audio/*"
                 hidden
-                onChange={(e) => console.log(e.target.files)}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
+
+
+            {/* <Uploader pausedRef={pausedRef} setFile={setFile} progress={progress} uploadId={uploadId} messages={messages} uploadChunks={uploadChunks} cancelUpload={cancelUpload} startUpload={startUpload} setMessages={setMessages} /> */}
 
             {/* Options UI */}
             {open && (
@@ -151,6 +181,19 @@ const MediaOptions = ({ open, setOpen }: mediaOptionsProps) => {
                     </div>
                 </div>
             )}
+            <Modal open={show} setOpen={setShow}>
+                {file && <MediaPreviewContent
+                    file={file}
+                    inputText={inputText}
+                    setInputText={setInputText}
+                    onSend={(data) => {
+                        startUpload()
+                        setInputText(data.caption)
+                        console.log(data, "dataaa detailllllllll")
+                        setShow(false)
+                    }}
+                />}
+            </Modal>
 
             {/* Attachment Button */}
 
