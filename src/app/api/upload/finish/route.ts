@@ -69,7 +69,7 @@ export const POST = async (
         // =========================
         // MERGE CHUNKS
         // =========================
-
+        // eslint-disable-next-line no-await-in-loop
         for (const part of sortedParts) {
             const chunkPath = path.join(
                 folderPath,
@@ -150,55 +150,12 @@ export const POST = async (
         // =========================
 
         const cloudinaryResult =
-            await new Promise(
-                (
-                    resolve,
-                    reject
-                ) => {
-                    const uploadStream =
-                        cloudinary.uploader.upload_stream(
-                            {
-                                folder:
-                                    "uploads",
-                                resource_type:
-                                    "auto",
-                            },
-                            (
-                                error,
-                                result
-                            ) => {
-                                if (
-                                    error
-                                ) {
-                                    reject(
-                                        error
-                                    );
-                                } else {
-                                    resolve(
-                                        result
-                                    );
-                                }
-                            }
-                        );
-
-                    const readStream =
-                        fsSync.createReadStream(
-                            finalPath
-                        );
-
-                    readStream.once(
-                        "error",
-                        reject
-                    );
-
-                    uploadStream.once(
-                        "error",
-                        reject
-                    );
-
-                    readStream.pipe(
-                        uploadStream
-                    );
+            await cloudinary.uploader.upload(
+                finalPath,
+                {
+                    folder: "uploads",
+                    resource_type: "auto",
+                    chunk_size: 6000000000000,
                 }
             );
 
@@ -243,6 +200,7 @@ export const POST = async (
                 "Upload failed",
             success: false,
             status: 500,
+            error: error.message
         });
     }
 };

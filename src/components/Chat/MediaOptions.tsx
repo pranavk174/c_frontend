@@ -35,6 +35,7 @@ interface mediaOptionsProps {
     setInputText: Dispatch<SetStateAction<string>>
 
 }
+import { useToast } from "../Utility/Toast";
 const MediaOptions = ({ messages, setInputText, inputText, file, open, pausedRef, progress, uploadId, setFile, startUpload, setOpen, cancelUpload, setMessages, uploadChunks }: mediaOptionsProps) => {
 
     const [show, setShow] = useState(false)
@@ -43,6 +44,7 @@ const MediaOptions = ({ messages, setInputText, inputText, file, open, pausedRef
     const audioRef = useRef<HTMLInputElement>(null);
 
 
+    const { showToast } = useToast()
 
 
 
@@ -53,6 +55,13 @@ const MediaOptions = ({ messages, setInputText, inputText, file, open, pausedRef
                 ref={imageRef}
                 type="file"
                 onChange={(e) => {
+                    console.log(e.target.files?.[0], "file detailll....")
+                    if (e.target.files?.[0] && e.target.files?.[0].size > 10485760) {
+                        showToast("File Size Cant be Greater then 10MB", "error")
+
+                        return
+
+                    }
                     setFile(e.target.files?.[0] || null)
 
                     if (e.target.files?.[0]) {

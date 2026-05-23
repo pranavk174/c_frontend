@@ -47,7 +47,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
 
 
-  }), [])
+  }), [showToast])
 
   useSocketEvents(socket, handler)
 

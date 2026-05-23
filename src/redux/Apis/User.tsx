@@ -37,9 +37,9 @@ const baseQueryWithReauth: BaseQueryFn<
 
   const data = result.data as GraphQLResponse<unknown>;
 
-  console.log(data, "result dataaa");
+  console.log(data, result, "result dataaa");
   // access token expired
-  if (data.errors && data?.errors?.[0]?.message === "Invalid access token") {
+  if (data && data.errors && data?.errors?.[0]?.message === "Invalid access token") {
     // refresh token call
     const refreshResult = await baseQuery(
       {
@@ -72,6 +72,9 @@ const baseQueryWithReauth: BaseQueryFn<
       // optional redirect
       window.location.href = "/login";
     }
+  }
+  else if (!data) {
+    throw new Error("Internal Server Error")
   }
 
   return result;
@@ -222,15 +225,15 @@ export const UserApi = createApi({
         },
       }),
       providesTags: (result) => {
-        console.log(result, "result.......");
+        // console.log(result, "result.......");
         return result
           ? [
-              ...result.data.getChatById.data.items.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data.getChatById.data.items.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {

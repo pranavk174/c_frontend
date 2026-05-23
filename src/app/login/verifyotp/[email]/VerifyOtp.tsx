@@ -70,7 +70,7 @@ export default function VerifyOtp({ email }: { email: string }) {
 
       <div className="bg-wa-panel dark:bg-wa-panel-dark w-full max-w-md rounded-lg shadow-lg overflow-hidden relative z-10 p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 bg-wa-primary dark:bg-wa-primary-dark rounded-full flex items-center justify-center mb-4">
+          <div className="size-16 bg-wa-primary dark:bg-wa-primary-dark rounded-full flex items-center justify-center mb-4">
             <MessageSquare className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-light text-gray-800 dark:text-gray-100">
@@ -97,7 +97,7 @@ export default function VerifyOtp({ email }: { email: string }) {
               className="w-full border-b-2 border-wa-primary bg-transparent text-center text-3xl tracking-widest py-2 focus:outline-none focus:border-wa-primary-dark dark:text-white"
             />
           </div>
-          <div className="flex space-x-3">
+          <div className="flex fap-x-3">
             <button
               type="button"
               onClick={() => setStep("email")}

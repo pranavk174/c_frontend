@@ -18,6 +18,7 @@ const Imagepreview = ({ image }: { image?: string }) => {
                         fill
                         priority
                         unoptimized
+                        sizes="(max-width: 768px) 100vw, 50vw"
                         className="object-contain rounded-2xl"
                     />
                 </div>

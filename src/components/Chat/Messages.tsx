@@ -70,14 +70,14 @@ const Messages = ({
       ? data.find((d) => d.id === msg.reply_to_message_id)
       : null;
 
-  console.log(
-    msg.content,
-    "message content",
-    msg,
-    repliedMessage,
-    msg.reply_to_message_id,
-    msg.reply_to_message_id !== null,
-  );
+  // console.log(
+  //   msg.content,
+  //   "message content",
+  //   msg,
+  //   repliedMessage,
+  //   msg.reply_to_message_id,
+  //   msg.reply_to_message_id !== null,
+  // );
 
   // console.log(msg.sender_id === user_id, "condition.......", msg.sender_id, user_id)
 

@@ -29,7 +29,7 @@ export default function Sidebar() {
     },
   );
 
-  console.log(data, "dataaaaa in chatss");
+  // console.log(data, "dataaaaa in chatss");
   const filteredChats = data?.filter((chat: Chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -79,7 +79,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto bg-wa-panel dark:bg-wa-panel-dark">
         {filteredChats?.map((chat: Chat) => {
           const isActive = pathname === `/chat/${chat?.chat_id}`;
-          console.log(typeof chat?.chat_id, "royeeeeeetttee")
+          // console.log(typeof chat?.chat_id, "royeeeeeetttee")
           return (
             <Link href={`/chat/${chat?.chat_id}`} key={chat?.chat_id}>
               <div

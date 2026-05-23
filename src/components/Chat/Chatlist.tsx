@@ -80,7 +80,7 @@ const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
 
         //  console.log("= data =================")
         return () => observer.disconnect()
-    }, [data, nextCursor, hasMore]);
+    }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -153,7 +153,7 @@ const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
     };
     return (
         <div className="flex-1  p-1 z-10">
-            <div ref={chatContainerRef} className="flex  flex-col space-y-2  overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full">
+            <div ref={chatContainerRef} className="flex  flex-col gap-y-2  overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full">
                 {/* Encrypted Notice */}
 
                 <div className="flex justify-center mb-4">
@@ -228,7 +228,7 @@ const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
                                     }}
                                 >
                                     <svg
-                                        className="w-3 h-3"
+                                        className="size-3"
                                         aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
