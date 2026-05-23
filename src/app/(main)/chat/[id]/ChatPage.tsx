@@ -21,6 +21,7 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
+  MESSAGE_REACTION,
   NEW_MESSAGE,
   REFETCH_CHATS,
   REPLY_MESSAGE,
@@ -327,7 +328,7 @@ const ChatPage = ({ id }: { id: number }) => {
         // setMessages(prev => prev.filter(pf => pf.id !== prev[prev.length - 1].id))
       }
     },
-    [file, CHUNK_SIZE, currentChunk, handleSendMessage],
+    [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage],
   );
   const startUpload = useCallback(async () => {
     if (!file || currentChunk > 0) return;
@@ -483,6 +484,40 @@ const ChatPage = ({ id }: { id: number }) => {
           ),
         );
       },
+      [MESSAGE_REACTION]: (data: any) => {
+
+        if (!data) {
+          return
+        }
+        dispatch(
+          UserApi.util.updateQueryData(
+            "getSingleChat",
+            { chat_ids: [id] },
+            (draft) => {
+              const message =
+                draft.data.getChatById.data.items.find(
+                  (m: Message) => m.id === data.message_id
+                );
+
+              if (message) {
+                const exists = message.reactions.find((i) => i.user_id === data.user_id)
+                if (exists) {
+                  message.reactions.map((i) => {
+                    if (i.user_id === data.user_id) {
+                      i.react_id = data.react_id
+                    }
+                  })
+                } else {
+                  message.reactions.push(data);
+                }
+
+              }
+            }
+          )
+        );
+
+        console.log("dataaaaa  in reaction", data)
+      }
     }),
     [dispatch, id],
   );

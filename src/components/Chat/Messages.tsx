@@ -26,7 +26,7 @@ interface messageProps {
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   progress: number;
   uploadId: string;
-  file: File | null;
+  file?: File | null;
 }
 
 const Messages = ({

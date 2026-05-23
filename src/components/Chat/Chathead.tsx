@@ -69,7 +69,7 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
               onClick={() => setOpen((p) => !p)}
               className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0"
             >
-              {chatDetails.profile_pic && (
+              {chatDetails && chatDetails.profile_pic && (
                 <Image
                   height={100}
                   width={100}

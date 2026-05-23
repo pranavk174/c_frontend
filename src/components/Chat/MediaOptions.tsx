@@ -107,7 +107,7 @@ const MediaOptions = ({ messages, setInputText, inputText, file, open, pausedRef
                             className="flex flex-col items-center gap-2"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center">
-                                <Image className="w-6 h-6" />
+                                <Image className="size-6" />
                             </div>
 
                             <span className="text-xs">Photos</span>

@@ -1,6 +1,6 @@
 "use client"
 import { Chat, Message } from '@/lib/dummy';
-import { REFETCH_CHATS } from '@/lib/events';
+import { MESSAGE_REACTION, REFETCH_CHATS } from '@/lib/events';
 import { useAppDispatch } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { UserApi, useReactMessageMutation } from '@/redux/Apis/User';
@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { data } from 'framer-motion/client';
 import React, { Dispatch, memo, RefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react'
 import Messages from './Messages';
+import { useSocket } from '@/layouts/SocketWrapper';
 type emoji = {
     react_id: number;
     emoji: string;
@@ -49,8 +50,10 @@ interface chatListProps {
 
 }
 const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
-    uploadChunks, pausedRef, progress, uploadId, setMenu, chat_id, setSelectedMessages, setCursor, setSelected, isFetching, data, nextCursor, hasMore, selectedMessages, timerRef, setActive, emojis, user_id, setShow, active, setReplyMessage, show }: chatListProps) => {
+    uploadChunks, pausedRef, progress, uploadId, setMenu, chat_id, setSelectedMessages, setCursor, setSelected, isFetching, data, nextCursor, hasMore, chatDetails, selectedMessages, timerRef, setActive, emojis, user_id, setShow, active, setReplyMessage, show }: chatListProps) => {
 
+
+    const socket = useSocket()
     const [reactMessage, { }] = useReactMessageMutation({});
     const [selectionMode, setSelectionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -95,13 +98,68 @@ const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
 
     const handleLike = async (msg_id: number, react_id: number) => {
 
+        console.log(user_id)
+
+
+
+        setMessages((prev: Message[]) => {
+            return prev.map((item) => {
+
+                // sirf same message update hoga
+                if (item.id !== msg_id) {
+                    return item;
+                }
+
+                const reactionExists = item.reactions.find(
+                    (d) => d.user_id === user_id
+                );
+
+                // update existing reaction
+                if (reactionExists) {
+                    return {
+                        ...item,
+                        reactions: item.reactions.map((d) => {
+                            if (d.user_id === user_id) {
+                                return {
+                                    ...d,
+                                    react_id,
+                                };
+                            }
+
+                            return d;
+                        }),
+                    };
+                }
+
+                // new reaction push
+                return {
+                    ...item,
+                    reactions: [
+                        ...item.reactions,
+                        {
+                            user_id,
+                            react_id,
+                        },
+                    ],
+                };
+            });
+        });
+
         console.log(chat_id, "chat_iddddddddd")
         try {
-            await reactMessage({
+
+            socket.emit(MESSAGE_REACTION, {
                 chat_ids: [chat_id],
                 message_ids: [msg_id],
                 react_id,
-            });
+                reciever_ids: [chatDetails.user_id]
+            })
+
+            // await reactMessage({
+            //     chat_ids: [chat_id],
+            //     message_ids: [msg_id],
+            //     react_id,
+            // });
         } catch (error) { }
     };
     const toggleSelection = (ids: number) => {
@@ -285,7 +343,9 @@ const Chatlist = memo(({ startUpload, cancelUpload, setMessages, setFile,
                                     setFile={setFile}
                                     progress={progress}
                                     uploadId={uploadId}
-                                    uploadChunks={uploadChunks} cancelUpload={cancelUpload} startUpload={startUpload}
+                                    uploadChunks={uploadChunks}
+                                    // file={file}
+                                    cancelUpload={cancelUpload} startUpload={startUpload}
                                     user_id={user_id}
                                     data={data}
                                     emojis={icons}
