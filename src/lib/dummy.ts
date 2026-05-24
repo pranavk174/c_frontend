@@ -5,7 +5,7 @@ export type Chat = {
   // lastMessage: string;
   // time: string;
   // unread: number;
-  // isOnline?: boolean;
+  isOnline?: boolean;
   chat_id: number;
   chat_type: string;
   user_id: number;
@@ -41,10 +41,8 @@ export interface Message {
   reply_to_message_id: number | null;
   is_deleted: boolean;
   reactions: reaction[];
-  isLocal: boolean
-
+  isLocal: boolean;
 }
-
 
 // export type Message = {
 //   id: string;
@@ -54,5 +52,3 @@ export interface Message {
 //   isRead?: boolean;
 //   isSentByMe: boolean;
 // };
-
-

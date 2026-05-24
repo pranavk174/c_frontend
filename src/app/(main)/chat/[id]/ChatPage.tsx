@@ -23,6 +23,7 @@ import {
   CHAT_LEAVED,
   MESSAGE_REACTION,
   NEW_MESSAGE,
+  ONLINE_USERS,
   REFETCH_CHATS,
   REPLY_MESSAGE,
   SEND_MESSAGE,
@@ -48,8 +49,7 @@ type emoji = {
 
 const ChatPage = ({ id }: { id: number }) => {
   // const resolvedParams = use(params);
-  const { showToast } =
-    useToast();
+  const { showToast } = useToast();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const { data: chatDetails } = useGetAllChatsQuery(
     {},
@@ -125,6 +125,7 @@ const ChatPage = ({ id }: { id: number }) => {
   const socket = useSocket();
 
   const [active, setActive] = useState<number | string | null>(null);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number[] | []>([]);
   const [menu, setMenu] = useState(false);
@@ -311,14 +312,15 @@ const ChatPage = ({ id }: { id: number }) => {
           console.log(result);
           // alert("upload completed");
         } else {
-
           alert("error in uploading");
         }
       } catch (error) {
         // alert("error in uploading");
-        console.log(error, "error in uploaddd.")
-        showToast("error in uploading", "error")
-        setMessages(prev => prev.filter(p => p.id !== prev[prev.length - 1].id))
+        console.log(error, "error in uploaddd.");
+        showToast("error in uploading", "error");
+        setMessages((prev) =>
+          prev.filter((p) => p.id !== prev[prev.length - 1].id),
+        );
       } finally {
         setProgress(0);
         setInputText("");
@@ -386,8 +388,8 @@ const ChatPage = ({ id }: { id: number }) => {
   useEffect(() => {
     socket.onAny((event, ...args) => {
       console.log("ANY EVENT:", event, args);
-    })
-  }, [socket])
+    });
+  }, [socket]);
 
   const cancelUpload = useCallback(async () => {
     controllerRef.current?.abort();
@@ -441,7 +443,7 @@ const ChatPage = ({ id }: { id: number }) => {
                     }
                   },
                 );
-                return exists
+                return exists;
               }
               if (!exists) {
                 console.log("pushed new chat....", data);
@@ -474,7 +476,7 @@ const ChatPage = ({ id }: { id: number }) => {
                     }
                   },
                 );
-                return exists
+                return exists;
               }
               if (!exists) {
                 console.log("pushed new chat....", data);
@@ -485,47 +487,65 @@ const ChatPage = ({ id }: { id: number }) => {
         );
       },
       [MESSAGE_REACTION]: (data: any) => {
-
         if (!data) {
-          return
+          return;
         }
         dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
-              const message =
-                draft.data.getChatById.data.items.find(
-                  (m: Message) => m.id === data.message_id
-                );
+              const message = draft.data.getChatById.data.items.find(
+                (m: Message) => m.id === data.message_id,
+              );
 
               if (message) {
-                const exists = message.reactions.find((i) => i.user_id === data.user_id)
+                const exists = message.reactions.find(
+                  (i) => i.user_id === data.user_id,
+                );
                 if (exists) {
                   message.reactions.map((i) => {
                     if (i.user_id === data.user_id) {
-                      i.react_id = data.react_id
+                      i.react_id = data.react_id;
                     }
-                  })
+                  });
                 } else {
                   message.reactions.push(data);
                 }
-
               }
-            }
-          )
+            },
+          ),
         );
 
-        console.log("dataaaaa  in reaction", data)
-      }
+        console.log("dataaaaa  in reaction", data);
+      },
+      // [ONLINE_USERS]: (data: string[]) => {
+      //   console.log(data, "online usersssssss");
+      //   setOnlineUsers(data);
+      //   dispatch(
+      //     UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
+      //       const chats = draft.data.getAllChats.data.items.map(
+      //         (chat: Chat) => {
+      //           const exists = data.find((d) => d === chat.user_id.toString());
+
+      //           chat.isOnline = !!exists;
+      //           // return chat;
+      //         },
+      //       );
+      //       // return chats;
+      //     }),
+      //   );
+      // },
     }),
     [dispatch, id],
   );
 
+  console.log(onlineUsers, "onlineUserssssss");
+
   useSocketEvents(socket, handler);
 
   useEffect(() => {
-    console.log(user_id, "user id....", socket.id);
+    // console.log(user_id, "user id....", socket.id);
     if (user_id) {
       // console.log(user_id, "user id in if condition.....");
       socket.emit(CHAT_JOINED, { user_id, socketId: socket.id });
@@ -533,13 +553,11 @@ const ChatPage = ({ id }: { id: number }) => {
 
     return () => {
       if (user_id) {
-        console.log(user_id, "user id in return    condition.....");
+        // console.log(user_id, "user id in return    condition.....");
         socket.emit(CHAT_LEAVED, { user_id, socketId: socket.id });
       }
     };
   }, [user_id, socket]);
-
-
 
   if (!chat) {
     return (

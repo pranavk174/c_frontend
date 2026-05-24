@@ -1,43 +1,36 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit"
-import storage from "redux-persist/lib/storage"
-import {
-  persistStore,
-  persistReducer
-} from "redux-persist"
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import storage from "redux-persist/lib/storage";
+import { persistStore, persistReducer } from "redux-persist";
+import onlineUsersSlice from "./slices/onLineUsers";
 
-import userSlice from "./slices/User"
-import { UserApi } from "./Apis/User"
+import userSlice from "./slices/User";
+import { UserApi } from "./Apis/User";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["userSlice"]
-}
+  whitelist: ["userSlice"],
+};
 
 const rootReducer = combineReducers({
   [UserApi.reducerPath]: UserApi.reducer,
-  userSlice: userSlice
-})
+  userSlice: userSlice,
+  onlineUsersSlice: onlineUsersSlice,
+});
 
-const persistedReducer = persistReducer(
-  persistConfig,
-  rootReducer
-)
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
 
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false
+      serializableCheck: false,
     }).concat(UserApi.middleware),
-})
+});
 
-export const persistor = persistStore(store)
+export const persistor = persistStore(store);
 
-export type RootState = ReturnType<
-  typeof store.getState
->
+export type RootState = ReturnType<typeof store.getState>;
 
-export type AppDispatch =
-  typeof store.dispatch
+export type AppDispatch = typeof store.dispatch;

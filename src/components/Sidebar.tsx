@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -29,7 +30,7 @@ export default function Sidebar() {
     },
   );
 
-  // console.log(data, "dataaaaa in chatss");
+  console.log(data, "dataaaaa in chatss");
   const filteredChats = data?.filter((chat: Chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -88,12 +89,20 @@ export default function Sidebar() {
                   isActive && "bg-wa-header dark:bg-wa-header-dark",
                 )}
               >
-                <div className="relative w-[48px] h-[48px] rounded-full mr-4 shrink-0 overflow-hidden">
-                  <img
+                <div className="relative w-[48px] h-[48px]  mr-4 shrink-0 overflow-hidden">
+                  <Image
+                    // style={{ height: "auto", width: "auto" }}
+                    // height={300}
+                    // width={300}
+                    fill
+                    sizes="48px"
                     src={chat?.profile_pic}
                     alt={chat?.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-full"
                   />
+                  <span
+                    className={`size-[10px] ${chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
+                  ></span>
                 </div>
                 <div className="flex-1 min-w-0 border-b border-wa-divider dark:border-wa-divider-dark pb-3">
                   <div className="flex justify-between items-center mb-1">

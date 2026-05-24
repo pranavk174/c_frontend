@@ -1,11 +1,18 @@
 "use client";
 
 import { useToast } from "@/components/Utility/Toast";
-import { ERROR, REFETCH_CHATS } from "@/lib/events";
+import { ERROR, ONLINE_USERS, REFETCH_CHATS } from "@/lib/events";
 import { useSocketEvents } from "@/lib/hooks";
-import { createContext, useMemo, useContext, ReactNode } from "react";
+import {
+  createContext,
+  useMemo,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 import { io, Socket } from "socket.io-client";
-
+import { useAppDispatch } from "@/lib/hooks";
+import { addOnlineUsers } from "@/redux/slices/onLineUsers";
 // Context ka type define karo
 type SocketContextType = Socket | null;
 
@@ -32,24 +39,28 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       withCredentials: true,
     });
   }, []);
-  const { showToast } =
-    useToast();
-  const handler = useMemo(() => ({
+  const { showToast } = useToast();
+  const dispatch = useAppDispatch();
+  const handler = useMemo(
+    () => ({
+      [ERROR]: (data: string) => {
+        showToast(data, "error");
+      },
+      [ONLINE_USERS]: (data: string[]) => {
+        console.log("online user dataaa budddyyyy...")
+        dispatch(addOnlineUsers(data));
+      },
+    }),
+    [showToast, dispatch],
+  );
 
-    [ERROR]: (data: string) => {
+  // useEffect(() => {
+  //   return () => {
+  //     socket.disconnect();
+  //   };
+  // }, [socket]);
 
-      showToast(
-        data,
-        "error"
-      );
-    }
-
-
-
-
-  }), [showToast])
-
-  useSocketEvents(socket, handler)
+  useSocketEvents(socket, handler);
 
   // console.log(socket, "socket data//////");
 
