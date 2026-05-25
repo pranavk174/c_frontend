@@ -12,7 +12,7 @@ export default function VerifyOtp({ email }: { email: string }) {
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const [otp, setOtp] = useState("");
   console.log(email, "email....");
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const [verifyOtp, { isLoading, isSuccess: isverifySuccess }] =
     useVerifyOtpMutation();
   const router = useRouter();
@@ -39,9 +39,9 @@ export default function VerifyOtp({ email }: { email: string }) {
           return;
         }
 
-        console.log(verified.data.verifyOtp.data.id, "verified ddaaaaataaaa.")
+        console.log(verified.data.verifyOtp.data.id, "verified ddaaaaataaaa.");
 
-        dispatch(addUser(verified.data.verifyOtp.data))
+        dispatch(addUser(verified.data.verifyOtp.data));
         router.replace("/");
 
         // router.push("/chat");

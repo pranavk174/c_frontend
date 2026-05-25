@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Message } from "@/lib/dummy";
+import { Chat, Message } from "@/lib/dummy";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { Reply, CheckCheck, Check, Smile } from "lucide-react";
 import Image from "next/image";
@@ -26,6 +26,7 @@ interface messageProps {
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   progress: number;
   uploadId: string;
+  chatDetails: Chat;
   file?: File | null;
 }
 
@@ -36,9 +37,11 @@ const Messages = ({
   emojis,
   user_id,
   startUpload,
+
   setReplyMessage,
   setFile,
   uploadChunks,
+  chatDetails,
   pausedRef,
   progress,
   uploadId,
@@ -248,7 +251,7 @@ const Messages = ({
 
               {msg.sender_id === user_id && (
                 <>
-                  {msg.seen_at ? (
+                  {msg.seen_users?.includes(chatDetails?.user_id) ? (
                     <CheckCheck size={14} className="text-blue-500" />
                   ) : (
                     <Check size={14} className="text-gray-400" />

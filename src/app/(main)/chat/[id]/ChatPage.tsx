@@ -16,12 +16,13 @@ import {
   useGetEmojisQuery,
   useGetSingleChatQuery,
 } from "@/redux/Apis/User";
-
+import { current } from "@reduxjs/toolkit";
 import { useSocket } from "@/layouts/SocketWrapper";
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
   MESSAGE_REACTION,
+  MESSAGE_SEEN,
   NEW_MESSAGE,
   ONLINE_USERS,
   REFETCH_CHATS,
@@ -191,24 +192,55 @@ const ChatPage = ({ id }: { id: number }) => {
       };
 
       if ("preventDefault" in e) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (prev[prev.length - 1]?.id || 0) + 1,
-            sender_id: user_id ?? 2,
-            created_at: new Date().toISOString(),
-            seen_at: null,
-            story_id: null,
-            content: inputText,
-            preview: null,
-            reply_to_message_id: replyMessage?.id ?? null,
-            is_forwarded: false,
-            is_edited: false,
-            is_deleted: false,
-            reactions: [],
-            isLocal: true,
-          },
-        ]);
+        // setMessages((prev) => [
+        //   ...prev,
+        //   {
+        //     id: (prev[prev.length - 1]?.id || 0) + 1,
+        //     sender_id: user_id ?? 2,
+        //     created_at: new Date().toISOString(),
+        //     seen_at: null,
+        //     story_id: null,
+        //     seen_users: [],
+        //     content: inputText,
+        //     preview: null,
+        //     reply_to_message_id: replyMessage?.id ?? null,
+        //     is_forwarded: false,
+        //     is_edited: false,
+        //     is_deleted: false,
+        //     reactions: [],
+        //     isLocal: true,
+        //   },
+        // ]);
+
+        dispatch(
+          UserApi.util.updateQueryData(
+            "getSingleChat",
+            { chat_ids: [id] },
+            (draft) => {
+              const items = draft?.data?.getChatById?.data?.items;
+
+              if (!items) return;
+
+              items.push({
+                id: (items[items.length - 1]?.id || 0) + 1,
+                sender_id: user_id ?? 2,
+                created_at: new Date().toISOString(),
+                seen_at: null,
+                story_id: null,
+                seen_users: [],
+                content: inputText,
+                preview: null,
+                reply_to_message_id: replyMessage?.id ?? null,
+                is_forwarded: false,
+                is_edited: false,
+                is_deleted: false,
+                reactions: [],
+                isLocal: true,
+              });
+              // update existing
+            },
+          ),
+        );
       }
 
       try {
@@ -236,7 +268,7 @@ const ChatPage = ({ id }: { id: number }) => {
     [
       id,
       setInputText,
-
+      dispatch,
       replyMessage,
       inputText,
       chatDetails,
@@ -318,8 +350,24 @@ const ChatPage = ({ id }: { id: number }) => {
         // alert("error in uploading");
         console.log(error, "error in uploaddd.");
         showToast("error in uploading", "error");
-        setMessages((prev) =>
-          prev.filter((p) => p.id !== prev[prev.length - 1].id),
+        // setMessages((prev) =>
+        //   prev.filter((p) => p.id !== prev[prev.length - 1].id),
+        // );
+        dispatch(
+          UserApi.util.updateQueryData(
+            "getSingleChat",
+            { chat_ids: [id] },
+            (draft) => {
+              const items = draft?.data?.getChatById?.data?.items;
+
+              if (!items) return;
+              draft.data.getChatById.data.items = items.filter(
+                (p) => p.id !== items[items.length - 1].id,
+              );
+              // items.filter((p) => p.id !== items[items.length - 1].id);
+              // update existing
+            },
+          ),
         );
       } finally {
         setProgress(0);
@@ -330,31 +378,62 @@ const ChatPage = ({ id }: { id: number }) => {
         // setMessages(prev => prev.filter(pf => pf.id !== prev[prev.length - 1].id))
       }
     },
-    [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage],
+    [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage, dispatch],
   );
   const startUpload = useCallback(async () => {
     if (!file || currentChunk > 0) return;
 
     // console.log(inputText, "input test/.....")
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: (prev[prev.length - 1]?.id || 0) + 1,
-        sender_id: user_id ?? 2,
-        created_at: new Date().toISOString(),
-        seen_at: null,
-        story_id: null,
-        content: inputText,
-        preview: URL.createObjectURL(file),
-        reply_to_message_id: replyMessage?.id ?? null,
-        is_forwarded: false,
-        is_edited: false,
-        is_deleted: false,
-        reactions: [],
-        isLocal: true,
-      },
-    ]);
+    // setMessages((prev) => [
+    //   ...prev,
+    //   {
+    //     id: (prev[prev.length - 1]?.id || 0) + 1,
+    //     sender_id: user_id ?? 2,
+    //     created_at: new Date().toISOString(),
+    //     seen_at: null,
+    //     story_id: null,
+    //     content: inputText,
+    //     preview: URL.createObjectURL(file),
+    //     reply_to_message_id: replyMessage?.id ?? null,
+    //     is_forwarded: false,
+    //     seen_users: [],
+    //     is_edited: false,
+    //     is_deleted: false,
+    //     reactions: [],
+    //     isLocal: true,
+    //   },
+    // ]);
+
+    dispatch(
+      UserApi.util.updateQueryData(
+        "getSingleChat",
+        { chat_ids: [id] },
+        (draft) => {
+          const items = draft?.data?.getChatById?.data?.items;
+
+          if (!items) return;
+
+          items.push({
+            id: (items[items.length - 1]?.id || 0) + 1,
+            sender_id: user_id ?? 2,
+            created_at: new Date().toISOString(),
+            seen_at: null,
+            story_id: null,
+            content: inputText,
+            preview: URL.createObjectURL(file),
+            reply_to_message_id: replyMessage?.id ?? null,
+            is_forwarded: false,
+            seen_users: [],
+            is_edited: false,
+            is_deleted: false,
+            reactions: [],
+            isLocal: true,
+          });
+          // update existing
+        },
+      ),
+    );
 
     // console.log(messages, "messageeeeeeee", inputText)
 
@@ -371,14 +450,16 @@ const ChatPage = ({ id }: { id: number }) => {
 
     const data = await upload.json();
     console.log(data, "data....");
-    const id = data.uploadId;
-    setUploadId(id);
+    const uid = data.uploadId;
+    setUploadId(uid);
 
-    uploadChunks(id);
+    uploadChunks(uid);
   }, [
     currentChunk,
+    dispatch,
     file,
-    setMessages,
+    // setMessages,
+    id,
     user_id,
     uploadChunks,
     inputText,
@@ -431,23 +512,45 @@ const ChatPage = ({ id }: { id: number }) => {
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
-              console.log(draft.data, "draft dataaaa...", data);
-              const exists = draft.data.getChatById.data.items.find(
-                (m: Message) => m.id === data[0].id,
-              );
+              const items = draft?.data?.getChatById?.data?.items;
+
+              if (!items) return;
+
+              const exists = items.find((m: Message) => m?.id === data[0].id);
+
+              // update existing
               if (exists) {
-                const exists = draft.data.getChatById.data.items.map(
-                  (m: Message) => {
-                    if (m.id === data[0].id) {
-                      return { ...m, ...data[0] };
-                    }
-                  },
-                );
-                return exists;
+                draft.data.getChatById.data.items = items.map((m: Message) => {
+                  if (m?.id === data[0].id) {
+                    return { ...m, ...data[0] };
+                  }
+
+                  return m;
+                });
+
+                return;
               }
-              if (!exists) {
-                console.log("pushed new chat....", data);
-                draft.data.getChatById.data.items.push(...data);
+
+              // add new
+              draft.data.getChatById.data.items.push(...data);
+
+              const unseenNewMessages = messages
+                .filter(
+                  (m: Message) =>
+                    m.sender_id !== user_id &&
+                    (!m.seen_users || m.seen_users.length === 0),
+                )
+                .map((m: Message) => m.id);
+
+              console.log(unseenNewMessages, " <<<<====in reftech message unseen new messagessssssss===>>>>");
+
+              if (unseenNewMessages.length > 0) {
+                console.log("eejhkdsahf kdfdthis unseeed message");
+                socket.emit(MESSAGE_SEEN, {
+                  chat_id: id,
+                  message_ids: unseenNewMessages,
+                  reciever_id: chatDetails?.user_id,
+                });
               }
             },
           ),
@@ -464,7 +567,7 @@ const ChatPage = ({ id }: { id: number }) => {
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
-              console.log(draft.data, "draft dataaaa...", data);
+              // console.log(draft.data, "draft dataaaa...", data);
               const exists = draft.data.getChatById.data.items.find(
                 (m: Message) => m.id === data[0].id,
               );
@@ -479,12 +582,33 @@ const ChatPage = ({ id }: { id: number }) => {
                 return exists;
               }
               if (!exists) {
-                console.log("pushed new chat....", data);
+                // console.log("pushed new chat....", data);
                 draft.data.getChatById.data.items.push(...data);
+              }
+
+              const unseenNewMessages = messages
+                .filter(
+                  (m: Message) =>
+                    m.sender_id !== user_id &&
+                    (!m.seen_users || m.seen_users.length === 0),
+                )
+                .map((m: Message) => m.id);
+
+              console.log(unseenNewMessages, "<<<<===unseen new messagessssssss===>>>>");
+
+              if (unseenNewMessages.length > 0) {
+                console.log("eejhkdsahf kdfdthis unseeed message");
+                socket.emit(MESSAGE_SEEN, {
+                  chat_id: id,
+                  message_ids: unseenNewMessages,
+                  reciever_id: chatDetails?.user_id,
+                });
               }
             },
           ),
         );
+
+
       },
       [MESSAGE_REACTION]: (data: any) => {
         if (!data) {
@@ -519,28 +643,49 @@ const ChatPage = ({ id }: { id: number }) => {
 
         console.log("dataaaaa  in reaction", data);
       },
-      // [ONLINE_USERS]: (data: string[]) => {
-      //   console.log(data, "online usersssssss");
-      //   setOnlineUsers(data);
-      //   dispatch(
-      //     UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
-      //       const chats = draft.data.getAllChats.data.items.map(
-      //         (chat: Chat) => {
-      //           const exists = data.find((d) => d === chat.user_id.toString());
+      [MESSAGE_SEEN]: (data: any) => {
+        if (!data) {
+          return;
+        }
 
-      //           chat.isOnline = !!exists;
-      //           // return chat;
-      //         },
-      //       );
-      //       // return chats;
-      //     }),
-      //   );
-      // },
+        dispatch(
+          UserApi.util.updateQueryData(
+            "getSingleChat",
+            { chat_ids: [id] },
+            (draft) => {
+              draft.data.getChatById.data.items.forEach((message: Message) => {
+                data.forEach((d) => {
+                  console.log(
+                    data,
+                    "new seen message dataa...",
+                    d.message_id === message.id,
+                    d.message_id,
+                    message.id,
+                  );
+                  // console.log(
+                  //   current(draft.data.getChatById.data.items),
+                  //   "seen messages....",
+                  //   data,
+                  // );
+                  if (d.message_id === message.id) {
+                    if (!message.seen_users?.includes(d.seen_user)) {
+                      console.log(d.message_id === message.id, "condition....");
+                      message.seen_users.push(d.seen_user);
+                    }
+
+                    message.seen_at = d.seen_at;
+                  }
+                });
+              });
+            },
+          ),
+        );
+      },
     }),
-    [dispatch, id],
+    [dispatch, id, messages, socket, user_id, chatDetails],
   );
 
-  console.log(onlineUsers, "onlineUserssssss");
+  // console.log(onlineUsers, "onlineUserssssss");
 
   useSocketEvents(socket, handler);
 
@@ -548,16 +693,55 @@ const ChatPage = ({ id }: { id: number }) => {
     // console.log(user_id, "user id....", socket.id);
     if (user_id) {
       // console.log(user_id, "user id in if condition.....");
-      socket.emit(CHAT_JOINED, { user_id, socketId: socket.id });
+      socket.emit(CHAT_JOINED, {
+        chat_id: id,
+        // message_ids: data
+        //   ?.filter(
+        //     (d: Message) =>
+        //       d.seen_users.length === 0 && d.sender_id !== user_id,
+        //   )
+        //   ?.map((d: Message) => d.id),
+        user_id,
+        socketId: socket.id,
+      });
     }
 
     return () => {
       if (user_id) {
         // console.log(user_id, "user id in return    condition.....");
-        socket.emit(CHAT_LEAVED, { user_id, socketId: socket.id });
+        socket.emit(CHAT_LEAVED, { chat_id: id, user_id, socketId: socket.id });
       }
     };
-  }, [user_id, socket]);
+  }, [user_id, socket, id, data]);
+
+  const throttleRef = useRef(false);
+
+  useEffect(() => {
+    if (!user_id || !data?.length || throttleRef.current) return;
+
+    const unseenMessages = data
+      .filter(
+        (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
+      )
+      .map((d: Message) => d.id);
+
+    console.log(unseenMessages, "un seend is useEffect are....")
+    if (!unseenMessages.length) return;
+
+    throttleRef.current = true;
+
+    socket.emit(MESSAGE_SEEN, {
+      chat_id: id,
+      message_ids: unseenMessages,
+      reciever_id: chatDetails?.user_id,
+    });
+
+    const timer = setTimeout(() => {
+      throttleRef.current = false;
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [data, user_id, id, socket, chatDetails]);
 
   if (!chat) {
     return (
@@ -584,7 +768,7 @@ const ChatPage = ({ id }: { id: number }) => {
         setCursor={setCursor}
         setSelected={setSelected}
         isFetching={isFetching}
-        data={messages}
+        data={data}
         nextCursor={nextCursor}
         hasMore={hasMore}
         setMenu={setMenu}

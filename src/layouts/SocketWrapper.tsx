@@ -47,7 +47,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         showToast(data, "error");
       },
       [ONLINE_USERS]: (data: string[]) => {
-        console.log("online user dataaa budddyyyy...")
+        console.log("online user dataaa budddyyyy...");
         dispatch(addOnlineUsers(data));
       },
     }),

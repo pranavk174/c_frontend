@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { RootState } from "@/redux/store";
 import {
   MessageSquare,
   MoreVertical,
@@ -14,6 +15,7 @@ import {
 import { Chat } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { useGetAllChatsQuery } from "@/redux/Apis/User";
+import { useSelector } from "react-redux";
 export default function Sidebar() {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,9 +32,13 @@ export default function Sidebar() {
     },
   );
 
-  console.log(data, "dataaaaa in chatss");
+  // console.log(data, "dataaaaa in chatss");
   const filteredChats = data?.filter((chat: Chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const { onlineUsers } = useSelector(
+    (state: RootState) => state.onlineUsersSlice,
   );
 
   return (
@@ -101,7 +107,7 @@ export default function Sidebar() {
                     className="w-full h-full object-cover rounded-full"
                   />
                   <span
-                    className={`size-[10px] ${chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
+                    className={`size-[10px] ${onlineUsers.includes(chat.user_id.toString()) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
                   ></span>
                 </div>
                 <div className="flex-1 min-w-0 border-b border-wa-divider dark:border-wa-divider-dark pb-3">

@@ -12,9 +12,6 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
-
-
-
 export interface GraphQLErrorLocation {
   line: number;
   column: number;
@@ -37,9 +34,6 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
-
-  
-
 
   const data = result.data as GraphQLResponse<unknown>;
 
@@ -213,6 +207,7 @@ export const UserApi = createApi({
   content,
   story_id ,
   is_edited ,
+  seen_users,
   reply_to_message_id ,
   is_deleted ,
   reactions{

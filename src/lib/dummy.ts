@@ -35,6 +35,7 @@ export interface Message {
   preview: string | null;
   seen_at: string | null;
   is_forwarded: boolean;
+  seen_users: number[];
   content: string | null;
   story_id: number | null;
   is_edited: boolean;
