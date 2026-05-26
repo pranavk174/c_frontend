@@ -23,10 +23,15 @@ export enum delete_type {
   EVERYONE,
 }
 
-type reaction = {
+
+
+
+export interface reaction {
   react_id: number;
   user_id: number;
 };
+
+
 
 export interface Message {
   id: number;
@@ -43,6 +48,34 @@ export interface Message {
   is_deleted: boolean;
   reactions: reaction[];
   isLocal: boolean;
+}
+
+
+export interface seen_user {
+  message_id: number;
+  seen_user: number,
+  seen_at: string
+}
+
+export interface message_reactions {
+  react_id: number;
+  user_id: number;
+  message_id: number
+}
+
+export interface socketResponse {
+  message: string;
+  success: boolean;
+  status: number
+  error: string
+}
+
+export interface profileProps {
+  profile_pic?: string;
+  name?: string;
+  bio?: string;
+  mobile?: string;
+  email?: string;
 }
 
 // export type Message = {

@@ -1,8 +1,10 @@
 "use client";
 
 import { useToast } from "@/components/Utility/Toast";
-import { ERROR, ONLINE_USERS, REFETCH_CHATS } from "@/lib/events";
+import { CONNECTION_ERROR, ERROR, ONLINE_USERS, REFETCH_CHATS } from "@/lib/events";
+import { baseQuery, useRefreshTokenMutation } from "@/redux/Apis/User";
 import { useSocketEvents } from "@/lib/hooks";
+
 import {
   createContext,
   useMemo,
@@ -34,9 +36,14 @@ type SocketProviderProps = {
 };
 
 const SocketProvider = ({ children }: SocketProviderProps) => {
+
+  const [refreshToken] = useRefreshTokenMutation()
   const socket = useMemo<Socket>(() => {
     return io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
   }, []);
   const { showToast } = useToast();
@@ -53,6 +60,44 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     }),
     [showToast, dispatch],
   );
+
+  useEffect(() => {
+
+    let isRefreshing = false;
+
+    socket.on(CONNECTION_ERROR, async (err) => {
+
+      if (
+        err.message === "Unauthorized" &&
+        !isRefreshing
+      ) {
+
+        isRefreshing = true;
+
+        try {
+
+          // await refreshTokenApi();
+          await refreshToken(null).unwrap()
+
+          socket.connect();
+
+        } catch (e) {
+
+          // logout user
+
+        } finally {
+
+          isRefreshing = false;
+
+        }
+      }
+    });
+
+    return () => {
+      socket.off("connect_error");
+    };
+
+  }, [socket, refreshToken]);
 
   // useEffect(() => {
   //   return () => {

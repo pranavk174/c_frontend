@@ -1,5 +1,5 @@
 "use client";
-import { Chat, Message } from "@/lib/dummy";
+import { Chat, Message, reaction, socketResponse } from "@/lib/dummy";
 import { MESSAGE_REACTION, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ interface chatListProps {
   startUpload: () => Promise<void>;
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
-  setMessages: Dispatch<SetStateAction<Message[]>>;
+  // setMessages?: Dispatch<SetStateAction<Message[]>>;
   messages: Message[];
   pausedRef: React.RefObject<boolean>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
@@ -60,7 +60,7 @@ const Chatlist = memo(
   ({
     startUpload,
     cancelUpload,
-    setMessages,
+    // setMessages,
     setFile,
     uploadChunks,
     pausedRef,
@@ -94,7 +94,7 @@ const Chatlist = memo(
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    const dispatch = useAppDispatch()
+    const dispatch = useAppDispatch();
     useEffect(() => {
       scrollToBottom();
     }, [data.length]);
@@ -132,20 +132,19 @@ const Chatlist = memo(
     const handleLike = async (msg_id: number, react_id: number) => {
       console.log(user_id);
 
-
-      dispatch(
+      const pathResult = dispatch(
         UserApi.util.updateQueryData(
           "getSingleChat",
           { chat_ids: [chat_id] },
           (draft) => {
             const message = draft.data.getChatById.data.items.find(
-              (item: Message) => item.id === msg_id
+              (item: Message) => item.id === msg_id,
             );
 
             if (!message) return;
 
             const reaction = message.reactions.find(
-              (d) => d.user_id === user_id
+              (d: reaction) => d.user_id === user_id,
             );
 
             if (reaction) {
@@ -160,7 +159,6 @@ const Chatlist = memo(
         ),
       );
 
-
       console.log(chat_id, "chat_iddddddddd");
       try {
         socket.emit(MESSAGE_REACTION, {
@@ -168,6 +166,18 @@ const Chatlist = memo(
           message_ids: [msg_id],
           react_id,
           reciever_ids: [chatDetails.user_id],
+        }, (response: socketResponse) => {
+
+          // agar backend fail
+          if (!response.success) {
+
+            // rollback
+            pathResult.undo();
+
+            console.log(response, "callback response");
+          }
+          console.log(response, "callback response outside");
+
         });
 
         // await reactMessage({
@@ -176,9 +186,7 @@ const Chatlist = memo(
         //     react_id,
         // });
       } catch (error) {
-
-
-
+        pathResult.undo()
       }
     };
     const toggleSelection = (ids: number) => {
@@ -194,9 +202,9 @@ const Chatlist = memo(
         if (prev.includes(ids)) {
           const filtered = prev.filter((item) => item !== ids);
 
-          if (filtered.length === 0) {
-            setSelectionMode(false);
-          }
+          // if (filtered.length < 1) {
+          //   setSelectionMode(false);
+          // }
 
           console.log(filtered, "filteredddddd");
           return filtered;

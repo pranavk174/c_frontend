@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { socketResponse } from "./dummy";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -63,3 +64,28 @@ export const getDeviceInfo = async () => {
     device_name,
   };
 };
+
+
+export const capitalizeWords = (word: string) => {
+  if (!word) {
+    return word
+  }
+  const splitted = word.split(" ").map(d => d[0].toUpperCase().concat(d.substring(1))).join(" ")
+
+  console.log(splitted, "splitteddddd")
+  return splitted
+}
+
+export const socketCallback = (response: socketResponse) => {
+
+  // agar backend fail
+  if (!response.success) {
+
+    // rollback
+    // patchResult?.undo();
+
+    console.log(response, "callback response");
+  }
+  console.log(response, "callback response outside");
+
+}

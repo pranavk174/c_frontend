@@ -109,7 +109,7 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
       )}
 
       <Modal open={open} setOpen={setOpen}>
-        <WhatsappProfile profile={chatDetails} />
+        <WhatsappProfile setOpen={setOpen} isUser={false} profile={chatDetails} />
       </Modal>
     </>
   );

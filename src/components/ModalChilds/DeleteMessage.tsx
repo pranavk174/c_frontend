@@ -1,5 +1,6 @@
+import { Message } from '@/lib/dummy';
 import { useAppDispatch } from '@/lib/hooks';
-import { useDeleteMessagesMutation } from '@/redux/Apis/User';
+import { useDeleteMessagesMutation, UserApi } from '@/redux/Apis/User';
 import React, { Dispatch, SetStateAction } from 'react'
 
 
@@ -14,19 +15,40 @@ interface deleteMessageProps {
 
 const DeleteMessage = ({ setShowModal, setSelected, setSelectedMessages, selectedMessages, chat_id }: deleteMessageProps) => {
 
+    const dispatch = useAppDispatch()
     const [deleteMessages] = useDeleteMessagesMutation();
 
     const deleteMessage = async (delete_type: string) => {
+
+        const pathResult = dispatch(UserApi.util.updateQueryData(
+            "getSingleChat", { chat_ids: [chat_id], limit: 20, cursor: null }, (draft) => { draft.data.getChatById.data.items = draft.data.getChatById.data.items.filter((message: Message) => !selectedMessages.includes(message.id)) }
+
+
+
+        ))
+
         try {
             await deleteMessages({
                 chat_ids: [Number(chat_id)],
                 message_ids: selectedMessages,
                 delete_type,
             }).unwrap();
+
+
+
+
+
+
+
+
             setShowModal(false);
             setSelected([]);
             setSelectedMessages([]);
-        } catch (error) { }
+        } catch (error) {
+
+            pathResult.undo()
+            console.log(error, "error in deeltion.")
+        }
     };
 
     return (

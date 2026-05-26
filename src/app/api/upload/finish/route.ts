@@ -5,202 +5,129 @@ import path from "path";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
-    cloud_name:
-        process.env.CLOUDINARY_NAME,
-    api_key:
-        process.env.CLOUDINARY_API_KEY,
-    api_secret:
-        process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const POST = async (
-    req: NextRequest
-) => {
-    let finalPath = "";
+export const POST = async (req: NextRequest) => {
+  let finalPath = "";
 
-    try {
-        const {
-            uploadId,
-            extension,
-        } = await req.json();
+  try {
+    const { uploadId, extension } = await req.json();
 
-        const folderPath = path.join(
-            process.cwd(),
-            "upload",
-            uploadId
-        );
+    const folderPath = path.join(process.cwd(), "upload", uploadId);
 
-        // =========================
-        // GET ALL CHUNKS
-        // =========================
+    // =========================
+    // GET ALL CHUNKS
+    // =========================
 
-        const parts =
-            await fs.readdir(folderPath);
+    const parts = await fs.readdir(folderPath);
 
-        const sortedParts = parts.sort(
-            (a, b) =>
-                Number(a) - Number(b)
-        );
+    const sortedParts = parts.sort((a, b) => Number(a) - Number(b));
 
-        // =========================
-        // FINAL FILE PATH
-        // =========================
+    // =========================
+    // FINAL FILE PATH
+    // =========================
 
-        finalPath = path.join(
-            process.cwd(),
-            "upload",
-            `${uploadId}-${Date.now()}.${extension}`
-        );
+    finalPath = path.join(
+      process.cwd(),
+      "upload",
+      `${uploadId}-${Date.now()}.${extension}`,
+    );
 
-        // =========================
-        // CREATE WRITE STREAM
-        // =========================
+    // =========================
+    // CREATE WRITE STREAM
+    // =========================
 
-        const writeStream =
-            fsSync.createWriteStream(
-                finalPath
-            );
+    const writeStream = fsSync.createWriteStream(finalPath);
 
-        // Prevent MaxListenersExceededWarning when merging many chunks
-        writeStream.setMaxListeners(
-            sortedParts.length + 5
-        );
+    // Prevent MaxListenersExceededWarning when merging many chunks
+    writeStream.setMaxListeners(sortedParts.length + 5);
 
-        // =========================
-        // MERGE CHUNKS
-        // =========================
-        // eslint-disable-next-line no-await-in-loop
-        for (const part of sortedParts) {
-            const chunkPath = path.join(
-                folderPath,
-                part
-            );
+    // =========================
+    // MERGE CHUNKS
+    // =========================
+    // eslint-disable-next-line no-await-in-loop
+    for (const part of sortedParts) {
+      const chunkPath = path.join(folderPath, part);
 
-            await new Promise<void>(
-                (
-                    resolve,
-                    reject
-                ) => {
-                    const readStream =
-                        fsSync.createReadStream(
-                            chunkPath
-                        );
+      await new Promise<void>((resolve, reject) => {
+        const readStream = fsSync.createReadStream(chunkPath);
 
-                    const handleError = (
-                        error: Error
-                    ) => {
-                        readStream.destroy();
-                        reject(error);
-                    };
+        const handleError = (error: Error) => {
+          readStream.destroy();
+          reject(error);
+        };
 
-                    readStream.once(
-                        "error",
-                        handleError
-                    );
+        readStream.once("error", handleError);
 
-                    writeStream.once(
-                        "error",
-                        handleError
-                    );
+        writeStream.once("error", handleError);
 
-                    readStream.once(
-                        "end",
-                        () => {
-                            resolve();
-                        }
-                    );
-
-                    readStream.pipe(
-                        writeStream,
-                        {
-                            end: false,
-                        }
-                    );
-                }
-            );
-        }
-
-        // =========================
-        // CLOSE WRITE STREAM
-        // =========================
-
-        writeStream.end();
-
-        await new Promise<void>(
-            (
-                resolve,
-                reject
-            ) => {
-                writeStream.once(
-                    "finish",
-                    () => {
-                        resolve();
-                    }
-                );
-
-                writeStream.once(
-                    "error",
-                    reject
-                );
-            }
-        );
-
-        // =========================
-        // UPLOAD TO CLOUDINARY
-        // =========================
-
-        const cloudinaryResult =
-            await cloudinary.uploader.upload(
-                finalPath,
-                {
-                    folder: "uploads",
-                    resource_type: "auto",
-                    chunk_size: 6000000000000,
-                }
-            );
-
-        // =========================
-        // CLEANUP
-        // =========================
-
-        await fs.rm(folderPath, {
-            recursive: true,
-            force: true,
+        readStream.once("end", () => {
+          resolve();
         });
 
-        await fs.unlink(finalPath);
-
-        return NextResponse.json({
-            message:
-                "Successfully uploaded",
-            success: true,
-            status: 201,
-            data: cloudinaryResult,
+        readStream.pipe(writeStream, {
+          end: false,
         });
-    } catch (error) {
-        console.log(
-            error,
-            "UPLOAD_ERROR"
-        );
-
-        // cleanup final file if exists
-        if (
-            finalPath &&
-            fsSync.existsSync(
-                finalPath
-            )
-        ) {
-            await fs.unlink(
-                finalPath
-            );
-        }
-
-        return NextResponse.json({
-            message:
-                "Upload failed",
-            success: false,
-            status: 500,
-            error: error.message
-        });
+      });
     }
+
+    // =========================
+    // CLOSE WRITE STREAM
+    // =========================
+
+    writeStream.end();
+
+    await new Promise<void>((resolve, reject) => {
+      writeStream.once("finish", () => {
+        resolve();
+      });
+
+      writeStream.once("error", reject);
+    });
+
+    // =========================
+    // UPLOAD TO CLOUDINARY
+    // =========================
+
+    const cloudinaryResult = await cloudinary.uploader.upload(finalPath, {
+      folder: "uploads",
+      resource_type: "auto",
+      chunk_size: 6000000000000,
+    });
+
+    // =========================
+    // CLEANUP
+    // =========================
+
+    await fs.rm(folderPath, {
+      recursive: true,
+      force: true,
+    });
+
+    await fs.unlink(finalPath);
+
+    return NextResponse.json({
+      message: "Successfully uploaded",
+      success: true,
+      status: 201,
+      data: cloudinaryResult,
+    });
+  } catch (error: unknown) {
+    console.log(error, "UPLOAD_ERROR");
+
+    // cleanup final file if exists
+    if (finalPath && fsSync.existsSync(finalPath)) {
+      await fs.unlink(finalPath);
+    }
+
+    return NextResponse.json({
+      message: "Upload failed",
+      success: false,
+      status: 500,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 };

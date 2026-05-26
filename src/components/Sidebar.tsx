@@ -14,11 +14,26 @@ import {
 } from "lucide-react";
 import { Chat } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
-import { useGetAllChatsQuery } from "@/redux/Apis/User";
+import { useGetAllChatsQuery, useGetUserQuery } from "@/redux/Apis/User";
 import { useSelector } from "react-redux";
+import WhatsappProfile from "./User/WhatsappProfile";
+import Modal from "./HOComponents/Modal";
 export default function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { user } = useGetUserQuery(null, {
+    selectFromResult: ({ data, isLoading, isSuccess }) => {
+      console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
+      return {
+        user: data?.data?.getUser?.data,
+        isLoading,
+        isSuccess,
+      };
+    },
+  });
+
   const { data, isLoading, isSuccess } = useGetAllChatsQuery(
     {},
     {
@@ -41,16 +56,25 @@ export default function Sidebar() {
     (state: RootState) => state.onlineUsersSlice,
   );
 
+  console.log(user?.profile_pic, "user profile dataaaa")
+
   return (
     <aside className="w-full h-full flex flex-col bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark">
       {/* Sidebar Header */}
       <header className="h-[60px] bg-wa-header dark:bg-wa-header-dark flex items-center justify-between px-4 py-2 shrink-0">
         <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer">
-          <img
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Me"
-            alt="My Profile"
-            className="w-full h-full object-cover"
-          />
+          <button
+            onClick={() => setOpen(true)}
+            className="p-0 bg-transparent h-full w-full"
+          >
+            <Image
+              src={user?.profile_pic || "https://api.dicebear.com/7.x/avataaars/svg?seed=Me"}
+              alt="My Profile"
+              height={200}
+              width={200}
+              className="w-full h-full object-cover"
+            />
+          </button>
         </div>
         <div className="flex items-center space-x-4 text-wa-icon dark:text-wa-icon-dark">
           <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
@@ -142,6 +166,13 @@ export default function Sidebar() {
           );
         })}
       </div>
+
+
+
+      <Modal open={open} setOpen={setOpen}>
+        {user && <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />}
+
+      </Modal>
     </aside>
   );
 }

@@ -10,9 +10,15 @@ const Modal = ({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: ReactNode;
 }) => {
+
+
+
+
+
+
   return (
     <div
-      className={`h-screen fixed inset-0 w-full z-40 flex justify-center items-center   ${open ? "visible" : "invisible"}`}
+      className={`h-screen fixed inset-0 w-full z-40 flex justify-center items-center   ${open ? "visible" : "invisible "}`}
     >
       <div className="inset-0 z-10 bg-black/50 absolute"></div>
 
@@ -22,6 +28,8 @@ const Modal = ({
           transform: `translateX(-${open ? 0 : 300}%)`,
         }}
       >
+
+        {/* {open && children} */}
         {children}
       </div>
     </div>

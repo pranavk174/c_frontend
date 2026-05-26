@@ -7,7 +7,7 @@ import { UserApi, useSendMessageMutation } from "../../../../redux/Apis/User";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
-import { Chat, Message } from "@/lib/dummy";
+import { Chat, Message, message_reactions, reaction, seen_user, socketResponse } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Modal from "@/components/HOComponents/Modal";
@@ -76,24 +76,30 @@ const ChatPage = ({ id }: { id: number }) => {
   const [replyMessage, setReplyMessage] = useState<Message | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
 
-  const { data, isLoading, isFetching, nextCursor, hasMore } =
-    useGetSingleChatQuery(
-      { chat_ids: [id], cursor, limit: 20 },
-      {
-        selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
-          return {
-            data: data?.data?.getChatById?.data?.items,
-            nextCursor: data?.data?.getChatById?.data?.nextCursor,
-            hasMore: data?.data?.getChatById?.data?.hasMore,
-            isLoading,
-            isSuccess,
-            isFetching,
-          };
-        },
+  const {
+    data: messages,
+    isLoading,
+    isFetching,
+    nextCursor,
+    hasMore,
+  } = useGetSingleChatQuery(
+    { chat_ids: [id], cursor, limit: 20 },
+    {
+      selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
+        return {
+          data: data?.data?.getChatById?.data?.items,
+          nextCursor: data?.data?.getChatById?.data?.nextCursor,
+          hasMore: data?.data?.getChatById?.data?.hasMore,
+          isLoading,
+          isSuccess,
+          isFetching,
+        };
       },
-    );
+      refetchOnMountOrArgChange: true,
+    },
+  );
 
-  const [messages, setMessages] = useState<Message[]>(data || []);
+  // const [messages, setMessages] = useState<Message[]>(data || []);
 
   const { emojis } = useGetEmojisQuery(
     {},
@@ -109,11 +115,11 @@ const ChatPage = ({ id }: { id: number }) => {
   );
 
   useEffect(() => {
-    if (data) {
+    if (messages) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMessages(data);
+      // setMessages(data);
     }
-  }, [data]);
+  }, [messages]);
 
   // console.log(cursor, "cursorrrrr....")
 
@@ -122,7 +128,7 @@ const ChatPage = ({ id }: { id: number }) => {
   //   console.log(data, "chat data is message");
 
   // const chatId = resolvedParams.id;
-  const chat = data;
+  const chat = messages;
   const socket = useSocket();
 
   const [active, setActive] = useState<number | string | null>(null);
@@ -157,7 +163,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
     //  console.log("= data =================")
     return () => observer.disconnect();
-  }, [data, nextCursor, hasMore, isFetching]);
+  }, [messages, nextCursor, hasMore, isFetching]);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -166,7 +172,7 @@ const ChatPage = ({ id }: { id: number }) => {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
-  }, [data, nextCursor]);
+  }, [messages, nextCursor]);
 
   // useSocketEvents(socket, handler);
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -180,7 +186,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
       if (!inputText.trim() || !socket) return;
 
-      console.log(e, "medoiaaaaaaaaa");
+      // console.log(e, "medoiaaaaaaaaa");
 
       // console.log(chatDetails, "chat detaillssssss", chatDetails);
       const newMessage = {
@@ -191,28 +197,12 @@ const ChatPage = ({ id }: { id: number }) => {
         message_ids: [replyMessage?.id],
       };
 
+      let patchResult = null
+      let chatPatchResult = null
       if ("preventDefault" in e) {
-        // setMessages((prev) => [
-        //   ...prev,
-        //   {
-        //     id: (prev[prev.length - 1]?.id || 0) + 1,
-        //     sender_id: user_id ?? 2,
-        //     created_at: new Date().toISOString(),
-        //     seen_at: null,
-        //     story_id: null,
-        //     seen_users: [],
-        //     content: inputText,
-        //     preview: null,
-        //     reply_to_message_id: replyMessage?.id ?? null,
-        //     is_forwarded: false,
-        //     is_edited: false,
-        //     is_deleted: false,
-        //     reactions: [],
-        //     isLocal: true,
-        //   },
-        // ]);
 
-        dispatch(
+
+        patchResult = dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
@@ -241,16 +231,61 @@ const ChatPage = ({ id }: { id: number }) => {
             },
           ),
         );
+        chatPatchResult = dispatch(UserApi.util.updateQueryData(
+
+          "getAllChats", {}, (draft) => {
+
+            const items = draft.data.getAllChats.data.items
+            draft.data.getAllChats.data.items.forEach(
+              (item: Chat) => {
+                if (item.chat_id === id) {
+
+                  item.last_message = inputText;
+                  item.last_message_at = new Date().toISOString();
+                  item.last_message_id = (items[items.length - 1]?.id || 0) + 1
+                }
+              }
+            )
+          }
+
+        ))
       }
 
       try {
         if (replyMessage !== null) {
-          socket.emit(REPLY_MESSAGE, newMessage);
+          socket.emit(REPLY_MESSAGE, newMessage, (response: socketResponse) => {
+
+            // agar backend fail
+            if (!response.success) {
+
+              // rollback
+              patchResult?.undo();
+
+              chatPatchResult?.undo()
+
+              console.log(response, "callback response");
+            }
+            console.log(response, "callback response outside");
+          });
           console.log("messege repliy sent...");
+
+
           // await replyToMessage(newMessage).unwrap();
           setReplyMessage(null);
         } else {
-          socket.emit(SEND_MESSAGE, newMessage);
+          socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
+
+            // agar backend fail
+            if (!response.success) {
+
+              // rollback
+              patchResult?.undo();
+
+              console.log(response, "callback response");
+            }
+            console.log(response, "callback response outside");
+
+          });
           console.log("messege sent...");
           // await sendMessage(newMessage);
         }
@@ -362,7 +397,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
               if (!items) return;
               draft.data.getChatById.data.items = items.filter(
-                (p) => p.id !== items[items.length - 1].id,
+                (p: Message) => p.id !== items[items.length - 1].id,
               );
               // items.filter((p) => p.id !== items[items.length - 1].id);
               // update existing
@@ -405,7 +440,7 @@ const ChatPage = ({ id }: { id: number }) => {
     //   },
     // ]);
 
-    dispatch(
+    const pathResult = dispatch(
       UserApi.util.updateQueryData(
         "getSingleChat",
         { chat_ids: [id] },
@@ -437,23 +472,28 @@ const ChatPage = ({ id }: { id: number }) => {
 
     // console.log(messages, "messageeeeeeee", inputText)
 
-    controllerRef.current = new AbortController();
-    const upload = await fetch(
-      `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
-      {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
+    try {
+      controllerRef.current = new AbortController();
+      const upload = await fetch(
+        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+          },
         },
-      },
-    );
+      );
 
-    const data = await upload.json();
-    console.log(data, "data....");
-    const uid = data.uploadId;
-    setUploadId(uid);
+      const data = await upload.json();
+      console.log(data, "data....");
+      const uid = data.uploadId;
+      setUploadId(uid);
 
-    uploadChunks(uid);
+      uploadChunks(uid);
+    } catch (error) {
+      pathResult.undo()
+    }
+
   }, [
     currentChunk,
     dispatch,
@@ -507,7 +547,7 @@ const ChatPage = ({ id }: { id: number }) => {
         if (!data) {
           return;
         }
-        dispatch(
+        const patchResult = dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
@@ -534,7 +574,7 @@ const ChatPage = ({ id }: { id: number }) => {
               // add new
               draft.data.getChatById.data.items.push(...data);
 
-              const unseenNewMessages = messages
+              const unseenNewMessages = draft.data.getChatById.data.items
                 .filter(
                   (m: Message) =>
                     m.sender_id !== user_id &&
@@ -542,59 +582,10 @@ const ChatPage = ({ id }: { id: number }) => {
                 )
                 .map((m: Message) => m.id);
 
-              console.log(unseenNewMessages, " <<<<====in reftech message unseen new messagessssssss===>>>>");
-
-              if (unseenNewMessages.length > 0) {
-                console.log("eejhkdsahf kdfdthis unseeed message");
-                socket.emit(MESSAGE_SEEN, {
-                  chat_id: id,
-                  message_ids: unseenNewMessages,
-                  reciever_id: chatDetails?.user_id,
-                });
-              }
-            },
-          ),
-        );
-      },
-
-      [NEW_MESSAGE]: (data: Message[]) => {
-        console.log(data, "chats dataaaa....  reciever k liye wala...");
-        if (!data) {
-          return;
-        }
-        dispatch(
-          UserApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              // console.log(draft.data, "draft dataaaa...", data);
-              const exists = draft.data.getChatById.data.items.find(
-                (m: Message) => m.id === data[0].id,
+              console.log(
+                unseenNewMessages,
+                " <<<<====in reftech message unseen new messagessssssss===>>>>",
               );
-              if (exists) {
-                const exists = draft.data.getChatById.data.items.map(
-                  (m: Message) => {
-                    if (m.id === data[0].id) {
-                      return { ...m, ...data[0] };
-                    }
-                  },
-                );
-                return exists;
-              }
-              if (!exists) {
-                // console.log("pushed new chat....", data);
-                draft.data.getChatById.data.items.push(...data);
-              }
-
-              const unseenNewMessages = messages
-                .filter(
-                  (m: Message) =>
-                    m.sender_id !== user_id &&
-                    (!m.seen_users || m.seen_users.length === 0),
-                )
-                .map((m: Message) => m.id);
-
-              console.log(unseenNewMessages, "<<<<===unseen new messagessssssss===>>>>");
 
               if (unseenNewMessages.length > 0) {
                 console.log("eejhkdsahf kdfdthis unseeed message");
@@ -602,33 +593,116 @@ const ChatPage = ({ id }: { id: number }) => {
                   chat_id: id,
                   message_ids: unseenNewMessages,
                   reciever_id: chatDetails?.user_id,
+                }, (response: socketResponse) => {
+
+                  // agar backend fail
+                  if (!response.success) {
+
+                    // rollback
+                    patchResult?.undo();
+
+                    console.log(response, "callback response");
+                  }
+                  console.log(response, "callback response outside");
+
                 });
               }
             },
           ),
         );
+        const chatPatchResult = dispatch(UserApi.util.updateQueryData(
 
+          "getAllChats", {}, (draft) => {
 
+            const items = draft.data.getAllChats.data.items
+            draft.data.getAllChats.data.items.forEach(
+              (item: Chat) => {
+                if (item.chat_id === id) {
+
+                  item.last_message = data[0]?.content ? data[0]?.content : "image";
+                  item.last_message_at = data[0].created_at;
+                  item.last_message_id = data[0].id
+                }
+              }
+            )
+          }
+
+        ))
       },
-      [MESSAGE_REACTION]: (data: any) => {
+
+      // [NEW_MESSAGE]: (data: Message[]) => {
+      //   console.log(data, "chats dataaaa....  reciever k liye wala...");
+      //   if (!data) {
+      //     return;
+      //   }
+      //   dispatch(
+      //     UserApi.util.updateQueryData(
+      //       "getSingleChat",
+      //       { chat_ids: [id] },
+      //       (draft) => {
+      //         // console.log(draft.data, "draft dataaaa...", data);
+      //         const exists = draft.data.getChatById.data.items.find(
+      //           (m: Message) => m.id === data[0].id,
+      //         );
+      //         if (exists) {
+      //           const exists = draft.data.getChatById.data.items.map(
+      //             (m: Message) => {
+      //               if (m.id === data[0].id) {
+      //                 return { ...m, ...data[0] };
+      //               }
+      //             },
+      //           );
+      //           return exists;
+      //         }
+      //         if (!exists) {
+      //           // console.log("pushed new chat....", data);
+      //           draft.data.getChatById.data.items.push(...data);
+      //         }
+
+      //         const unseenNewMessages = messages
+      //           .filter(
+      //             (m: Message) =>
+      //               m.sender_id !== user_id &&
+      //               (!m.seen_users || m.seen_users.length === 0),
+      //           )
+      //           .map((m: Message) => m.id);
+
+      //         console.log(
+      //           unseenNewMessages,
+      //           "<<<<===unseen new messagessssssss===>>>>",
+      //         );
+
+      //         if (unseenNewMessages.length > 0) {
+      //           console.log("eejhkdsahf kdfdthis unseeed message");
+      //           socket.emit(MESSAGE_SEEN, {
+      //             chat_id: id,
+      //             message_ids: unseenNewMessages,
+      //             reciever_id: chatDetails?.user_id,
+      //           });
+      //         }
+      //       },
+      //     ),
+      //   );
+      // },
+      [MESSAGE_REACTION]: (data: message_reactions) => {
         if (!data) {
           return;
         }
-        dispatch(
+        const patchResult = dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
-              const message = draft.data.getChatById.data.items.find(
-                (m: Message) => m.id === data.message_id,
+              const message = draft?.data?.getChatById?.data?.items?.find(
+                (m: Message) => m?.id === data.message_id,
               );
 
               if (message) {
-                const exists = message.reactions.find(
-                  (i) => i.user_id === data.user_id,
+                const exists = message?.reactions?.find(
+                  (i: reaction) => i.user_id === data.user_id,
                 );
                 if (exists) {
-                  message.reactions.map((i) => {
+                  message.reactions.map((i: reaction) => {
                     if (i.user_id === data.user_id) {
                       i.react_id = data.react_id;
                     }
@@ -643,46 +717,46 @@ const ChatPage = ({ id }: { id: number }) => {
 
         console.log("dataaaaa  in reaction", data);
       },
-      [MESSAGE_SEEN]: (data: any) => {
+      [MESSAGE_SEEN]: (data: seen_user[]) => {
         if (!data) {
           return;
         }
 
-        dispatch(
+        const pathResult = dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
-              draft.data.getChatById.data.items.forEach((message: Message) => {
-                data.forEach((d) => {
-                  console.log(
-                    data,
-                    "new seen message dataa...",
-                    d.message_id === message.id,
-                    d.message_id,
-                    message.id,
-                  );
-                  // console.log(
-                  //   current(draft.data.getChatById.data.items),
-                  //   "seen messages....",
-                  //   data,
-                  // );
-                  if (d.message_id === message.id) {
-                    if (!message.seen_users?.includes(d.seen_user)) {
-                      console.log(d.message_id === message.id, "condition....");
-                      message.seen_users.push(d.seen_user);
-                    }
+              const seenMap = new Map(data.map((d) => [d.message_id, d]));
 
-                    message.seen_at = d.seen_at;
-                  }
-                });
+              draft.data.getChatById.data.items.forEach((message: Message) => {
+                const seenData = seenMap.get(message.id);
+
+                console.log(seenData, "seen dataaaa.", seenMap)
+                if (!seenData) return;
+
+                message.seen_users = message.seen_users || [];
+
+                if (!message.seen_users.includes(seenData.seen_user)) {
+                  message.seen_users = [
+                    ...message.seen_users,
+                    seenData.seen_user,
+                  ];
+                }
+
+                message.seen_at = seenData.seen_at;
               });
+
+              console.log(
+                current(draft.data.getChatById.data.items),
+                "latest updated dataaaaaaaa",
+              );
             },
           ),
         );
       },
     }),
-    [dispatch, id, messages, socket, user_id, chatDetails],
+    [dispatch, id, socket, user_id, chatDetails],
   );
 
   // console.log(onlineUsers, "onlineUserssssss");
@@ -712,20 +786,20 @@ const ChatPage = ({ id }: { id: number }) => {
         socket.emit(CHAT_LEAVED, { chat_id: id, user_id, socketId: socket.id });
       }
     };
-  }, [user_id, socket, id, data]);
+  }, [user_id, socket, id, messages]);
 
   const throttleRef = useRef(false);
 
   useEffect(() => {
-    if (!user_id || !data?.length || throttleRef.current) return;
+    if (!user_id || !messages?.length || throttleRef.current) return;
 
-    const unseenMessages = data
+    const unseenMessages = messages
       .filter(
         (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
       )
       .map((d: Message) => d.id);
 
-    console.log(unseenMessages, "un seend is useEffect are....")
+    console.log(unseenMessages, "un seend is useEffect are....", messages);
     if (!unseenMessages.length) return;
 
     throttleRef.current = true;
@@ -734,6 +808,18 @@ const ChatPage = ({ id }: { id: number }) => {
       chat_id: id,
       message_ids: unseenMessages,
       reciever_id: chatDetails?.user_id,
+    }, (response: socketResponse) => {
+
+      // agar backend fail
+      if (!response.success) {
+
+        // rollback
+        // patchResult?.undo();
+
+        console.log(response, "callback response");
+      }
+      console.log(response, "callback response outside");
+
     });
 
     const timer = setTimeout(() => {
@@ -741,7 +827,7 @@ const ChatPage = ({ id }: { id: number }) => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [data, user_id, id, socket, chatDetails]);
+  }, [messages, user_id, id, socket, chatDetails]);
 
   if (!chat) {
     return (
@@ -754,7 +840,7 @@ const ChatPage = ({ id }: { id: number }) => {
   // console.log(chat, "chat detaillssss.");
 
   return (
-    <div className="flex relative flex-col h-full w-full chat-bg relative">
+    <div className="flex flex-col h-full w-full chat-bg relative">
       {/* Header */}
 
       <Chathead
@@ -768,7 +854,7 @@ const ChatPage = ({ id }: { id: number }) => {
         setCursor={setCursor}
         setSelected={setSelected}
         isFetching={isFetching}
-        data={data}
+        data={messages}
         nextCursor={nextCursor}
         hasMore={hasMore}
         setMenu={setMenu}
@@ -785,7 +871,7 @@ const ChatPage = ({ id }: { id: number }) => {
         user_id={user_id}
         messages={messages}
         setShow={setShow}
-        setMessages={setMessages}
+        // setMessages={setMessages}
         active={active}
         // file={file}
         setReplyMessage={setReplyMessage}
@@ -807,7 +893,7 @@ const ChatPage = ({ id }: { id: number }) => {
         inputText={inputText}
         file={file}
         handleSendMessage={handleSendMessage}
-        setMessages={setMessages}
+        // setMessages={setMessages}
         scrollToBottom={scrollToBottom}
         chat_id={id}
         pausedRef={pausedRef}

@@ -1,4 +1,4 @@
-import { Message } from "@/lib/dummy";
+import { Message, profileProps } from "@/lib/dummy";
 import {
   createApi,
   fetchBaseQuery,
@@ -6,8 +6,9 @@ import {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
+import { ClockFading } from "lucide-react";
 
-const baseQuery = fetchBaseQuery({
+export const baseQuery = fetchBaseQuery({
   baseUrl: "http://localhost:3000/graphql",
   credentials: "include",
 });
@@ -77,6 +78,7 @@ const baseQueryWithReauth: BaseQueryFn<
       window.location.href = "/login";
     }
   } else if (!data) {
+    console.log(data, "error dataaaaa")
     throw new Error("Internal Server Error");
   }
 
@@ -86,7 +88,7 @@ const baseQueryWithReauth: BaseQueryFn<
 export const UserApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["chats"],
+  tagTypes: ["chats", "User"],
   endpoints: (builder) => ({
     login: builder.mutation({
       query: ({ email }) => ({
@@ -155,6 +157,77 @@ export const UserApi = createApi({
         },
       }),
     }),
+    refreshToken: builder.mutation({
+      query: () => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+           mutation generateRefreshToken{
+    generateRefreshToken{
+        message,status,success,error
+    }
+}
+          `,
+        },
+      }),
+    }),
+    getUser: builder.query({
+      query: () => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+          query getUser{
+          
+          getUser{
+          message , error,success, data {
+          ... on User {
+          
+          name
+  id
+  user_name
+  email
+  bio
+  mobile
+  profile_pic
+
+          
+          }
+          }
+          }
+          }
+          
+          `,
+        },
+      }),
+      providesTags: ['User']
+    }),
+    updateUser: builder.mutation({
+      query: ({ name, profile_pic, bio }: profileProps) => ({
+        url: "",
+        method: 'POST',
+        body: {
+          query: `
+          
+          mutation updateUser($input: UpdateUserInput){
+          updateUser(input:$input){
+          message, status,success,error}
+          }
+          
+          `, variables: {
+            input: {
+              name, profile_pic, bio
+            }
+          }
+        }
+
+      }),
+      invalidatesTags: ['User']
+
+    }),
     getAllChats: builder.query({
       query: () => ({
         url: "",
@@ -171,6 +244,9 @@ export const UserApi = createApi({
                     user_id,
                     name,profile_pic,last_message,last_message_at,chat_type,
                     chat_id
+                      bio
+  email
+  mobile
                 }
             }
         }
@@ -232,12 +308,12 @@ export const UserApi = createApi({
         // console.log(result, "result.......");
         return result
           ? [
-              ...result.data.getChatById.data.items.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -400,7 +476,7 @@ message,status,error,success
           },
         },
       }),
-      invalidatesTags: ["chats"],
+      invalidatesTags: [{ type: "chats", id: "LIST" }],
     }),
   }),
 });
@@ -411,12 +487,15 @@ export const {
   useGetAllChatsQuery,
   useLazyGetAllChatsQuery,
   useGetSingleChatQuery,
+  useUpdateUserMutation,
   useLazyGetSingleChatQuery,
   useGetEmojisQuery,
   useLazyGetEmojisQuery,
   useReactMessageMutation,
   useSendMessageMutation,
   useReplyToMessageMutation,
+  useRefreshTokenMutation,
+  useGetUserQuery,
   useDeleteMessagesMutation,
 } = UserApi;
 
