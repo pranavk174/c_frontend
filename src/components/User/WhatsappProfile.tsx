@@ -39,9 +39,10 @@ const WhatsappProfile = ({
   onSave,
 }: whatsappProfileProps) => {
   const [editField, setEditField] = useState<
-    "name" | "bio" | "profile_pic" | null
+    "name" | "bio" | "profile_pic" | 'cover_pic' | null
   >(null);
   const fileInputRef = useRef(null);
+  const coverInputRef = useRef(null);
   const [formData, setFormData] = useState(profile);
   const [file, setFile] = useState<string | null>(null);
   const socket = useSocket();
@@ -102,6 +103,12 @@ const WhatsappProfile = ({
     setEditField("profile_pic");
   };
 
+  const handleCoverClick = () => {
+    if (!fileInputRef.current) return;
+    coverInputRef.current?.click();
+    setEditField("cover_pic");
+  };
+
   const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try {
       console.log(formData, "formdataaaaaa.");
@@ -132,54 +139,91 @@ const WhatsappProfile = ({
     <div className="w-full  md:max-w-[60%] min-h-screen bg-[#0b141a] text-white">
       {/* HEADER */}
 
-      <div className="h-[60px] bg-[#202c33] flex justify-between items-center px-5 text-lg font-semibold">
-        Profile
-        <button
-          onClick={() => setOpen((p) => !p)}
-          className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700"
-        >
-          X
-        </button>
-      </div>
+
 
       {/* PROFILE IMAGE */}
 
-      <div className="flex flex-col items-center justify-center py-8 border-b border-white/5">
-        <div className="relative w-44 h-44  overflow-hidden">
+      <div className="flex flex-col items-center justify-center border-b border-white/5">
+
+        <div className="relative h-[220px] w-full">
+          <div className="h-[60px] relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
+            Profile
+            <button
+              onClick={() => setOpen((p) => !p)}
+              className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700"
+            >
+              X
+            </button>
+          </div>
+
           <Image
-            src={
-              file ||
-              formData?.profile_pic ||
-              "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
-            }
-            alt="profile"
+            alt="cover_pic"
             fill
+            className="object-cover"
             unoptimized
-            // height={200}
-            // width={200}
-            className="object-cover rounded-full"
-          />
 
-          <input
-            name="profile_pic"
-            onChange={handleChange}
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-          />
+            src={
+              formData?.cover_pic ||
+              "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
+            } />
+          <div className="relative w-44 h-44 mx-auto -bottom-[30%] overflow-hidden">
+            <Image
+              src={
+                file ||
+                formData?.profile_pic ||
+                "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
+              }
+              alt="profile"
+              fill
+              unoptimized
+              // height={200}
+              // width={200}
+              className="object-cover rounded-full"
+            />
 
-          <button
-            onClick={handleClick}
-            className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-wa-primary flex items-center justify-center ${isUser ? "visible" : "invisible"} `}
-          >
-            <Camera className="w-5 h-5 text-white" />
-          </button>
+            <input
+              name="profile_pic"
+              onChange={handleChange}
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+            />
+
+            <button
+              onClick={handleClick}
+              className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-wa-primary flex items-center justify-center ${isUser ? "visible" : "invisible"} `}
+            >
+              <Camera className="w-5 h-5 text-white" />
+            </button>
+          </div>
+
+
+          {isUser && (
+            <div>
+              <button onClick={handleCoverClick} className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20">
+                <Camera className="w-5 h-5 text-white" />
+              </button>
+
+
+              <input
+                name="cover_pic"
+                onChange={handleChange}
+                type="file"
+                ref={coverInputRef}
+                className="hidden"
+              />
+
+            </div>
+          )}
         </div>
+        <div className="h-40" />
       </div>
+
+
 
       {/* PROFILE DETAILS */}
 
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* NAME */}
 
         <div className="px-6 py-5 border-b border-white/5">
@@ -192,9 +236,8 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${
-                editField === "name" ? "border-b border-[#00a884] pb-1" : ""
-              }`}
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-[#00a884] pb-1" : ""
+                }`}
             />
 
             {editField === "name" ? (
@@ -250,9 +293,8 @@ const WhatsappProfile = ({
                 disabled={editField !== "bio"}
                 value={formData?.bio || ""}
                 onChange={handleChange}
-                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${
-                  editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
-                }`}
+                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
+                  }`}
               />
 
               {editField === "bio" ? (

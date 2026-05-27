@@ -193,6 +193,7 @@ export const UserApi = createApi({
   bio
   mobile
   profile_pic
+  cover_pic
 
           
           }
@@ -206,7 +207,7 @@ export const UserApi = createApi({
       providesTags: ["User"],
     }),
     updateUser: builder.mutation({
-      query: ({ name, profile_pic, bio }: profileProps) => ({
+      query: ({ name, profile_pic, bio, cover_pic }: profileProps) => ({
         url: "",
         method: "POST",
         body: {
@@ -223,6 +224,7 @@ export const UserApi = createApi({
               name,
               profile_pic,
               bio,
+              cover_pic
             },
           },
         },
@@ -366,12 +368,12 @@ error,success
         // console.log(result, "result.......");
         return result
           ? [
-              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {

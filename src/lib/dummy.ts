@@ -66,6 +66,7 @@ export interface socketResponse {
 
 export interface profileProps {
   profile_pic?: string;
+  cover_pic?: string;
   name?: string;
   bio?: string;
   mobile?: string;

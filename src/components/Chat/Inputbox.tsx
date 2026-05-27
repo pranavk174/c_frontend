@@ -131,29 +131,23 @@ const Inputbox = memo(
               placeholder="Type a message"
               className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
-
-            <button
-              type="submit"
-              className="ml-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
-            >
-              Send
-            </button>
+            <div className="ml-2 shrink-0">
+              {inputText.trim() ? (
+                <button
+                  onClick={handleSendMessage}
+                  className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              ) : (
+                <button className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition">
+                  <Mic className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
         </form>
-        <div className="ml-2 shrink-0">
-          {inputText.trim() ? (
-            <button
-              onClick={handleSendMessage}
-              className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          ) : (
-            <button className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition">
-              <Mic className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+
       </footer>
     );
   },
