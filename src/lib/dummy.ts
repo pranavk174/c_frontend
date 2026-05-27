@@ -23,15 +23,10 @@ export enum delete_type {
   EVERYONE,
 }
 
-
-
-
 export interface reaction {
   react_id: number;
   user_id: number;
-};
-
-
+}
 
 export interface Message {
   id: number;
@@ -50,24 +45,23 @@ export interface Message {
   isLocal: boolean;
 }
 
-
 export interface seen_user {
   message_id: number;
-  seen_user: number,
-  seen_at: string
+  seen_user: number;
+  seen_at: string;
 }
 
 export interface message_reactions {
   react_id: number;
   user_id: number;
-  message_id: number
+  message_id: number;
 }
 
 export interface socketResponse {
   message: string;
   success: boolean;
-  status: number
-  error: string
+  status: number;
+  error: string;
 }
 
 export interface profileProps {
@@ -76,6 +70,9 @@ export interface profileProps {
   bio?: string;
   mobile?: string;
   email?: string;
+  blocked?: boolean;
+  chat_id?: boolean;
+  user_id?: number;
 }
 
 // export type Message = {

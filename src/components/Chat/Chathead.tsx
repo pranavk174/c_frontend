@@ -11,11 +11,15 @@ import {
   Search,
   Trash,
   Video,
+  Ban,
 } from "lucide-react";
 import React, { Dispatch, memo, SetStateAction, useState } from "react";
 import Modal from "../HOComponents/Modal";
 import WhatsappProfile from "../User/WhatsappProfile";
 import Image from "next/image";
+import BlockUser from "../ModalChilds/Blockuser";
+import Popups from "../HOComponents/Popups";
+import { useSocket } from "@/layouts/SocketWrapper";
 interface chatHeadProps {
   menu: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
@@ -24,8 +28,10 @@ interface chatHeadProps {
 
 const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
   const [open, setOpen] = useState<boolean>(false);
+  const [popup, setPopup] = useState<boolean>(false);
+  const [block, setBlock] = useState<boolean>(false);
   return (
-    <>
+    <div className="relative">
       {menu ? (
         <header className="h-[60px] bg-wa-header dark:bg-wa-header-dark flex items-center justify-between px-4 py-2 shrink-0 border-b border-wa-divider dark:border-wa-divider-dark z-10">
           <div className="flex items-center">
@@ -101,17 +107,48 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
             <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
               <Search className="w-5 h-5" />
             </button>
-            <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
-              <MoreVertical className="w-5 h-5" />
-            </button>
+            <div>
+              <button
+                onClick={() => setPopup((p) => !p)}
+                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </button>
+              <Popups open={popup} setOpen={setPopup}>
+                <div className="bg-wa-header dark:bg-wa-header-dark rounded-md ">
+                  <button
+                    onClick={() => {
+                      setBlock((p) => !p);
+                      setPopup(false);
+                    }}
+                    className="p-2 flex w-[125px] items-center  justify-between text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition"
+                  >
+                    Block User <Ban className="w-4 h-4" />
+                  </button>
+                </div>
+              </Popups>
+            </div>
           </div>
         </header>
       )}
 
       <Modal open={open} setOpen={setOpen}>
-        <WhatsappProfile setOpen={setOpen} isUser={false} profile={chatDetails} />
+        <WhatsappProfile
+          setOpen={setOpen}
+          isUser={false}
+          profile={chatDetails}
+        />
       </Modal>
-    </>
+      <Modal open={block} setOpen={setBlock}>
+        <BlockUser
+          userId={chatDetails?.user_id}
+          name={chatDetails?.name}
+          chatId={chatDetails.chat_id}
+          open={block}
+          setOpen={setBlock}
+        />
+      </Modal>
+    </div>
   );
 });
 

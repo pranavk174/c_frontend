@@ -7,7 +7,14 @@ import { UserApi, useSendMessageMutation } from "../../../../redux/Apis/User";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
-import { Chat, Message, message_reactions, reaction, seen_user, socketResponse } from "@/lib/dummy";
+import {
+  Chat,
+  Message,
+  message_reactions,
+  reaction,
+  seen_user,
+  socketResponse,
+} from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Modal from "@/components/HOComponents/Modal";
@@ -197,11 +204,9 @@ const ChatPage = ({ id }: { id: number }) => {
         message_ids: [replyMessage?.id],
       };
 
-      let patchResult = null
-      let chatPatchResult = null
+      let patchResult = null;
+      let chatPatchResult = null;
       if ("preventDefault" in e) {
-
-
         patchResult = dispatch(
           UserApi.util.updateQueryData(
             "getSingleChat",
@@ -231,37 +236,29 @@ const ChatPage = ({ id }: { id: number }) => {
             },
           ),
         );
-        chatPatchResult = dispatch(UserApi.util.updateQueryData(
-
-          "getAllChats", {}, (draft) => {
-
-            const items = draft.data.getAllChats.data.items
-            draft.data.getAllChats.data.items.forEach(
-              (item: Chat) => {
-                if (item.chat_id === id) {
-
-                  item.last_message = inputText;
-                  item.last_message_at = new Date().toISOString();
-                  item.last_message_id = (items[items.length - 1]?.id || 0) + 1
-                }
+        chatPatchResult = dispatch(
+          UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
+            const items = draft.data.getAllChats.data.items;
+            draft.data.getAllChats.data.items.forEach((item: Chat) => {
+              if (item.chat_id === id) {
+                item.last_message = inputText;
+                item.last_message_at = new Date().toISOString();
+                item.last_message_id = (items[items.length - 1]?.id || 0) + 1;
               }
-            )
-          }
-
-        ))
+            });
+          }),
+        );
       }
 
       try {
         if (replyMessage !== null) {
           socket.emit(REPLY_MESSAGE, newMessage, (response: socketResponse) => {
-
             // agar backend fail
             if (!response.success) {
-
               // rollback
               patchResult?.undo();
 
-              chatPatchResult?.undo()
+              chatPatchResult?.undo();
 
               console.log(response, "callback response");
             }
@@ -269,22 +266,18 @@ const ChatPage = ({ id }: { id: number }) => {
           });
           console.log("messege repliy sent...");
 
-
           // await replyToMessage(newMessage).unwrap();
           setReplyMessage(null);
         } else {
           socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
-
             // agar backend fail
             if (!response.success) {
-
               // rollback
               patchResult?.undo();
 
               console.log(response, "callback response");
             }
             console.log(response, "callback response outside");
-
           });
           console.log("messege sent...");
           // await sendMessage(newMessage);
@@ -491,9 +484,8 @@ const ChatPage = ({ id }: { id: number }) => {
 
       uploadChunks(uid);
     } catch (error) {
-      pathResult.undo()
+      pathResult.undo();
     }
-
   }, [
     currentChunk,
     dispatch,
@@ -589,45 +581,42 @@ const ChatPage = ({ id }: { id: number }) => {
 
               if (unseenNewMessages.length > 0) {
                 console.log("eejhkdsahf kdfdthis unseeed message");
-                socket.emit(MESSAGE_SEEN, {
-                  chat_id: id,
-                  message_ids: unseenNewMessages,
-                  reciever_id: chatDetails?.user_id,
-                }, (response: socketResponse) => {
+                socket.emit(
+                  MESSAGE_SEEN,
+                  {
+                    chat_id: id,
+                    message_ids: unseenNewMessages,
+                    reciever_id: chatDetails?.user_id,
+                  },
+                  (response: socketResponse) => {
+                    // agar backend fail
+                    if (!response.success) {
+                      // rollback
+                      patchResult?.undo();
 
-                  // agar backend fail
-                  if (!response.success) {
-
-                    // rollback
-                    patchResult?.undo();
-
-                    console.log(response, "callback response");
-                  }
-                  console.log(response, "callback response outside");
-
-                });
+                      console.log(response, "callback response");
+                    }
+                    console.log(response, "callback response outside");
+                  },
+                );
               }
             },
           ),
         );
-        const chatPatchResult = dispatch(UserApi.util.updateQueryData(
-
-          "getAllChats", {}, (draft) => {
-
-            const items = draft.data.getAllChats.data.items
-            draft.data.getAllChats.data.items.forEach(
-              (item: Chat) => {
-                if (item.chat_id === id) {
-
-                  item.last_message = data[0]?.content ? data[0]?.content : "image";
-                  item.last_message_at = data[0].created_at;
-                  item.last_message_id = data[0].id
-                }
+        const chatPatchResult = dispatch(
+          UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
+            const items = draft.data.getAllChats.data.items;
+            draft.data.getAllChats.data.items.forEach((item: Chat) => {
+              if (item.chat_id === id) {
+                item.last_message = data[0]?.content
+                  ? data[0]?.content
+                  : "image";
+                item.last_message_at = data[0].created_at;
+                item.last_message_id = data[0].id;
               }
-            )
-          }
-
-        ))
+            });
+          }),
+        );
       },
 
       // [NEW_MESSAGE]: (data: Message[]) => {
@@ -732,7 +721,7 @@ const ChatPage = ({ id }: { id: number }) => {
               draft.data.getChatById.data.items.forEach((message: Message) => {
                 const seenData = seenMap.get(message.id);
 
-                console.log(seenData, "seen dataaaa.", seenMap)
+                console.log(seenData, "seen dataaaa.", seenMap);
                 if (!seenData) return;
 
                 message.seen_users = message.seen_users || [];
@@ -767,26 +756,39 @@ const ChatPage = ({ id }: { id: number }) => {
     // console.log(user_id, "user id....", socket.id);
     if (user_id) {
       // console.log(user_id, "user id in if condition.....");
-      socket.emit(CHAT_JOINED, {
-        chat_id: id,
-        // message_ids: data
-        //   ?.filter(
-        //     (d: Message) =>
-        //       d.seen_users.length === 0 && d.sender_id !== user_id,
-        //   )
-        //   ?.map((d: Message) => d.id),
-        user_id,
-        socketId: socket.id,
-      });
+      socket.emit(
+        CHAT_JOINED,
+        {
+          chat_id: id,
+          // message_ids: data
+          //   ?.filter(
+          //     (d: Message) =>
+          //       d.seen_users.length === 0 && d.sender_id !== user_id,
+          //   )
+          //   ?.map((d: Message) => d.id),
+          user_id,
+          // chatMember: [user_id, chatDetails?.user_id],
+          // socketId: socket.id,
+        },
+        (response: socketResponse) => {
+          console.log(response, "chat join response....");
+        },
+      );
     }
 
     return () => {
       if (user_id) {
         // console.log(user_id, "user id in return    condition.....");
-        socket.emit(CHAT_LEAVED, { chat_id: id, user_id, socketId: socket.id });
+        socket.emit(
+          CHAT_LEAVED,
+          { chat_id: id, user_id, socketId: socket.id },
+          (response: socketResponse) => {
+            console.log(response, "chat leave response....");
+          },
+        );
       }
     };
-  }, [user_id, socket, id, messages]);
+  }, [user_id, socket, id, chatDetails?.user_id, messages]);
 
   const throttleRef = useRef(false);
 
@@ -804,23 +806,24 @@ const ChatPage = ({ id }: { id: number }) => {
 
     throttleRef.current = true;
 
-    socket.emit(MESSAGE_SEEN, {
-      chat_id: id,
-      message_ids: unseenMessages,
-      reciever_id: chatDetails?.user_id,
-    }, (response: socketResponse) => {
+    socket.emit(
+      MESSAGE_SEEN,
+      {
+        chat_id: id,
+        message_ids: unseenMessages,
+        reciever_id: chatDetails?.user_id,
+      },
+      (response: socketResponse) => {
+        // agar backend fail
+        if (!response.success) {
+          // rollback
+          // patchResult?.undo();
 
-      // agar backend fail
-      if (!response.success) {
-
-        // rollback
-        // patchResult?.undo();
-
-        console.log(response, "callback response");
-      }
-      console.log(response, "callback response outside");
-
-    });
+          console.log(response, "callback response");
+        }
+        console.log(response, "callback response outside");
+      },
+    );
 
     const timer = setTimeout(() => {
       throttleRef.current = false;

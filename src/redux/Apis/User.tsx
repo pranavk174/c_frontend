@@ -78,7 +78,7 @@ const baseQueryWithReauth: BaseQueryFn<
       window.location.href = "/login";
     }
   } else if (!data) {
-    console.log(data, "error dataaaaa")
+    console.log(data, "error dataaaaa");
     throw new Error("Internal Server Error");
   }
 
@@ -203,12 +203,12 @@ export const UserApi = createApi({
           `,
         },
       }),
-      providesTags: ['User']
+      providesTags: ["User"],
     }),
     updateUser: builder.mutation({
       query: ({ name, profile_pic, bio }: profileProps) => ({
         url: "",
-        method: 'POST',
+        method: "POST",
         body: {
           query: `
           
@@ -217,17 +217,74 @@ export const UserApi = createApi({
           message, status,success,error}
           }
           
-          `, variables: {
+          `,
+          variables: {
             input: {
-              name, profile_pic, bio
-            }
-          }
-        }
-
+              name,
+              profile_pic,
+              bio,
+            },
+          },
+        },
       }),
-      invalidatesTags: ['User']
-
+      invalidatesTags: ["User"],
     }),
+    blockUser: builder.mutation({
+      query: ({ user_id: blocked_user_id, reason }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          mutation blockUser($input:blockUserInput!){
+          
+          blockUser(input:$input){
+          message , success, error}
+          
+
+          }
+          
+          `,
+          variables: {
+            input: {
+              blocked_user_id,
+              reason,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
+    }),
+    unBlockUser: builder.mutation({
+      query: ({ user_id: blocked_user_id }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+          mutation unBlockUser($input:blockUserInput!){
+          unBlockUser(input:$input){
+          
+          message ,
+error,success
+
+
+          
+          }
+          
+          }
+          
+
+          `,
+          variables: {
+            input: {
+              blocked_user_id,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
+    }),
+
     getAllChats: builder.query({
       query: () => ({
         url: "",
@@ -245,6 +302,7 @@ export const UserApi = createApi({
                     name,profile_pic,last_message,last_message_at,chat_type,
                     chat_id
                       bio
+                      blocked
   email
   mobile
                 }
@@ -308,12 +366,12 @@ export const UserApi = createApi({
         // console.log(result, "result.......");
         return result
           ? [
-            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
+              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -489,10 +547,12 @@ export const {
   useGetSingleChatQuery,
   useUpdateUserMutation,
   useLazyGetSingleChatQuery,
+  useUnBlockUserMutation,
   useGetEmojisQuery,
   useLazyGetEmojisQuery,
   useReactMessageMutation,
   useSendMessageMutation,
+  useBlockUserMutation,
   useReplyToMessageMutation,
   useRefreshTokenMutation,
   useGetUserQuery,

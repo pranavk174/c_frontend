@@ -1,19 +1,33 @@
 "use client";
 
 import Image from "next/image";
-import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
-import { Camera, Pencil, Check, X } from "lucide-react";
+import { Camera, Pencil, Check, X, Ban } from "lucide-react";
 import { capitalizeWords } from "@/lib/utils";
-import { profileProps } from "@/lib/dummy";
-import { useUpdateUserMutation } from "@/redux/Apis/User";
+import { profileProps, socketResponse } from "@/lib/dummy";
+import {
+  useUnBlockUserMutation,
+  useUpdateUserMutation,
+} from "@/redux/Apis/User";
+import { useSocket } from "@/layouts/SocketWrapper";
+import { CHAT_JOINED } from "@/lib/events";
+import Chatlist from "../Chat/Chatlist";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 
 interface whatsappProfileProps {
   profile: profileProps;
   isUser: boolean;
   loading?: boolean;
 
-  setOpen: Dispatch<SetStateAction<boolean>>
+  setOpen: Dispatch<SetStateAction<boolean>>;
   onSave?: (data: whatsappProfileProps["profile"]) => void;
 }
 
@@ -24,57 +38,57 @@ const WhatsappProfile = ({
   setOpen,
   onSave,
 }: whatsappProfileProps) => {
-  const [editField, setEditField] = useState<"name" | "bio" | "profile_pic" | null>(null);
+  const [editField, setEditField] = useState<
+    "name" | "bio" | "profile_pic" | null
+  >(null);
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState(profile);
-  const [file, setFile] = useState<string | null>(null)
-
-  const [updateUser] = useUpdateUserMutation()
-
+  const [file, setFile] = useState<string | null>(null);
+  const socket = useSocket();
+  const [updateUser] = useUpdateUserMutation();
+  const [unBlockUser] = useUnBlockUserMutation();
+  const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   // useEffect(() => {
   //   setFormData(profile);
   // }, [profile]);
 
-
   const uploadImage = async (file: File) => {
     try {
-      const form = new FormData()
-      form.append("image", file)
+      const form = new FormData();
+      form.append("image", file);
       const data = await fetch("/api/upload/simpleUpload", {
         method: "POST",
 
-        body: form
-      })
+        body: form,
+      });
 
-      const result = await data.json()
+      const result = await data.json();
 
-      console.log(result, "res ponse upload....")
+      console.log(result, "res ponse upload....");
 
-      return result.fileUrl
+      return result.fileUrl;
     } catch (error) {
-
-      return null
+      return null;
     }
-  }
+  };
+
+  console.log(profile, "profile dataaaaa....");
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-
     if (e.target.files?.[0]) {
-      const object = URL.createObjectURL(e.target.files?.[0])
+      const object = URL.createObjectURL(e.target.files?.[0]);
 
-      setFile(object)
-      const url = await uploadImage(e.target.files?.[0])
+      setFile(object);
+      const url = await uploadImage(e.target.files?.[0]);
 
-      console.log(url, "url dataaa")
+      console.log(url, "url dataaa");
       setFormData({
         ...formData,
         [e.target.name]: url,
       });
 
-      console.log(formData, "formdataaa in handle change")
-
-    }
-    else {
+      console.log(formData, "formdataaa in handle change");
+    } else {
       setFormData({
         ...formData,
         [e.target.name]: e.target.value,
@@ -83,24 +97,35 @@ const WhatsappProfile = ({
   };
 
   const handleClick = () => {
-    if (!fileInputRef.current) return
+    if (!fileInputRef.current) return;
     fileInputRef.current?.click();
-    setEditField('profile_pic')
+    setEditField("profile_pic");
   };
 
   const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
-
     try {
-      console.log(formData, "formdataaaaaa.")
-      await updateUser(formData).unwrap()
+      console.log(formData, "formdataaaaaa.");
+      await updateUser(formData).unwrap();
       setEditField(null);
     } catch (error) {
-
-      console.log("got error in updation user.")
+      console.log("got error in updation user.");
     }
     // onSave?.(formData);
+  };
 
-
+  const handleUnblock = async () => {
+    try {
+      await unBlockUser({ user_id: profile?.user_id });
+      socket.emit(
+        CHAT_JOINED,
+        { chat_id: formData?.chat_id, user_id },
+        (response: socketResponse) => {
+          console.log("user joined ", response);
+        },
+      );
+    } catch (error) {
+      console.log(error, "error in unblocking...");
+    }
   };
 
   return (
@@ -109,8 +134,12 @@ const WhatsappProfile = ({
 
       <div className="h-[60px] bg-[#202c33] flex justify-between items-center px-5 text-lg font-semibold">
         Profile
-
-        <button onClick={() => setOpen(p => !p)} className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700">X</button>
+        <button
+          onClick={() => setOpen((p) => !p)}
+          className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700"
+        >
+          X
+        </button>
       </div>
 
       {/* PROFILE IMAGE */}
@@ -119,7 +148,8 @@ const WhatsappProfile = ({
         <div className="relative w-44 h-44  overflow-hidden">
           <Image
             src={
-              file || formData?.profile_pic ||
+              file ||
+              formData?.profile_pic ||
               "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
             }
             alt="profile"
@@ -130,11 +160,18 @@ const WhatsappProfile = ({
             className="object-cover rounded-full"
           />
 
-          <input name='profile_pic' onChange={handleChange} type='file' ref={fileInputRef}
-            className="hidden" />
+          <input
+            name="profile_pic"
+            onChange={handleChange}
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+          />
 
-
-          <button onClick={handleClick} className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-wa-primary flex items-center justify-center ${isUser ? 'visible' : 'invisible'} `}>
+          <button
+            onClick={handleClick}
+            className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-wa-primary flex items-center justify-center ${isUser ? "visible" : "invisible"} `}
+          >
             <Camera className="w-5 h-5 text-white" />
           </button>
         </div>
@@ -155,8 +192,9 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-[#00a884] pb-1" : ""
-                }`}
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${
+                editField === "name" ? "border-b border-[#00a884] pb-1" : ""
+              }`}
             />
 
             {editField === "name" ? (
@@ -169,10 +207,12 @@ const WhatsappProfile = ({
                   <X className="w-5 h-5 text-red-500" />
                 </button>
               </div>
-            ) : (
-              isUser ? (<button onClick={() => setEditField("name")}>
+            ) : isUser ? (
+              <button onClick={() => setEditField("name")}>
                 <Pencil className="w-5 h-5 text-[#8696a0]" />
-              </button>) : ("")
+              </button>
+            ) : (
+              ""
             )}
           </div>
 
@@ -194,44 +234,47 @@ const WhatsappProfile = ({
               onChange={handleChange}
               className={`flex-1 bg-transparent outline-none  text-[clamp(16px,4vw,16px)] `}
             />
-
-
           </div>
         </div>
 
         {/* bio */}
 
-        <div className="px-6 py-5 border-b border-white/5">
-          <div className="text-[#00a884] text-sm mb-3">bio</div>
+        {formData?.bio && formData?.bio?.length > 0 && (
+          <div className="px-6 py-5 border-b border-white/5">
+            <div className="text-[#00a884] text-sm mb-3">bio</div>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              name="bio"
-              disabled={editField !== "bio"}
-              value={formData?.bio || ""}
-              onChange={handleChange}
-              className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                name="bio"
+                disabled={editField !== "bio"}
+                value={formData?.bio || ""}
+                onChange={handleChange}
+                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${
+                  editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
                 }`}
-            />
+              />
 
-            {editField === "bio" ? (
-              <div className="flex items-center gap-2">
-                <button disabled={loading} onClick={handleSave}>
-                  <Check className="w-5 h-5 text-[#00a884]" />
-                </button>
+              {editField === "bio" ? (
+                <div className="flex items-center gap-2">
+                  <button disabled={loading} onClick={handleSave}>
+                    <Check className="w-5 h-5 text-[#00a884]" />
+                  </button>
 
-                <button onClick={() => setEditField(null)}>
-                  <X className="w-5 h-5 text-red-500" />
+                  <button onClick={() => setEditField(null)}>
+                    <X className="w-5 h-5 text-red-500" />
+                  </button>
+                </div>
+              ) : isUser ? (
+                <button onClick={() => setEditField("bio")}>
+                  <Pencil className="w-5 h-5 text-[#8696a0]" />
                 </button>
-              </div>
-            ) : (
-              isUser ? (<button onClick={() => setEditField("bio")}>
-                <Pencil className="w-5 h-5 text-[#8696a0]" />
-              </button>) : ("")
-            )}
+              ) : (
+                ""
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* PHONE */}
 
@@ -242,11 +285,18 @@ const WhatsappProfile = ({
         </div>
       </div>
 
-
       <div className="w-full mt-4 flex justify-center-safe">
-
-        <button onClick={handleSave} className={`bg-green-400 max-w-[150px] w-full mx-auto py-2 rounded-md text-center  ${editField ? "block" : 'invisible'} `}>
+        <button
+          onClick={handleSave}
+          className={`bg-green-400 max-w-[150px] w-full mx-auto py-2 rounded-md text-center  ${editField ? "block" : "invisible hidden"} `}
+        >
           Save
+        </button>
+        <button
+          onClick={handleUnblock}
+          className={`p-2 flex  items-center max-w-[150px] w-full mx-auto py-2 rounded-md text-center justify-between text-[clamp(16px,4vw,16px)]  ${formData?.blocked ? "block" : "invisible hidden"} text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition`}
+        >
+          Unblock User <Ban className="w-4 h-4" />
         </button>
       </div>
     </div>
