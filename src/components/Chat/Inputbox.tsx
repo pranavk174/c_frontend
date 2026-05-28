@@ -1,23 +1,16 @@
 "use client";
-import { useSocket } from "@/layouts/SocketWrapper";
+
 import { Chat, Message } from "@/lib/dummy";
-import { REFETCH_CHATS, REPLY_MESSAGE, SEND_MESSAGE } from "@/lib/events";
-import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
-import { UserApi, useReplyToMessageMutation } from "@/redux/Apis/User";
+
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import React, {
   Dispatch,
   FormEvent,
   memo,
   SetStateAction,
-  useCallback,
-  useMemo,
-  useRef,
   useState,
 } from "react";
 import MediaOptions from "./MediaOptions";
-import { RootState } from "@/redux/store";
-import { useSelector } from "react-redux";
 
 interface inputBoxProps {
   chatDetails: Chat;
@@ -63,7 +56,6 @@ const Inputbox = memo(
     // const [inputText, setInputText] = useState("");
     const [open, setOpen] = useState(false);
 
-
     return (
       <footer className="h-[62px] bg-wa-header dark:bg-wa-header-dark flex items-center px-4 py-2 shrink-0 z-10">
         <div className="flex relative items-center space-x-2 text-wa-icon dark:text-wa-icon-dark mr-2 shrink-0">
@@ -96,7 +88,11 @@ const Inputbox = memo(
           </div>
         </div>
         <form
-          onSubmit={handleSendMessage}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!inputText.trim()) return;
+            handleSendMessage(e);
+          }}
           className="flex-1 flex flex-col relative bg-white dark:bg-[#202c33] rounded-xl"
         >
           {/* Reply Preview */}
@@ -134,6 +130,7 @@ const Inputbox = memo(
             <div className="ml-2 shrink-0">
               {inputText.trim() ? (
                 <button
+                  disabled={!inputText.trim()}
                   onClick={handleSendMessage}
                   className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
                 >
@@ -147,7 +144,6 @@ const Inputbox = memo(
             </div>
           </div>
         </form>
-
       </footer>
     );
   },

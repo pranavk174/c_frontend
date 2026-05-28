@@ -1,26 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import React, {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 
 import { Camera, Pencil, Check, X, Ban } from "lucide-react";
-import { capitalizeWords } from "@/lib/utils";
+
 import { profileProps, socketResponse } from "@/lib/dummy";
 import {
   useUnBlockUserMutation,
   useUpdateUserMutation,
-} from "@/redux/Apis/User";
+} from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_JOINED } from "@/lib/events";
-import Chatlist from "../Chat/Chatlist";
+
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
+import { uploadImage } from "@/lib/utils";
 
 interface whatsappProfileProps {
   profile: profileProps;
@@ -39,7 +34,7 @@ const WhatsappProfile = ({
   onSave,
 }: whatsappProfileProps) => {
   const [editField, setEditField] = useState<
-    "name" | "bio" | "profile_pic" | 'cover_pic' | null
+    "name" | "bio" | "profile_pic" | "cover_pic" | null
   >(null);
   const fileInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -53,25 +48,25 @@ const WhatsappProfile = ({
   //   setFormData(profile);
   // }, [profile]);
 
-  const uploadImage = async (file: File) => {
-    try {
-      const form = new FormData();
-      form.append("image", file);
-      const data = await fetch("/api/upload/simpleUpload", {
-        method: "POST",
+  // const uploadImage = async (file: File) => {
+  //   try {
+  //     const form = new FormData();
+  //     form.append("image", file);
+  //     const data = await fetch("/api/upload/simpleUpload", {
+  //       method: "POST",
 
-        body: form,
-      });
+  //       body: form,
+  //     });
 
-      const result = await data.json();
+  //     const result = await data.json();
 
-      console.log(result, "res ponse upload....");
+  //     console.log(result, "res ponse upload....");
 
-      return result.fileUrl;
-    } catch (error) {
-      return null;
-    }
-  };
+  //     return result.fileUrl;
+  //   } catch (error) {
+  //     return null;
+  //   }
+  // };
 
   console.log(profile, "profile dataaaaa....");
 
@@ -139,12 +134,9 @@ const WhatsappProfile = ({
     <div className="w-full  md:max-w-[60%] min-h-screen bg-[#0b141a] text-white">
       {/* HEADER */}
 
-
-
       {/* PROFILE IMAGE */}
 
       <div className="flex flex-col items-center justify-center border-b border-white/5">
-
         <div className="relative h-[220px] w-full">
           <div className="h-[60px] relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
             Profile
@@ -161,11 +153,11 @@ const WhatsappProfile = ({
             fill
             className="object-cover"
             unoptimized
-
             src={
               formData?.cover_pic ||
               "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
-            } />
+            }
+          />
           <div className="relative w-44 h-44 mx-auto -bottom-[30%] overflow-hidden">
             <Image
               src={
@@ -197,13 +189,14 @@ const WhatsappProfile = ({
             </button>
           </div>
 
-
           {isUser && (
             <div>
-              <button onClick={handleCoverClick} className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20">
+              <button
+                onClick={handleCoverClick}
+                className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20"
+              >
                 <Camera className="w-5 h-5 text-white" />
               </button>
-
 
               <input
                 name="cover_pic"
@@ -212,14 +205,11 @@ const WhatsappProfile = ({
                 ref={coverInputRef}
                 className="hidden"
               />
-
             </div>
           )}
         </div>
         <div className="h-40" />
       </div>
-
-
 
       {/* PROFILE DETAILS */}
 
@@ -236,8 +226,9 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-[#00a884] pb-1" : ""
-                }`}
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${
+                editField === "name" ? "border-b border-[#00a884] pb-1" : ""
+              }`}
             />
 
             {editField === "name" ? (
@@ -293,8 +284,9 @@ const WhatsappProfile = ({
                 disabled={editField !== "bio"}
                 value={formData?.bio || ""}
                 onChange={handleChange}
-                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
-                  }`}
+                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${
+                  editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
+                }`}
               />
 
               {editField === "bio" ? (

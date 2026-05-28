@@ -5,6 +5,7 @@ import onlineUsersSlice from "./slices/onLineUsers";
 
 import userSlice from "./slices/User";
 import { UserApi } from "./Apis/User";
+import { BaseApi } from "./Apis/BaseApi";
 
 const persistConfig = {
   key: "root",
@@ -13,7 +14,8 @@ const persistConfig = {
 };
 
 const rootReducer = combineReducers({
-  [UserApi.reducerPath]: UserApi.reducer,
+  // [UserApi.reducerPath]: UserApi.reducer,
+  [BaseApi.reducerPath]: BaseApi.reducer,
   userSlice: userSlice,
   onlineUsersSlice: onlineUsersSlice,
 });
@@ -26,7 +28,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(UserApi.middleware),
+    }).concat(BaseApi.middleware),
 });
 
 export const persistor = persistStore(store);

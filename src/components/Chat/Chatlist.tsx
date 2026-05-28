@@ -3,7 +3,8 @@ import { Chat, Message, reaction, socketResponse } from "@/lib/dummy";
 import { MESSAGE_REACTION, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
-import { UserApi, useReactMessageMutation } from "@/redux/Apis/User";
+// import { useReactMessageMutation } from "@/redux/Apis/User";
+import { chatApi, useReactMessageMutation } from "@/redux/Apis/Chat";
 
 import { motion } from "framer-motion";
 import { data } from "framer-motion/client";
@@ -87,7 +88,7 @@ const Chatlist = memo(
     show,
   }: chatListProps) => {
     const socket = useSocket();
-    const [reactMessage, { }] = useReactMessageMutation({});
+    const [reactMessage, {}] = useReactMessageMutation({});
     const [selectionMode, setSelectionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollToBottom = () => {
@@ -133,7 +134,7 @@ const Chatlist = memo(
       console.log(user_id);
 
       const pathResult = dispatch(
-        UserApi.util.updateQueryData(
+        chatApi.util.updateQueryData(
           "getSingleChat",
           { chat_ids: [chat_id] },
           (draft) => {
@@ -161,24 +162,25 @@ const Chatlist = memo(
 
       console.log(chat_id, "chat_iddddddddd");
       try {
-        socket.emit(MESSAGE_REACTION, {
-          chat_ids: [chat_id],
-          message_ids: [msg_id],
-          react_id,
-          reciever_ids: [chatDetails.user_id],
-        }, (response: socketResponse) => {
+        socket.emit(
+          MESSAGE_REACTION,
+          {
+            chat_ids: [chat_id],
+            message_ids: [msg_id],
+            react_id,
+            reciever_ids: [chatDetails.user_id],
+          },
+          (response: socketResponse) => {
+            // agar backend fail
+            if (!response.success) {
+              // rollback
+              pathResult.undo();
 
-          // agar backend fail
-          if (!response.success) {
-
-            // rollback
-            pathResult.undo();
-
-            console.log(response, "callback response");
-          }
-          console.log(response, "callback response outside");
-
-        });
+              console.log(response, "callback response");
+            }
+            console.log(response, "callback response outside");
+          },
+        );
 
         // await reactMessage({
         //     chat_ids: [chat_id],
@@ -186,7 +188,7 @@ const Chatlist = memo(
         //     react_id,
         // });
       } catch (error) {
-        pathResult.undo()
+        pathResult.undo();
       }
     };
     const toggleSelection = (ids: number) => {

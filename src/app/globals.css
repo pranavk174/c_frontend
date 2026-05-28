@@ -56,9 +56,14 @@
 /* Firefox */
 .hide-scrollbar {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* IE */
 .hide-scrollbar {
   -ms-overflow-style: none;
 }
+
+
+/* global.css */
+

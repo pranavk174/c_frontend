@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { Chat } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
-import { useGetAllChatsQuery, useGetUserQuery } from "@/redux/Apis/User";
+import { useGetUserQuery } from "@/redux/Apis/Users";
+import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
@@ -56,7 +57,7 @@ export default function Sidebar() {
     (state: RootState) => state.onlineUsersSlice,
   );
 
-  console.log(user?.profile_pic, "user profile dataaaa")
+  console.log(user?.profile_pic, "user profile dataaaa");
 
   return (
     <aside className="w-full h-full flex flex-col bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark">
@@ -68,7 +69,10 @@ export default function Sidebar() {
             className="p-0 bg-transparent h-full w-full"
           >
             <Image
-              src={user?.profile_pic || "https://api.dicebear.com/7.x/avataaars/svg?seed=Me"}
+              src={
+                user?.profile_pic ||
+                "https://api.dicebear.com/7.x/avataaars/svg?seed=Me"
+              }
               alt="My Profile"
               height={200}
               width={200}
@@ -77,9 +81,12 @@ export default function Sidebar() {
           </button>
         </div>
         <div className="flex items-center space-x-4 text-wa-icon dark:text-wa-icon-dark">
-          <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
+          <Link
+            href="/story"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
+          >
             <CircleDashed className="w-5 h-5" />
-          </button>
+          </Link>
           <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <MessageSquare className="w-5 h-5" />
           </button>
@@ -167,11 +174,10 @@ export default function Sidebar() {
         })}
       </div>
 
-
-
       <Modal open={open} setOpen={setOpen}>
-        {user && <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />}
-
+        {user && (
+          <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
+        )}
       </Modal>
     </aside>
   );

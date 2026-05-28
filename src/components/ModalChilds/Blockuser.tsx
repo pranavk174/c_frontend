@@ -3,7 +3,7 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import { profileProps, socketResponse } from "@/lib/dummy";
-import { useBlockUserMutation } from "@/redux/Apis/User";
+import { useBlockUserMutation } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_LEAVED } from "@/lib/events";
 type BlockUserProps = {

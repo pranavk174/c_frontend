@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
-import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/User";
+import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/Users";
 import { getDeviceInfo } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 export default function LoginPage() {

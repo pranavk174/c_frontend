@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, use, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSelector, UseSelector } from "react-redux";
-import { UserApi, useSendMessageMutation } from "../../../../redux/Apis/User";
+// import { chatApi } from "../../../../redux/Apis/User";
+import { chatApi, useSendMessageMutation } from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
@@ -189,9 +190,11 @@ const ChatPage = ({ id }: { id: number }) => {
       if ("preventDefault" in e) {
         console.log("gotr issueeee");
         e.preventDefault();
+      } else if ((!e.url && !inputText.trim()) || !socket) {
+        return;
       }
 
-      if (!inputText.trim() || !socket) return;
+      // if (!inputText.trim() || !socket) return;
 
       // console.log(e, "medoiaaaaaaaaa");
 
@@ -208,7 +211,7 @@ const ChatPage = ({ id }: { id: number }) => {
       let chatPatchResult = null;
       if ("preventDefault" in e) {
         patchResult = dispatch(
-          UserApi.util.updateQueryData(
+          chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
@@ -237,7 +240,7 @@ const ChatPage = ({ id }: { id: number }) => {
           ),
         );
         chatPatchResult = dispatch(
-          UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
+          chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
             const items = draft.data.getAllChats.data.items;
             draft.data.getAllChats.data.items.forEach((item: Chat) => {
               if (item.chat_id === id) {
@@ -382,7 +385,7 @@ const ChatPage = ({ id }: { id: number }) => {
         //   prev.filter((p) => p.id !== prev[prev.length - 1].id),
         // );
         dispatch(
-          UserApi.util.updateQueryData(
+          chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
@@ -434,7 +437,7 @@ const ChatPage = ({ id }: { id: number }) => {
     // ]);
 
     const pathResult = dispatch(
-      UserApi.util.updateQueryData(
+      chatApi.util.updateQueryData(
         "getSingleChat",
         { chat_ids: [id] },
         (draft) => {
@@ -540,7 +543,7 @@ const ChatPage = ({ id }: { id: number }) => {
           return;
         }
         const patchResult = dispatch(
-          UserApi.util.updateQueryData(
+          chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
@@ -552,9 +555,10 @@ const ChatPage = ({ id }: { id: number }) => {
 
               // update existing
               if (exists) {
+                console.log("triggered here and exitsssss");
                 draft.data.getChatById.data.items = items.map((m: Message) => {
                   if (m?.id === data[0].id) {
-                    return { ...m, ...data[0] };
+                    return { ...m, ...data[0], isLocal: false };
                   }
 
                   return m;
@@ -574,13 +578,13 @@ const ChatPage = ({ id }: { id: number }) => {
                 )
                 .map((m: Message) => m.id);
 
-              console.log(
-                unseenNewMessages,
-                " <<<<====in reftech message unseen new messagessssssss===>>>>",
-              );
+              // console.log(
+              //   unseenNewMessages,
+              //   " <<<<====in reftech message unseen new messagessssssss===>>>>",
+              // );
 
               if (unseenNewMessages.length > 0) {
-                console.log("eejhkdsahf kdfdthis unseeed message");
+                // console.log("eejhkdsahf kdfdthis unseeed message");
                 socket.emit(
                   MESSAGE_SEEN,
                   {
@@ -604,7 +608,7 @@ const ChatPage = ({ id }: { id: number }) => {
           ),
         );
         const chatPatchResult = dispatch(
-          UserApi.util.updateQueryData("getAllChats", {}, (draft) => {
+          chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
             const items = draft.data.getAllChats.data.items;
             draft.data.getAllChats.data.items.forEach((item: Chat) => {
               if (item.chat_id === id) {
@@ -625,7 +629,7 @@ const ChatPage = ({ id }: { id: number }) => {
       //     return;
       //   }
       //   dispatch(
-      //     UserApi.util.updateQueryData(
+      //     chatApi.util.updateQueryData(
       //       "getSingleChat",
       //       { chat_ids: [id] },
       //       (draft) => {
@@ -678,7 +682,7 @@ const ChatPage = ({ id }: { id: number }) => {
           return;
         }
         const patchResult = dispatch(
-          UserApi.util.updateQueryData(
+          chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
@@ -712,7 +716,7 @@ const ChatPage = ({ id }: { id: number }) => {
         }
 
         const pathResult = dispatch(
-          UserApi.util.updateQueryData(
+          chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
             (draft) => {
@@ -721,7 +725,7 @@ const ChatPage = ({ id }: { id: number }) => {
               draft.data.getChatById.data.items.forEach((message: Message) => {
                 const seenData = seenMap.get(message.id);
 
-                console.log(seenData, "seen dataaaa.", seenMap);
+                // console.log(seenData, "seen dataaaa.", seenMap);
                 if (!seenData) return;
 
                 message.seen_users = message.seen_users || [];
@@ -736,10 +740,10 @@ const ChatPage = ({ id }: { id: number }) => {
                 message.seen_at = seenData.seen_at;
               });
 
-              console.log(
-                current(draft.data.getChatById.data.items),
-                "latest updated dataaaaaaaa",
-              );
+              // console.log(
+              //   current(draft.data.getChatById.data.items),
+              //   "latest updated dataaaaaaaa",
+              // );
             },
           ),
         );
@@ -753,22 +757,13 @@ const ChatPage = ({ id }: { id: number }) => {
   useSocketEvents(socket, handler);
 
   useEffect(() => {
-    // console.log(user_id, "user id....", socket.id);
     if (user_id) {
-      // console.log(user_id, "user id in if condition.....");
       socket.emit(
         CHAT_JOINED,
         {
           chat_id: id,
-          // message_ids: data
-          //   ?.filter(
-          //     (d: Message) =>
-          //       d.seen_users.length === 0 && d.sender_id !== user_id,
-          //   )
-          //   ?.map((d: Message) => d.id),
+
           user_id,
-          // chatMember: [user_id, chatDetails?.user_id],
-          // socketId: socket.id,
         },
         (response: socketResponse) => {
           console.log(response, "chat join response....");
@@ -778,7 +773,6 @@ const ChatPage = ({ id }: { id: number }) => {
 
     return () => {
       if (user_id) {
-        // console.log(user_id, "user id in return    condition.....");
         socket.emit(
           CHAT_LEAVED,
           { chat_id: id, user_id, socketId: socket.id },
@@ -788,7 +782,7 @@ const ChatPage = ({ id }: { id: number }) => {
         );
       }
     };
-  }, [user_id, socket, id, chatDetails?.user_id, messages]);
+  }, [user_id, socket, id]);
 
   const throttleRef = useRef(false);
 
