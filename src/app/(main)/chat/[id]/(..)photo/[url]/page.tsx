@@ -13,7 +13,7 @@ const Page = async ({
 
     return (
         <>
-            <Imagepreview image={image} />
+            <Image prioritypreview image={image} />
         </>
     );
 };

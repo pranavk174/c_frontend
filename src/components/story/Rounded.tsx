@@ -35,7 +35,7 @@ const StoryRing = ({ segments = 1, url, seenStories = [] }: RingProps) => {
           />
         </svg>
 
-        <Image
+        <Image priority
           alt="image"
           height={200}
           width={200}
@@ -77,10 +77,12 @@ const StoryRing = ({ segments = 1, url, seenStories = [] }: RingProps) => {
       </svg>
 
       <Image
+        priority
         alt="image"
         height={200}
         width={200}
         src={url}
+
         className="absolute left-[10px] top-[10px] w-16 h-16 rounded-full object-cover"
       />
     </div>

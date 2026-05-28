@@ -82,7 +82,7 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
         <div className="flex-1 relative overflow-hidden bg-black">
           {/* Image */}
           {currentFile && (
-            <Image
+            <Image priority
               src={currentFile.preview}
               alt="preview"
               fill
@@ -103,9 +103,8 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
                 className="h-1 flex-1 rounded-full bg-white/20 overflow-hidden"
               >
                 <div
-                  className={`h-full bg-white transition-all ${
-                    i <= currentIndex ? "w-full" : "w-0"
-                  }`}
+                  className={`h-full bg-white transition-all ${i <= currentIndex ? "w-full" : "w-0"
+                    }`}
                 />
               </div>
             ))}
@@ -132,13 +131,12 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`relative min-w-[60px] h-[90px] rounded-xl overflow-hidden border-2 ${
-                  currentIndex === index
+                className={`relative min-w-[60px] h-[90px] rounded-xl overflow-hidden border-2 ${currentIndex === index
                     ? "border-[#00a884]"
                     : "border-transparent"
-                }`}
+                  }`}
               >
-                <Image
+                <Image priority
                   src={item.preview}
                   alt="thumb"
                   fill

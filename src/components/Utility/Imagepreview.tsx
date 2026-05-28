@@ -12,7 +12,7 @@ const Imagepreview = ({ image }: { image?: string }) => {
             </button>
             {image ? (
                 <div className="relative w-full max-w-5xl h-[90vh]">
-                    <Image
+                    <Image priority
                         src={image}
                         alt="preview"
                         fill

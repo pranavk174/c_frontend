@@ -3,15 +3,16 @@
 import Image from "next/image";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { StoryItem, UserStories } from "@/lib/dummy";
 
-interface StoryItem {
-  id: number;
-  url: string;
-  seen?: boolean;
-}
+// interface StoryItem {
+//   id: number;
+//   url: string;
+//   seen?: boolean;
+// }
 
 interface StoryViewerProps {
-  stories: StoryItem[];
+  stories: UserStories;
   initialIndex?: number;
   onClose?: () => void;
 }
@@ -32,7 +33,9 @@ const StoryViewer = ({
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  const currentStory = stories[currentIndex];
+  const currentStory = stories.stories[currentIndex];
+
+  console.log(stories, "store dataaaa", currentStory)
 
   // Story Progress
   useEffect(() => {
@@ -42,7 +45,7 @@ const StoryViewer = ({
 
         // Move to next story
         if (next >= 100) {
-          if (currentIndex < stories.length - 1) {
+          if (currentIndex < stories.stories.length - 1) {
             setCurrentIndex((p) => p + 1);
             return 0;
           }
@@ -60,7 +63,7 @@ const StoryViewer = ({
     }, STORY_DURATION / 50);
 
     return () => clearInterval(interval);
-  }, [currentIndex, stories.length]);
+  }, [currentIndex, stories.stories.length]);
 
   // Previous Story
   const handlePrev = () => {
@@ -72,7 +75,7 @@ const StoryViewer = ({
 
   // Next Story
   const handleNext = () => {
-    if (currentIndex < stories.length - 1) {
+    if (currentIndex < stories.stories.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       setProgress(0);
     } else {
@@ -86,7 +89,7 @@ const StoryViewer = ({
       <div className="absolute top-0 left-0 z-50 w-full p-4">
         {/* Progress Bars */}
         <div className="flex gap-1 mb-4">
-          {stories.map((_, index) => (
+          {stories.stories.map((_, index) => (
             <div
               key={index}
               className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden"
@@ -109,8 +112,8 @@ const StoryViewer = ({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image
-              src={currentStory.url}
+            <Image priority
+              src={stories.profile_pic ?? ""}
               alt="profile"
               width={40}
               height={40}
@@ -119,7 +122,7 @@ const StoryViewer = ({
 
             <div>
               <h3 className="text-white text-sm font-medium">
-                User {currentStory.id}
+                {stories.name}
               </h3>
 
               <p className="text-white/60 text-xs">Just now</p>
@@ -149,8 +152,8 @@ const StoryViewer = ({
 
       {/* Story Image */}
       <div className="relative w-full h-full flex items-center justify-center">
-        <Image
-          src={currentStory.url}
+        <Image priority
+          src={currentStory.content}
           alt="story"
           fill
           priority

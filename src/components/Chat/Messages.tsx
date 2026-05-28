@@ -150,7 +150,7 @@ const Messages = ({
                 >
                   {/* image */}
                   {msg.preview && (
-                    <Image
+                    <Image priority
                       src={msg.preview}
                       alt="upload"
                       height={300}

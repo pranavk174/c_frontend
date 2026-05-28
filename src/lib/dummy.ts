@@ -76,6 +76,33 @@ export interface profileProps {
   user_id?: number;
 }
 
+
+export interface StoryItem {
+  id: number;
+  user_id: number;
+  text_data: string;
+  content: string;
+  created_at: string;
+  expires_at: string;
+}
+
+
+export interface StoryContent {
+  id: number;
+  text_data: string;
+  content: string;
+  created_at: string;
+  expires_at: string;
+  likes_count: number;
+}
+
+export interface UserStories {
+  user_id: number;
+  name: string;
+  profile_pic: string | null;
+  isOwn: boolean;
+  stories: StoryContent[];
+}
 // export type Message = {
 //   id: string;
 //   senderId: string;

@@ -148,7 +148,7 @@ const WhatsappProfile = ({
             </button>
           </div>
 
-          <Image
+          <Image priority
             alt="cover_pic"
             fill
             className="object-cover"
@@ -159,7 +159,7 @@ const WhatsappProfile = ({
             }
           />
           <div className="relative w-44 h-44 mx-auto -bottom-[30%] overflow-hidden">
-            <Image
+            <Image priority
               src={
                 file ||
                 formData?.profile_pic ||
@@ -226,9 +226,8 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${
-                editField === "name" ? "border-b border-[#00a884] pb-1" : ""
-              }`}
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-[#00a884] pb-1" : ""
+                }`}
             />
 
             {editField === "name" ? (
@@ -284,9 +283,8 @@ const WhatsappProfile = ({
                 disabled={editField !== "bio"}
                 value={formData?.bio || ""}
                 onChange={handleChange}
-                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${
-                  editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
-                }`}
+                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
+                  }`}
               />
 
               {editField === "bio" ? (

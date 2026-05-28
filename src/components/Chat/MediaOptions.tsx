@@ -107,7 +107,7 @@ const MediaOptions = ({
               className="flex flex-col items-center gap-2"
             >
               <div className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center">
-                <Image className="size-6" />
+                <Image priority className="size-6" />
               </div>
 
               <span className="text-xs">Photos</span>

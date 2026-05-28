@@ -26,7 +26,7 @@ const MediaPreviewContent = ({
 
             {/* image preview */}
             <div className="flex-1 flex items-center justify-center overflow-hidden p-4">
-                <Image
+                <Image priority
                     src={previewUrl ?? "lkfdslfsdlfsd"}
                     alt="preview"
                     height={400}

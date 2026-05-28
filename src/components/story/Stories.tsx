@@ -10,6 +10,9 @@ import PremiumModal from "../HOComponents/PremiumModal";
 import { uploadImage } from "@/lib/utils";
 import WhatsAppStoryPreview from "./StoryuploadPreview";
 import { useGetStoriesQuery } from "@/redux/Apis/Story";
+import { StoryContent, StoryItem, UserStories } from "@/lib/dummy";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const stories = [
   {
@@ -126,7 +129,7 @@ const StoryList = () => {
   const [open, setOpen] = useState<boolean>(false);
   const handleClose = useCallback(() => setOpen(false), []);
   const storyRef = useRef(null);
-
+  const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const { storiesData, isLoading, isSuccess } = useGetStoriesQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
       return {
@@ -182,22 +185,22 @@ const StoryList = () => {
       {/* Stories */}
       <div className="flex w-full justify-center h-full ">
         <div className="flex bg-[#0b141a]   flex-col mt-[30px] gap-2 max-w-3xl w-full h-[80vh] mx-auto overflow-y-auto hide-scrollbar rounded-lg p-5 ">
-          {stories.map((story) => (
+          {storiesData?.map((story: UserStories) => (
             <div
               onClick={(e) => {
                 e.stopPropagation();
                 // e.preventDefault();
                 setOpen((p) => !p);
               }}
-              key={story.id}
+              key={story.user_id}
               className="flex gap-4 bg-gray-700 rounded-lg hover:bg-gray-400 px-2 items-center cursor-pointer group"
             >
               {/* Own Story */}
-              {story.isOwn ? (
+              {story.user_id === user_id ? (
                 <div className="relative">
                   <StoryRing
-                    segments={5}
-                    url={story.image}
+                    segments={story?.stories?.length}
+                    url={story.profile_pic || ""}
                     seenStories={[true, false, true, false, false]}
                   />
 
@@ -224,8 +227,8 @@ const StoryList = () => {
               ) : (
                 <div className="rounded-full p-[3px] transition duration-300 group-hover:scale-105">
                   <StoryRing
-                    segments={5}
-                    url={story.image}
+                    segments={story?.stories?.length}
+                    url={story.profile_pic || ""}
                     seenStories={[true, false, true, false, false]}
                   />
                 </div>
@@ -252,9 +255,21 @@ const StoryList = () => {
       </Modal> */}
 
       <PremiumModal open={open} onClose={handleClose}>
-        {/* <StoryViewer stories={stories[1].content} onClose={handleClose} /> */}
 
-        <WhatsAppStoryPreview files={files} />
+
+        {
+          storiesData?.map((story: UserStories) =>
+
+            <div key={story.user_id}>
+              <StoryViewer stories={story} onClose={handleClose} />
+            </div>
+
+          )
+        }
+
+
+
+        {/* <WhatsAppStoryPreview files={files} /> */}
       </PremiumModal>
     </div>
   );

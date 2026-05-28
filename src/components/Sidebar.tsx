@@ -68,7 +68,7 @@ export default function Sidebar() {
             onClick={() => setOpen(true)}
             className="p-0 bg-transparent h-full w-full"
           >
-            <Image
+            <Image priority
               src={
                 user?.profile_pic ||
                 "https://api.dicebear.com/7.x/avataaars/svg?seed=Me"
@@ -127,7 +127,7 @@ export default function Sidebar() {
                 )}
               >
                 <div className="relative w-[48px] h-[48px]  mr-4 shrink-0 overflow-hidden">
-                  <Image
+                  <Image priority
                     // style={{ height: "auto", width: "auto" }}
                     // height={300}
                     // width={300}

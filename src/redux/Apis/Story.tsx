@@ -42,12 +42,19 @@ export const storyApi = BaseApi.injectEndpoints({
           ... on StoriesData{
           
           stories{
-           id,
-  user_id,
-  text_data,  content,  created_at,
 
+  user_id
+  name
+  profile_pic
+  stories{
+  
+
+      id,
+
+  text_data,  content,  created_at,
+likes_count,
   expires_at,
-          
+        }    
           }
           
           }
