@@ -115,6 +115,8 @@ const WhatsappProfile = ({
     // onSave?.(formData);
   };
 
+  console.log(formData?.cover_pic, "cover oiccc")
+
   const handleUnblock = async () => {
     try {
       await unBlockUser({ user_id: profile?.user_id });
@@ -131,7 +133,7 @@ const WhatsappProfile = ({
   };
 
   return (
-    <div className="w-full  md:max-w-[60%] min-h-screen bg-[#0b141a] text-white">
+    <div className="w-full   md:max-w-[60%] min-h-screen bg-[#0b141a] text-white">
       {/* HEADER */}
 
       {/* PROFILE IMAGE */}
@@ -159,7 +161,8 @@ const WhatsappProfile = ({
             }
           />
           <div className="relative w-44 h-44 mx-auto -bottom-[30%] overflow-hidden">
-            <Image priority
+            <Image
+              priority
               src={
                 file ||
                 formData?.profile_pic ||

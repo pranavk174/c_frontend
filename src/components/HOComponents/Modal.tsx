@@ -30,7 +30,7 @@ const Modal = ({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "-300%", opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="z-50 relative"
+            className="z-50 relative w-full flex justify-center"
           >
             {children}
           </motion.div>

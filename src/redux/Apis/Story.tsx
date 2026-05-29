@@ -52,8 +52,18 @@ export const storyApi = BaseApi.injectEndpoints({
       id,
 
   text_data,  content,  created_at,
-likes_count,
-  expires_at,
+
+
+  interactions{
+   id
+  name
+  seen
+  liked
+  seen_at
+  liked_at
+  profile_pic
+  
+  }
         }    
           }
           
@@ -67,7 +77,54 @@ likes_count,
       }),
       providesTags: ["story"],
     }),
+    seenStory: builder.mutation({
+      query: ({ id }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          mutation seenStory($id){
+          seenStory(id:$id){
+          message,status,error}
+          }
+          
+          
+          `,
+          variables: {
+            id,
+          },
+        },
+      }),
+    }),
+
+    replyToStory: builder.mutation({
+      query: ({ id, content }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+          
+          mutation replyToStory($id: Int! , $content: String!){
+          replyToStory(id:$id , content:$content){
+          
+          message, error , success
+          }
+          }
+          
+          `,
+          variables: {
+            id,
+            content,
+          },
+        },
+      }),
+    }),
   }),
 });
 
-export const { useCreateStoryMutation, useGetStoriesQuery } = storyApi;
+export const {
+  useCreateStoryMutation,
+  useGetStoriesQuery,
+  useSeenStoryMutation,
+  useReplyToStoryMutation,
+} = storyApi;

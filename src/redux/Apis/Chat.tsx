@@ -19,6 +19,7 @@ export const chatApi = BaseApi.injectEndpoints({
                         user_id,
                         name,profile_pic,last_message,last_message_at,chat_type,
                         chat_id
+                        cover_pic,
                           bio
                           blocked
       email
@@ -55,6 +56,7 @@ export const chatApi = BaseApi.injectEndpoints({
       created_at,
       seen_at,
       is_forwarded ,
+      story_item,
       preview,
       content,
       story_id ,
@@ -84,12 +86,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // console.log(result, "result.......");
         return result
           ? [
-              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {

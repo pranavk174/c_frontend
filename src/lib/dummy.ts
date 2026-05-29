@@ -37,6 +37,7 @@ export interface Message {
   is_forwarded: boolean;
   seen_users: number[];
   content: string | null;
+  story_item?: string;
   story_id: number | null;
   is_edited: boolean;
   reply_to_message_id: number | null;
@@ -76,7 +77,6 @@ export interface profileProps {
   user_id?: number;
 }
 
-
 export interface StoryItem {
   id: number;
   user_id: number;
@@ -86,6 +86,15 @@ export interface StoryItem {
   expires_at: string;
 }
 
+export interface interactions {
+  id: number;
+  name: string;
+  seen: boolean;
+  liked: boolean;
+  seen_at: string;
+  liked_at?: string;
+  profile_pic?: string;
+}
 
 export interface StoryContent {
   id: number;
@@ -94,6 +103,7 @@ export interface StoryContent {
   created_at: string;
   expires_at: string;
   likes_count: number;
+  interactions: interactions[] | null;
 }
 
 export interface UserStories {

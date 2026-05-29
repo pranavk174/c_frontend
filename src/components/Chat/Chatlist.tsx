@@ -304,7 +304,6 @@ const Chatlist = memo(
                 <div
                   className={cn(
                     "flex items-center gap-2 mx-2 transition-opacity duration-200",
-
                     active === msg.id ? "opacity-100" : "opacity-0",
                   )}
                 >

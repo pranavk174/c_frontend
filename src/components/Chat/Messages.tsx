@@ -73,6 +73,8 @@ const Messages = ({
       ? data.find((d) => d.id === msg.reply_to_message_id)
       : null;
 
+  const repliedStory = msg.story_id ? msg.story_item : null;
+
   // console.log(
   //   msg.content,
   //   "message content",
@@ -113,10 +115,10 @@ const Messages = ({
         >
           <div
             className={cn(
-              "relative rounded-2xl px-3 py-2 shadow-sm text-sm break-words transition-all",
+              "relative rounded-2xl px-3 py-2 shadow-sm text-sm wrap-break-word transition-all",
               msg.sender_id == user_id
-                ? "bg-[#d9fdd3] dark:bg-[#005c4b] rounded-br-md text-[#111b21] dark:text-[#e9edef]"
-                : "bg-white dark:bg-[#202c33] rounded-bl-md text-[#111b21] dark:text-[#e9edef]",
+                ? "bg-wa-msg-sent dark:bg-wa-msg-sent-dark rounded-br-md text-wa-bg-dark dark:text-wa-divider"
+                : "bg-white dark:bg-[#202c33] rounded-bl-md text-wa-bg-dark dark:text-wa-divider",
             )}
           >
             {/* Reply Preview */}
@@ -133,24 +135,52 @@ const Messages = ({
                   Reply
                 </p>
 
-                <p className="text-xs opacity-80 truncate max-w-[220px]">
+                <p className="text-xs opacity-80 truncate max-w-55">
                   {repliedMessage.content}
                 </p>
               </div>
             )}
 
+            {repliedStory && (
+              <div
+                className={cn(
+                  "mb-2 px-2 py-2 rounded-lg border-l-4",
+                  msg.sender_id === user_id
+                    ? "bg-[#ffffff70] border-green-600"
+                    : "bg-[#00000010] border-blue-500",
+                )}
+              >
+                <p className="text-[11px] font-semibold text-green-700 dark:text-green-300">
+                  Story
+                </p>
+
+                <div className="text-xs opacity-80 truncate max-w-55">
+                  <div className="h-10 w-23 rounded-md">
+                    <Image
+                      height={100}
+                      width={60}
+                      alt="replystory"
+                      src={repliedStory}
+                      className="rounded-md"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Main Message */}
-            <div className="whitespace-pre-wrap break-words ">
+            <div className="whitespace-pre-wrap wrap-break-word ">
               {msg.preview && (
                 <div
                   onClick={() =>
                     router.push(`/photo/${encodeURIComponent(msg.preview!)}`)
                   }
-                  className="relative w-[300px]  max-h-[320px] rounded-2xl overflow-hidden bg-black/10"
+                  className="relative w-75  max-h-80 rounded-2xl overflow-hidden bg-black/10"
                 >
                   {/* image */}
                   {msg.preview && (
-                    <Image priority
+                    <Image
+                      priority
                       src={msg.preview}
                       alt="upload"
                       height={300}
@@ -170,7 +200,7 @@ const Messages = ({
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
                       {/* circular progress */}
                       <div className="relative w-20 h-20">
-                        <svg className="w-20 h-20 rotate-[-90deg]">
+                        <svg className="w-20 h-20 -rotate-90">
                           <circle
                             cx="40"
                             cy="40"
@@ -262,7 +292,7 @@ const Messages = ({
 
             {/* Reactions */}
             {msg.reactions?.length > 0 && (
-              <div className="absolute -bottom-3 right-2 flex items-center gap-1 bg-white dark:bg-[#202c33] border dark:border-[#2f3b43] rounded-full px-2 py-[2px] shadow-md">
+              <div className="absolute -bottom-3 right-2 flex items-center gap-1 bg-white dark:bg-[#202c33] border dark:border-[#2f3b43] rounded-full px-2 py-0.5 shadow-md">
                 <Smile size={10} className="text-yellow-500" />
 
                 {emojis?.map((em) => (

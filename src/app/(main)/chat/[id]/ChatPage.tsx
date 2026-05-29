@@ -23,7 +23,7 @@ import {
   useGetAllChatsQuery,
   useGetEmojisQuery,
   useGetSingleChatQuery,
-} from "@/redux/Apis/User";
+} from "@/redux/Apis/Chat";
 import { current } from "@reduxjs/toolkit";
 import { useSocket } from "@/layouts/SocketWrapper";
 import {
