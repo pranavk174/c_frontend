@@ -8,9 +8,14 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 interface PreviewProps {
   files: File[];
   setOpen: Dispatch<SetStateAction<boolean>>;
+  setModal: Dispatch<SetStateAction<"storyupload" | "storypreview" | null>>;
 }
 
-export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
+export default function WhatsAppStoryPreview({
+  files,
+  setOpen,
+  setModal,
+}: PreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [textData, setTextData] = useState<string>("");
   const [createStory] = useCreateStoryMutation();
@@ -53,6 +58,7 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
         );
 
         setOpen(false);
+        setModal(null);
         // await createStory({ text_data: textData, content: "" }).unwrap();
       }
     } catch (error) {
@@ -62,9 +68,9 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="w-full max-w-md h-[92vh] bg-[#111b21] rounded-3xl overflow-hidden relative shadow-2xl border border-[#2a3942] flex flex-col">
+      <div className="w-full max-w-md h-[92vh] bg-wa-bg-dark rounded-3xl overflow-hidden relative shadow-2xl border border-wa-search-input-dark flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 bg-[#202c33] border-b border-[#2a3942]">
+        <div className="flex items-center justify-between px-4 py-4 bg-[#202c33] border-b border-wa-search-input-dark">
           <div className="flex items-center gap-3">
             <button className="text-white text-2xl">×</button>
 
@@ -75,25 +81,25 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
             </div>
           </div>
 
-          <button className="text-[#00a884] text-sm font-medium">Done</button>
+          <button className="text-wa-primary text-sm font-medium">Done</button>
         </div>
 
         {/* Story Area */}
         <div className="flex-1 relative overflow-hidden bg-black">
           {/* Image */}
           {currentFile && (
-            <Image priority
+            <Image
+              priority
               src={currentFile.preview}
               alt="preview"
               fill
-              priority
               unoptimized
               className="object-cover"
             />
           )}
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20" />
 
           {/* Progress */}
           <div className="absolute top-3 left-3 right-3 flex gap-1">
@@ -103,8 +109,9 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
                 className="h-1 flex-1 rounded-full bg-white/20 overflow-hidden"
               >
                 <div
-                  className={`h-full bg-white transition-all ${i <= currentIndex ? "w-full" : "w-0"
-                    }`}
+                  className={`h-full bg-white transition-all ${
+                    i <= currentIndex ? "w-full" : "w-0"
+                  }`}
                 />
               </div>
             ))}
@@ -131,12 +138,14 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`relative min-w-[60px] h-[90px] rounded-xl overflow-hidden border-2 ${currentIndex === index
-                    ? "border-[#00a884]"
+                className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${
+                  currentIndex === index
+                    ? "border-wa-primary"
                     : "border-transparent"
-                  }`}
+                }`}
               >
-                <Image priority
+                <Image
+                  priority
                   src={item.preview}
                   alt="thumb"
                   fill
@@ -149,9 +158,9 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
         </div>
 
         {/* Footer */}
-        <div className="bg-[#202c33] px-4 py-4 border-t border-[#2a3942]">
+        <div className="bg-[#202c33] px-4 py-4 border-t border-wa-search-input-dark">
           <div className="flex items-center gap-3">
-            <div className="flex-1 bg-[#2a3942] rounded-full px-4 py-3">
+            <div className="flex-1 bg-wa-search-input-dark rounded-full px-4 py-3">
               <input
                 type="text"
                 placeholder="Add a caption..."
@@ -163,7 +172,7 @@ export default function WhatsAppStoryPreview({ files, setOpen }: PreviewProps) {
 
             <button
               onClick={handleCreateStory}
-              className="w-14 h-14 rounded-full bg-[#00a884] flex items-center justify-center text-black text-2xl"
+              className="w-14 h-14 rounded-full bg-wa-primary flex items-center justify-center text-black text-2xl"
             >
               ↑
             </button>

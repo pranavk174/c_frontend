@@ -2,18 +2,19 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { Plus, Camera } from "lucide-react";
-import Image from "next/image";
+
 import StoryRing from "@/components/story/Rounded";
-import Modal from "../HOComponents/Modal";
+
 import StoryViewer from "./Storypreview";
 import PremiumModal from "../HOComponents/PremiumModal";
-import { uploadImage } from "@/lib/utils";
+
 import WhatsAppStoryPreview from "./StoryuploadPreview";
 import { useGetStoriesQuery } from "@/redux/Apis/Story";
-import { StoryContent, StoryItem, UserStories } from "@/lib/dummy";
+import { UserStories } from "@/lib/dummy";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useGetUserQuery } from "@/redux/Apis/Users";
+import { useSocket } from "@/layouts/SocketWrapper";
 
 const StoryList = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -21,7 +22,10 @@ const StoryList = () => {
   const storyRef = useRef(null);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
-  const { user, isLoading, isSuccess } = useGetUserQuery(
+  const [modal, setModal] = useState<"storyupload" | "storypreview" | null>(
+    null,
+  );
+  const { user } = useGetUserQuery(
     {},
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
@@ -83,7 +87,7 @@ const StoryList = () => {
       storyRef.current?.click();
     }
   };
-
+  const socket = useSocket();
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       console.log(e.target.files, "input eventssss");
@@ -91,6 +95,7 @@ const StoryList = () => {
         setFiles(Array.from(e.target.files));
 
         setOpen(true);
+        setModal("storyupload");
       }
       // await uploadImage()
     } catch (error) {
@@ -106,6 +111,7 @@ const StoryList = () => {
           <h2 className="text-white text-xl font-semibold">Updates</h2>
           <p className="text-gray-400 text-sm">
             Status updates from your contacts
+            {socket.id}
           </p>
         </div>
 
@@ -132,6 +138,7 @@ const StoryList = () => {
                 }
 
                 setOpen((p) => !p);
+                setModal("storypreview");
                 setStoryIndex(idx);
               }}
               key={story?.user_id}
@@ -143,7 +150,7 @@ const StoryList = () => {
                   <StoryRing
                     segments={story?.stories?.length}
                     url={story?.profile_pic || ""}
-                    seenStories={[true, false, true, false, false]}
+                    seenStories={story?.stories?.map((story) => story?.seen)}
                   />
 
                   <input
@@ -161,7 +168,7 @@ const StoryList = () => {
                       //   e.stopPropagation();
                       onClickHandle(e);
                     }}
-                    className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-wa-primary flex items-center justify-center border-[3px] border-[#0b141a]"
+                    className="absolute bottom-3 right-3 w-5 h-5 rounded-full bg-wa-primary flex items-center justify-center border border-[#0b141a]"
                   >
                     <Plus size={14} className="text-white" strokeWidth={3} />
                   </button>
@@ -171,7 +178,7 @@ const StoryList = () => {
                   <StoryRing
                     segments={story?.stories?.length}
                     url={story?.profile_pic || ""}
-                    seenStories={[true, false, true, false, false]}
+                    seenStories={story?.stories?.map((story) => story?.seen)}
                   />
                 </div>
               )}
@@ -199,18 +206,22 @@ const StoryList = () => {
       <PremiumModal open={open} onClose={handleClose}>
         {/* {storiesData?.map((story: UserStories) => (
           <div key={story?.user_id}> */}
-        {user_id && (
+        {user_id && modal === "storypreview" && (
           <StoryViewer
             user_id={user_id}
             stories={storiesData[storyIndex]}
             onClose={handleClose}
           />
         )}
-
         {/* </div>
         ))} */}
-
-        {/* <WhatsAppStoryPreview setOpen={setOpen} files={files} /> */}
+        {modal === "storyupload" && (
+          <WhatsAppStoryPreview
+            setModal={setModal}
+            setOpen={setOpen}
+            files={files}
+          />
+        )}
       </PremiumModal>
     </div>
   );

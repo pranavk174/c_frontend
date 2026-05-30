@@ -52,6 +52,7 @@ export const storyApi = BaseApi.injectEndpoints({
       id,
 
   text_data,  content,  created_at,
+  seen,liked,
 
 
   interactions{
@@ -119,6 +120,35 @@ export const storyApi = BaseApi.injectEndpoints({
         },
       }),
     }),
+
+    likeStory: builder.mutation({
+      query: ({ id, like, reaction_id = null }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+
+          mutation likeStory($input:storyLikeInput!){
+          likeStory(input:$input){
+          
+          message,error,status
+          
+          }
+          
+          
+          }
+          `,
+          variables: {
+            input: {
+              id,
+              reaction_id,
+              like,
+            },
+          },
+        },
+      }),
+      invalidatesTags: ["story"],
+    }),
   }),
 });
 
@@ -127,4 +157,5 @@ export const {
   useGetStoriesQuery,
   useSeenStoryMutation,
   useReplyToStoryMutation,
+  useLikeStoryMutation,
 } = storyApi;

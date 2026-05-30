@@ -92,7 +92,7 @@ export interface interactions {
   seen: boolean;
   liked: boolean;
   seen_at: string;
-  liked_at?: string;
+  liked_at?: string | null;
   profile_pic?: string;
 }
 
@@ -101,6 +101,8 @@ export interface StoryContent {
   text_data: string;
   content: string;
   created_at: string;
+  seen: boolean;
+  liked: boolean;
   expires_at: string;
   likes_count: number;
   interactions: interactions[] | null;

@@ -1,0 +1,46 @@
+name: Next CI
+
+on:
+  push:
+    branches:
+      - main:
+  pull_request:
+    branches:
+      - main:
+
+
+jobs:
+  builds:
+    runs_0n: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          node-versions: 24
+
+      - uses: pnpm.action-setup@v3
+        with: 
+          versions: 8
+
+      - name: Install pnpm
+        run: npm i pnpm
+
+      - name: Install Dependecies
+        run: pnpm i
+      
+      - name: Build Run
+        run: pnpm run build
+
+      - name: Install Vercel
+        run: pnpm i -g vercel
+
+      - name: Deploy to Vercel
+        if: github.ref == 'refs/head/main'
+        run: vercel --prod --yes --token=${{secrets.VERCEL_TOKEN}}
+
+
+
+

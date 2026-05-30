@@ -2,19 +2,32 @@
 
 import Image from "next/image";
 import { X, Heart, Send, Mic, ClockFading } from "lucide-react";
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { socketResponse, StoryItem, UserStories } from "@/lib/dummy";
 import {
-
+  startTransition,
+  useActionState,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  socketResponse,
+  StoryContent,
+  StoryItem,
+  UserStories,
+} from "@/lib/dummy";
+import {
+  storyApi,
+  useLikeStoryMutation,
   useSeenStoryMutation,
 } from "@/redux/Apis/Story";
 import { chatApi } from "@/redux/Apis/Chat";
 
 import { useToast } from "../Utility/Toast";
 import { useSocket } from "@/layouts/SocketWrapper";
-import { STORY_REPLY } from "@/lib/events";
+import { STORY_LIKE, STORY_REPLY, STORY_SEEN } from "@/lib/events";
 import { socketCallback } from "@/lib/utils";
-import { useAppDispatch } from "@/lib/hooks";
+import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { div } from "framer-motion/client";
 import Loader from "../Utility/Loader";
 import SmallLoader from "../Utility/SpinLoader";
@@ -54,8 +67,8 @@ const StoryViewer = ({
   const { showToast } = useToast();
   const [replyMessage, setReplyMessage] = useState<string>("");
   const currentStory = stories.stories[currentIndex];
-  const dispatch = useAppDispatch()
-
+  const dispatch = useAppDispatch();
+  const [likeStory] = useLikeStoryMutation();
   const handelSendReplyStory = async () => {
     try {
       // await replyToStory({
@@ -79,24 +92,25 @@ const StoryViewer = ({
             showToast(response.message, "success");
             setReplyMessage("");
             setIsPaused(false);
-            dispatch(chatApi.util.invalidateTags(['chats']))
+            dispatch(chatApi.util.invalidateTags(["chats"]));
 
-            return true
+            return true;
           }
         },
       );
     } catch (error) {
       showToast("error in reply story", "error");
       console.log(error, "errorrrr");
-      return false
+      return false;
     }
   };
 
+  const [state, formAction, isPending] = useActionState(
+    handelSendReplyStory,
+    null,
+  );
 
-  const [state, formAction, isPending] = useActionState(handelSendReplyStory, null)
-
-
-  console.log(isPending, "loading stateee")
+  // console.log(isPending, "loading stateee");
   // Story Progress
   useEffect(() => {
     if (isPaused) return;
@@ -126,21 +140,205 @@ const StoryViewer = ({
     return () => clearInterval(interval);
   }, [currentIndex, stories.stories.length, isPaused]);
 
-  console.log(stories.stories, "storiesss dataaaaa.............");
+  const handler = useMemo(
+    () => ({
+      [STORY_SEEN]: (data: any, callback: any) => {
+        if (!data) {
+          return callback({
+            message: "no data recieved",
+            status: 404,
+            success: false,
+          });
+        }
+
+        dispatch(
+          storyApi.util.updateQueryData("getStories", null, (draft) => {
+            console.log(data, "story seen successssss");
+            draft.data.getAllStories.data.stories.forEach(
+              (story: UserStories) => {
+                console.log(data, "story seen inner  successssss");
+                story.stories.forEach((st) => {
+                  if (st.id === data.story_id) {
+                    if (!st.interactions) {
+                      st.interactions = [];
+                    }
+
+                    const alreadyExists = st.interactions.some(
+                      (i) => i.id === data.user_id,
+                    );
+
+                    console.log("ye condition true hai", alreadyExists);
+
+                    if (!alreadyExists) {
+                      st.interactions.push({
+                        id: data.user_id,
+                        seen: true,
+                        name: data.name,
+                        seen_at: data.seen_at,
+                        liked: false,
+                        liked_at: null,
+                        profile_pic: data.profile_pic,
+                      });
+                    }
+                  } else {
+                    console.log("condition false....");
+                  }
+                });
+              },
+            );
+          }),
+        );
+
+        return callback({
+          message: "Frontend Updated",
+          status: 201,
+          success: true,
+        });
+      },
+    }),
+    [dispatch],
+  );
+
+  useSocketEvents(socket, handler);
+
+  // console.log(stories.stories, "storiesss dataaaaa.............");
 
   useEffect(() => {
     try {
-      if (
-        stories.user_id !== user_id &&
-        currentStory?.interactions &&
-        !currentStory.interactions.find((data) => data.id === user_id)
-      ) {
-        seenStory({ id: currentStory.id }).unwrap();
+      if (stories.user_id !== user_id && !currentStory.seen) {
+        socket.emit(
+          STORY_SEEN,
+          { id: currentStory.id },
+          (response: socketResponse) => {
+            if (response.success)
+              dispatch(
+                storyApi.util.updateQueryData("getStories", null, (draft) => {
+                  draft.data.getAllStories.data.stories.forEach(
+                    (story: UserStories) => {
+                      story.stories.forEach((st) => {
+                        if (st.id === currentStory.id && !st.seen) {
+                          st.seen = true;
+                        } else {
+                          console.log("condition false....");
+                        }
+                      });
+                    },
+                  );
+                }),
+              );
+
+            console.log("responseform story seend");
+          },
+        );
+        // seenStory({ id: currentStory.id }).unwrap();
       }
     } catch (error) {
       console.log(error, "error in story seend");
     }
-  }, [currentStory, seenStory, stories.user_id, user_id]);
+  }, [currentStory, seenStory, socket, stories.user_id, user_id, dispatch]);
+
+  // const handleLikeStory = (like: boolean) => {
+  //   try {
+
+  //     const patchResult = dispatch(storyApi.util.updateQueryData(
+  //       "getStories", null, (draft) => {
+
+
+  //         draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
+
+  //           story.stories.forEach((st: StoryContent) => {
+  //             if (st.id === currentStory.id) {
+  //               st.liked = like
+  //             }
+  //           })
+  //         })
+  //       }
+  //     ))
+
+
+  //     socket.emit(
+  //       STORY_LIKE,
+  //       { id: currentStory.id, like },
+  //       (response: socketResponse) => {
+  //         console.log(response, "response from liked story....");
+
+  //         if (!response.success) {
+  //           patchResult.undo()
+  //         }
+  //         // setIsPaused(false)
+
+  //       },
+  //     );
+  //     // await likeStory({ id: currentStory.id, like }).unwrap();
+
+  //   } catch (error) {
+  //     console.log("errrro", error);
+  //     showToast("erroro in liking", "error");
+  //   }
+  //   finally {
+  //     console.log("finnnaly block....")
+  //     console.log(isPaused, "before");
+  //     setIsPaused(p => !p);
+  //     console.log(isPaused, "after");
+  //   }
+  // };
+
+  const handleLikeStory = async (like: boolean) => {
+
+    try {
+
+
+
+      const patchResult = dispatch(
+        storyApi.util.updateQueryData(
+          "getStories",
+          null,
+          (draft) => {
+
+            draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
+
+              story.stories.forEach((st: StoryContent) => {
+
+                if (st.id === currentStory.id) {
+                  st.liked = like;
+                }
+
+              });
+
+            });
+
+          }
+        )
+      );
+
+      const response: socketResponse = await new Promise((resolve) => {
+
+        socket.emit(
+          STORY_LIKE,
+          { id: currentStory.id, like },
+          (response: socketResponse) => {
+            resolve(response);
+          }
+        );
+
+      });
+
+      if (!response.success) {
+        patchResult.undo();
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+    } finally {
+
+      setIsPaused(false);
+
+    }
+  };
+
+  console.log(isPaused, "is Pauseddddd")
 
   // Previous Story
   const handlePrev = () => {
@@ -160,7 +358,7 @@ const StoryViewer = ({
     }
   };
 
-
+  // console.log(stories, "storiessssss");
 
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden select-none">
@@ -171,7 +369,7 @@ const StoryViewer = ({
           {stories.stories.map((story, index) => (
             <div
               key={story.id}
-              className="flex-1 h-[3px] bg-white/30 rounded-full overflow-hidden"
+              className="flex-1 h-0.75 bg-white/30 rounded-full overflow-hidden"
             >
               <div
                 className="h-full bg-white transition-all duration-100"
@@ -203,7 +401,15 @@ const StoryViewer = ({
             <div>
               <h3 className="text-white text-sm font-medium">{stories.name}</h3>
 
-              <p className="text-white/60 text-xs">Just now</p>
+              <p className="text-white/60 text-xs">
+                {/* {stories.stories[currentIndex].created_at} */}
+                {new Date(
+                  Number(stories.stories[currentIndex]?.created_at),
+                ).toLocaleTimeString("en-IN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
             </div>
           </div>
 
@@ -228,7 +434,7 @@ const StoryViewer = ({
         className="absolute right-0 top-0 z-40 w-1/2 h-full"
       />
 
-      {currentStory.interactions && stories?.user_id === user_id && (
+      {currentStory?.interactions && stories?.user_id === user_id && (
         <div
           onClick={() => setIsPaused((p) => !p)}
           className="absolute w-full cursor-pointer   bottom-0 h-screen  z-50  transition-all duration-300"
@@ -284,16 +490,16 @@ const StoryViewer = ({
                         <h5 className="font-semibold  capitalize ">
                           {interaction.name}
                         </h5>
-                        <span className="font-thin  capitalize ">
+                        <button className="font-thin  capitalize ">
                           {interaction.seen_at}
-                        </span>
+                        </button>
                       </div>
                     </div>
                     <div className="mr-5">
                       {interaction.liked && (
-                        <span>
+                        <button>
                           <Heart className="h-5 w-5 font-thin text-wa-primary fill-wa-primary" />
-                        </span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -309,15 +515,17 @@ const StoryViewer = ({
           onClick={() => setIsPaused(true)}
           className="absolute bottom-2 w-full z-50 p-5 "
         >
-          <form onSubmit={(e) => {
-            e.preventDefault()
-            if (!replyMessage.trim()) return
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!replyMessage.trim()) return;
 
-            startTransition(() => {
-              formAction();
-            });
-
-          }} className="flex items-center px-2 py-2">
+              startTransition(() => {
+                formAction();
+              });
+            }}
+            className="flex  items-center px-2 py-2"
+          >
             <input
               type="text"
               value={replyMessage}
@@ -325,43 +533,43 @@ const StoryViewer = ({
               placeholder="Type a message"
               className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
-            <div className="ml-2 shrink-0">
+            <div className="ml-2 shrink-0 ">
+              {isPending ? (
+                <SmallLoader height={"30px"} width={"30px"} />
+              ) : replyMessage.trim() ? (
+                <button
+                  type="submit"
+                  disabled={!replyMessage.trim() || isPending}
+                  className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              ) : (
 
+                <button
+                  onClick={() => handleLikeStory(!currentStory.liked)}
+                  className="cursor-pointer hover:scale-110 pt-2 transition-transform duration-200 "
+                >
+                  <Heart
+                    className={`h-7 w-7 font-thin  ${currentStory.liked ? "fill-wa-primary" : ""} animation text-wa-primary `}
+                  />
+                </button>
 
-              {isPending ?
-                < SmallLoader height={"30px"} width={"30px"} /> : replyMessage.trim() ? (
-                  <button
-                    type="submit"
-                    disabled={!replyMessage.trim() || isPending}
-                    // onClick={handelSendReplyStory}
-                    className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
-                  >
-                    <Send className="w-5 h-5" />
-
-
-
-                  </button>
-                ) : (
-                  <button className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition">
-                    <Mic className="w-5 h-5" />
-                  </button>
-                )}
+              )}
             </div>
           </form>
         </div>
       )}
 
-
       <div className="relative w-full h-full flex items-center justify-center">
         <Image
           priority
-          src={currentStory.content}
+          src={currentStory?.content}
           alt="story"
           fill
           className="object-contain"
         />
       </div>
-
     </div>
   );
 };

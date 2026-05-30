@@ -42,14 +42,22 @@ type SocketProviderProps = {
 
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [refreshToken] = useRefreshTokenMutation();
-  const socket = useMemo<Socket>(() => {
-    return io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-  }, []);
+  // const socket = useMemo<Socket>(() => {
+  //   return io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
+  //     withCredentials: true,
+  //     // reconnection: true,
+  //     // reconnectionAttempts: 5,
+  //     // reconnectionDelay: 1000,
+  //   });
+  // }, []);
+
+  const socket = io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
+    withCredentials: true,
+    // reconnection: true,
+    // reconnectionAttempts: 5,
+    // reconnectionDelay: 1000,
+  });
+
   const { showToast } = useToast();
   const dispatch = useAppDispatch();
   const handler = useMemo(
