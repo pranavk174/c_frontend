@@ -7,7 +7,7 @@ import {
 } from "@reduxjs/toolkit/query/react";
 
 export const baseQuery = fetchBaseQuery({
-  baseUrl: `${process.env.BASE_URL}/graphql`,
+  baseUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/graphql`,
   credentials: "include",
 });
 
