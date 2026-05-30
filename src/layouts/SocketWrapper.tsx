@@ -43,7 +43,7 @@ type SocketProviderProps = {
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [refreshToken] = useRefreshTokenMutation();
   // const socket = useMemo<Socket>(() => {
-  //   return io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
+  //   return io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
   //     withCredentials: true,
   //     // reconnection: true,
   //     // reconnectionAttempts: 5,
@@ -51,7 +51,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   //   });
   // }, []);
 
-  const socket = io(`http://localhost:${process.env.NEXT_PUBLIC_PORT}`, {
+  const socket = io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
     withCredentials: true,
     // reconnection: true,
     // reconnectionAttempts: 5,

@@ -36,8 +36,9 @@ const WhatsappProfile = ({
   const [editField, setEditField] = useState<
     "name" | "bio" | "profile_pic" | "cover_pic" | null
   >(null);
-  const fileInputRef = useRef(null);
-  const coverInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState(profile);
   const [file, setFile] = useState<string | null>(null);
   const socket = useSocket();

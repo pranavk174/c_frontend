@@ -19,7 +19,7 @@ import { useSocket } from "@/layouts/SocketWrapper";
 const StoryList = () => {
   const [open, setOpen] = useState<boolean>(false);
   const handleClose = useCallback(() => setOpen(false), []);
-  const storyRef = useRef(null);
+  const storyRef = useRef<HTMLInputElement | null>(null);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
   const [modal, setModal] = useState<"storyupload" | "storypreview" | null>(
@@ -57,14 +57,14 @@ const StoryList = () => {
       const updatedStories =
         !isExists && user
           ? [
-              {
-                user_id: user.id,
-                name: user.name,
-                profile_pic: user.profile_pic,
-                stories: [],
-              },
-              ...stories,
-            ]
+            {
+              user_id: user.id,
+              name: user.name,
+              profile_pic: user.profile_pic,
+              stories: [],
+            },
+            ...stories,
+          ]
           : updatedArray;
 
       return {

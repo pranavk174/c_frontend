@@ -73,7 +73,7 @@ export interface profileProps {
   mobile?: string;
   email?: string;
   blocked?: boolean;
-  chat_id?: boolean;
+  chat_id?: number;
   user_id?: number;
 }
 

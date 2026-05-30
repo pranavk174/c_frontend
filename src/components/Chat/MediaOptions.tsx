@@ -3,7 +3,7 @@
 import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 import {
   Paperclip,
-  Image,
+  Image as image,
   FileText,
   Camera,
   Music,
@@ -107,7 +107,7 @@ const MediaOptions = ({
               className="flex flex-col items-center gap-2"
             >
               <div className="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center">
-                <Image priority className="size-6" />
+                <image className="size-6" />
               </div>
 
               <span className="text-xs">Photos</span>

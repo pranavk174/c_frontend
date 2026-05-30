@@ -9,7 +9,7 @@ import {
 import { ClockFading } from "lucide-react";
 
 export const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:3000/graphql",
+  baseUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/graphql`,
   credentials: "include",
 });
 
