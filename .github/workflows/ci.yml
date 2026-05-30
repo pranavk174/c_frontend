@@ -3,15 +3,15 @@ name: Next CI
 on:
   push:
     branches:
-      - 'main':
+      - main
   pull_request:
     branches:
-      - main:
+      - main
 
 
 jobs:
   builds:
-    runs_0n: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
 
@@ -19,11 +19,11 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-versions: 24
+          node-version: 24
 
-      - uses: pnpm.action-setup@v3
+      - uses: pnpm/action-setup@v3
         with: 
-          versions: 8
+          version: 8
 
       - name: Install pnpm
         run: npm i pnpm
