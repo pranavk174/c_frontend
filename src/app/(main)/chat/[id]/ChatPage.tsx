@@ -337,7 +337,7 @@ const ChatPage = ({ id }: { id: number }) => {
           form.append("index", i.toString());
 
           await fetch(
-            `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/upload`,
+            `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/upload`,
             {
               method: "POST",
               body: form,
@@ -349,7 +349,7 @@ const ChatPage = ({ id }: { id: number }) => {
         }
 
         const done = await fetch(
-          `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/finish`,
+          `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/finish`,
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -471,7 +471,7 @@ const ChatPage = ({ id }: { id: number }) => {
     try {
       controllerRef.current = new AbortController();
       const upload = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
+        `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/start`,
         {
           method: "POST",
           headers: {
@@ -512,7 +512,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/cancel`,
+        `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/cancel`,
         {
           method: "POST",
           headers: {

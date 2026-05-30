@@ -44,7 +44,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //     ])
 
     //     controllerRef.current = new AbortController();
-    //     const upload = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`, {
+    //     const upload = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/start`, {
     //         method: "POST",
     //         headers: {
     //             "Content-type": "application/json",
@@ -76,7 +76,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //             form.append("chunk", chunk);
     //             form.append("index", i.toString());
 
-    //             await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/upload`, {
+    //             await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/upload`, {
     //                 method: "POST",
     //                 body: form,
     //                 signal: controllerRef.current?.signal,
@@ -85,7 +85,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //             setProgress(Math.round(((i + 1) / totalChunk) * 100));
     //         }
 
-    //         const done = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/finish`, {
+    //         const done = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/finish`, {
     //             method: "POST",
     //             headers: { "Content-type": "application/json" },
     //             body: JSON.stringify({
@@ -109,7 +109,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //     controllerRef.current?.abort();
 
     //     try {
-    //         const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN + ':' + process.env.NEXT_PUBLIC_SELF_PORT}/api/product/cancel`, {
+    //         const res = await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/product/cancel`, {
     //             method: "POST",
     //             headers: {
     //                 "Content-type": "application/json",
