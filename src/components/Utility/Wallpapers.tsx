@@ -15,18 +15,19 @@ const defaultWallpapers = [
 ];
 
 export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalValues: valueProps, setOpen: Dispatch<SetStateAction<valueProps>>; }) {
-    const [selectedWallpaper, setSelectedWallpaper] = useState(
+    const [selectedWallpaper, setSelectedWallpaper] = useState<string>(
         defaultWallpapers[0]
     );
 
-    const [uploadedWallpapers, setUploadedWallpapers] = useState([]);
+    const [uploadedWallpapers, setUploadedWallpapers] = useState<string[]>([]);
 
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const handleUpload = (e) => {
-        const files = Array.from(e.target.files);
+    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
 
-        const imageUrls = files.map((file) => URL.createObjectURL(file));
+        // if (typeof files === 'object')
+        const imageUrls = files.map((file) => URL.createObjectURL(file as never));
 
         setUploadedWallpapers((prev) => [...imageUrls, ...prev]);
     };
@@ -53,7 +54,7 @@ export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalV
                             <h2 className="text-2xl font-bold">Chat Wallpaper</h2>
 
                             <button
-                                onClick={() => fileInputRef.current.click()}
+                                onClick={() => { if (fileInputRef.current) fileInputRef.current.click() }}
                                 className="flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe5d] transition px-4 py-2 rounded-xl text-black font-semibold"
                             >
                                 <Upload size={18} />
