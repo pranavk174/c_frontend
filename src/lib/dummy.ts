@@ -108,6 +108,12 @@ export interface StoryContent {
   interactions: interactions[] | null;
 }
 
+
+export interface valueProps {
+  type: string | null;
+  open: boolean
+}
+
 export interface UserStories {
   user_id: number;
   name: string;
@@ -115,6 +121,12 @@ export interface UserStories {
   isOwn: boolean;
   stories: StoryContent[];
 }
+
+
+export const modalValue = {
+  type: null, open: false
+}
+
 // export type Message = {
 //   id: string;
 //   senderId: string;

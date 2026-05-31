@@ -20,6 +20,7 @@ import React, {
 } from "react";
 import Messages from "./Messages";
 import { useSocket } from "@/layouts/SocketWrapper";
+import SpinLoader from "../Utility/SpinLoader";
 type emoji = {
   react_id: number;
   emoji: string;
@@ -88,7 +89,7 @@ const Chatlist = memo(
     show,
   }: chatListProps) => {
     const socket = useSocket();
-    const [reactMessage, {}] = useReactMessageMutation({});
+    const [reactMessage, { }] = useReactMessageMutation({});
     const [selectionMode, setSelectionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollToBottom = () => {
@@ -247,12 +248,17 @@ const Chatlist = memo(
 
           <div className="flex justify-center mb-4">
             <div ref={bottomRef} />
-            <div className="bg-[#ffeecd] dark:bg-[#182229] text-[#54656f] dark:text-[#8696a0] text-xs px-4 py-2 rounded-lg text-center shadow-sm max-w-[60%]">
+            <div className="bg-[#ffeecd] dark:bg-[#182229] text-wa-icon dark:text-[#8696a0] text-xs px-4 py-2 rounded-lg text-center shadow-sm max-w-[60%]">
               <span className="inline-block mr-1">🔒</span>
               Messages and calls are end-to-end encrypted. No one outside of
               this chat, not even WhatsApp, can read or listen to them.
             </div>
           </div>
+
+          {isFetching && <div className="h-50 w-full flex justify-center ">
+            <SpinLoader height={"40px"} width={"40px"} />
+          </div>
+          }
 
           {data.map((msg: Message) => {
             const icons = emojis?.filter((emoji: emoji) =>

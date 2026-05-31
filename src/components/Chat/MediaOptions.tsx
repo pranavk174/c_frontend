@@ -11,7 +11,7 @@ import {
   User,
 } from "lucide-react";
 import Uploader from "../Uploader/Uploader";
-import { Message } from "@/lib/dummy";
+import { Message, modalValue, valueProps } from "@/lib/dummy";
 import Modal from "../HOComponents/Modal";
 import MediaPreviewContent from "../ModalChilds/MediaPreviewContent";
 
@@ -47,7 +47,7 @@ const MediaOptions = ({
   cancelUpload,
   uploadChunks,
 }: mediaOptionsProps) => {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState<valueProps>(modalValue);
   const imageRef = useRef<HTMLInputElement>(null);
   const documentRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLInputElement>(null);
@@ -70,7 +70,10 @@ const MediaOptions = ({
           setFile(e.target.files?.[0] || null);
 
           if (e.target.files?.[0]) {
-            setShow((p) => !p);
+            setShow({
+              type: 'preview',
+              open: true
+            })
           }
         }}
         accept="image/*"
@@ -190,8 +193,8 @@ const MediaOptions = ({
           </div>
         </div>
       )}
-      <Modal open={show} setOpen={setShow}>
-        {file && (
+      <Modal values={show} setModal={setShow}>
+        {file && show.type === 'preview' && (
           <MediaPreviewContent
             file={file}
             inputText={inputText}
@@ -200,7 +203,10 @@ const MediaOptions = ({
               startUpload();
               setInputText(data.caption);
               console.log(data, "dataaa detailllllllll");
-              setShow(false);
+              setShow({
+                type: null,
+                open: false
+              });
             }}
           />
         )}

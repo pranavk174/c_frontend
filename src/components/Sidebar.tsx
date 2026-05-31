@@ -12,7 +12,7 @@ import {
   Filter,
   CircleDashed,
 } from "lucide-react";
-import { Chat } from "@/lib/dummy";
+import { Chat, modalValue, valueProps } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { useGetUserQuery } from "@/redux/Apis/Users";
 import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
@@ -21,7 +21,7 @@ import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
 export default function Sidebar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<valueProps>(modalValue);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { user } = useGetUserQuery(null, {
@@ -65,7 +65,10 @@ export default function Sidebar() {
       <header className="h-[60px] bg-wa-header dark:bg-wa-header-dark flex items-center justify-between px-4 py-2 shrink-0">
         <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer">
           <button
-            onClick={() => setOpen(true)}
+            onClick={() => setOpen({
+              type: 'profile',
+              open: true
+            })}
             className="p-0 bg-transparent h-full w-full"
           >
             <Image priority
@@ -174,8 +177,8 @@ export default function Sidebar() {
         })}
       </div>
 
-      <Modal open={open} setOpen={setOpen}>
-        {user && (
+      <Modal values={open} setModal={setOpen}>
+        {user && open.type === "profile" && (
           <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
         )}
       </Modal>

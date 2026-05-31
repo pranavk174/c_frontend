@@ -15,6 +15,7 @@ import {
   reaction,
   seen_user,
   socketResponse,
+  valueProps,
 } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -43,6 +44,7 @@ import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import { useToast } from "@/components/Utility/Toast";
+import SpinLoader from "@/components/Utility/SpinLoader";
 
 interface mediaProps {
   file_name: string;
@@ -75,7 +77,7 @@ const ChatPage = ({ id }: { id: number }) => {
       },
     },
   );
-  const [sendMessage] = useSendMessageMutation();
+
   const [show, setShow] = useState<number | string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -122,25 +124,11 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-  useEffect(() => {
-    if (messages) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      // setMessages(data);
-    }
-  }, [messages]);
-
-  // console.log(cursor, "cursorrrrr....")
-
-  // console.log(emojis, "emojissssssss", chatDetails);
-
-  //   console.log(data, "chat data is message");
-
-  // const chatId = resolvedParams.id;
   const chat = messages;
   const socket = useSocket();
 
   const [active, setActive] = useState<number | string | null>(null);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number[] | []>([]);
   const [menu, setMenu] = useState(false);
@@ -183,7 +171,10 @@ const ChatPage = ({ id }: { id: number }) => {
   }, [messages, nextCursor]);
 
   // useSocketEvents(socket, handler);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<valueProps>({
+    open: false,
+    type: null
+  });
 
   const handleSendMessage = useCallback(
     async (e: React.FormEvent | mediaProps) => {
@@ -193,12 +184,6 @@ const ChatPage = ({ id }: { id: number }) => {
       } else if ((!e.url && !inputText.trim()) || !socket) {
         return;
       }
-
-      // if (!inputText.trim() || !socket) return;
-
-      // console.log(e, "medoiaaaaaaaaa");
-
-      // console.log(chatDetails, "chat detaillssssss", chatDetails);
       const newMessage = {
         chat_ids: [id],
         content: inputText,
@@ -826,9 +811,19 @@ const ChatPage = ({ id }: { id: number }) => {
     return () => clearTimeout(timer);
   }, [messages, user_id, id, socket, chatDetails]);
 
+
+
+  if (isLoading) {
+    return (<div className="h-screen flex flex-col justify-center items-center">
+
+      <SpinLoader height={"100px"} width={"100px"} />
+      Chats Loading...
+    </div>)
+  }
+
   if (!chat) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500">
+      <div className="flex-1 h-screen flex items-center font-bold text-xl uppercase justify-center text-gray-500">
         Chat not found
       </div>
     );
@@ -847,6 +842,7 @@ const ChatPage = ({ id }: { id: number }) => {
       />
 
       <Chatlist
+
         setSelectedMessages={setSelectedMessages}
         setCursor={setCursor}
         setSelected={setSelected}
@@ -901,14 +897,15 @@ const ChatPage = ({ id }: { id: number }) => {
         startUpload={startUpload}
       />
 
-      <Modal open={showModal} setOpen={setShowModal}>
-        <DeleteMessage
+      <Modal values={showModal} setModal={setShowModal} >
+
+        {showModal.type === "delete" && <DeleteMessage
           setShowModal={setShowModal}
           setSelected={setSelected}
           setSelectedMessages={setSelectedMessages}
           selectedMessages={selectedMessages}
           chat_id={id}
-        />
+        />}
       </Modal>
     </div>
   );

@@ -1,14 +1,17 @@
 "use client";
 
+import { valueProps } from "@/lib/dummy";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { ReactNode, useEffect } from "react";
 
 interface PremiumModalProps {
-  open: boolean;
+  // open: boolean;
   onClose: () => void;
   children: ReactNode;
   className?: string;
   closeOnOutsideClick?: boolean;
+  values: valueProps
+
 }
 
 const backdropVariants = {
@@ -52,14 +55,20 @@ const modalVariants = {
 };
 
 const PremiumModal = ({
-  open,
+  // open,
   onClose,
   children,
+
+
+  values = {
+    type: null,
+    open: false
+  },
   className = "",
   closeOnOutsideClick = true,
 }: PremiumModalProps) => {
   useEffect(() => {
-    if (open) {
+    if (values.open) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
@@ -68,11 +77,11 @@ const PremiumModal = ({
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [open]);
+  }, [values.open]);
 
   return (
     <AnimatePresence>
-      {open && (
+      {values.open && (
         <motion.div
           variants={backdropVariants}
           initial="hidden"

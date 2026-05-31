@@ -1,4 +1,4 @@
-import { Chat } from "@/lib/dummy";
+import { Chat, modalValue, valueProps } from "@/lib/dummy";
 import { menu } from "framer-motion/client";
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   Trash,
   Video,
   Ban,
+  Wallpaper,
 } from "lucide-react";
 import React, { Dispatch, memo, SetStateAction, useState } from "react";
 import Modal from "../HOComponents/Modal";
@@ -20,14 +21,15 @@ import Image from "next/image";
 import BlockUser from "../ModalChilds/Blockuser";
 import Popups from "../HOComponents/Popups";
 import { useSocket } from "@/layouts/SocketWrapper";
+import ChatWallpaperSelector from "../Utility/Wallpapers";
 interface chatHeadProps {
   menu: boolean;
-  setShowModal: Dispatch<SetStateAction<boolean>>;
+  setShowModal: Dispatch<SetStateAction<valueProps>>;
   chatDetails: Chat;
 }
 
 const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<valueProps>(modalValue);
   const [popup, setPopup] = useState<boolean>(false);
   const [block, setBlock] = useState<boolean>(false);
   return (
@@ -51,7 +53,10 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
             <div className="w-[1px] h-6 bg-wa-divider dark:bg-wa-divider-dark mx-1"></div>
             <button
               // onClick={deleteMessage}
-              onClick={() => setShowModal(true)}
+              onClick={() => setShowModal({
+                type: "delete",
+                open: true
+              })}
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
             >
               <Trash className="w-5 h-5" />
@@ -72,7 +77,10 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
             </Link>
 
             <div
-              onClick={() => setOpen((p) => !p)}
+              onClick={() => setOpen({
+                type: "profile",
+                open: true
+              })}
               className="w-10 h-10 rounded-full overflow-hidden cursor-pointer mr-4 shrink-0"
             >
               {chatDetails && chatDetails.profile_pic && (
@@ -115,31 +123,63 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
                 <MoreVertical className="w-5 h-5" />
               </button>
               <Popups open={popup} setOpen={setPopup}>
-                <div className="bg-wa-header dark:bg-wa-header-dark rounded-md ">
+                <div className="bg-wa-header justify-center flex flex-col items-center text-center w-51.25 dark:bg-wa-header-dark rounded-md ">
                   <button
                     onClick={() => {
-                      setBlock((p) => !p);
+                      setOpen({
+                        type: "block",
+                        open: true
+                      })
                       setPopup(false);
                     }}
-                    className="p-2 flex w-[125px] items-center  justify-between text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition"
+                    className="p-2 flex w-full text-center  items-center justify-center  gap-2 text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition"
                   >
                     Block User <Ban className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setOpen({
+                        type: "wallpaper",
+                        open: true
+                      })
+                      setPopup(false);
+                    }}
+                    className="p-2 flex w-51.25 items-center  justify-between text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition"
+                  >
+                    Set Chat Wallpaper
+                    <Wallpaper className="w-4 h-4" />
                   </button>
                 </div>
               </Popups>
             </div>
           </div>
         </header>
-      )}
+      )
+      }
 
-      <Modal open={open} setOpen={setOpen}>
-        <WhatsappProfile
-          setOpen={setOpen}
-          isUser={false}
-          profile={chatDetails}
-        />
+      <Modal values={open} setModal={setOpen}>
+        {
+          open.type === "profile" && <WhatsappProfile
+            setOpen={setOpen}
+            isUser={false}
+            profile={chatDetails}
+          />
+        }
+        {
+          open.type === 'wallpaper' && <ChatWallpaperSelector setOpen={setOpen} modalValues={open} />
+        }
+
+
+        {open.type === "block" && <BlockUser
+          userId={chatDetails?.user_id}
+          name={chatDetails?.name}
+          chatId={chatDetails.chat_id}
+          open={block}
+          setOpen={setBlock}
+        />}
       </Modal>
-      <Modal open={block} setOpen={setBlock}>
+      {/* <Modal open={block} values setModal={setBlock}>
         <BlockUser
           userId={chatDetails?.user_id}
           name={chatDetails?.name}
@@ -147,8 +187,8 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
           open={block}
           setOpen={setBlock}
         />
-      </Modal>
-    </div>
+      </Modal> */}
+    </div >
   );
 });
 

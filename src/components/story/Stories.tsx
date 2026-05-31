@@ -10,15 +10,18 @@ import PremiumModal from "../HOComponents/PremiumModal";
 
 import WhatsAppStoryPreview from "./StoryuploadPreview";
 import { useGetStoriesQuery } from "@/redux/Apis/Story";
-import { UserStories } from "@/lib/dummy";
+import { modalValue, UserStories, valueProps } from "@/lib/dummy";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useGetUserQuery } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 
 const StoryList = () => {
-  const [open, setOpen] = useState<boolean>(false);
-  const handleClose = useCallback(() => setOpen(false), []);
+  const [open, setOpen] = useState<valueProps>(modalValue);
+  const handleClose = useCallback(() => setOpen({
+    type: null,
+    open: false
+  }), []);
   const storyRef = useRef<HTMLInputElement | null>(null);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
@@ -94,7 +97,10 @@ const StoryList = () => {
       if (e.target.files) {
         setFiles(Array.from(e.target.files));
 
-        setOpen(true);
+        setOpen({
+          type: "storyupload",
+          open: true
+        });
         setModal("storyupload");
       }
       // await uploadImage()
@@ -137,7 +143,10 @@ const StoryList = () => {
                   return;
                 }
 
-                setOpen((p) => !p);
+                setOpen({
+                  type: "storypreview",
+                  open: true
+                });
                 setModal("storypreview");
                 setStoryIndex(idx);
               }}
@@ -203,21 +212,19 @@ const StoryList = () => {
         />
       </Modal> */}
 
-      <PremiumModal open={open} onClose={handleClose}>
-        {/* {storiesData?.map((story: UserStories) => (
-          <div key={story?.user_id}> */}
-        {user_id && modal === "storypreview" && (
+      <PremiumModal values={open} onClose={handleClose}>
+
+        {user_id && open.type === "storypreview" && (
           <StoryViewer
             user_id={user_id}
             stories={storiesData[storyIndex]}
             onClose={handleClose}
           />
         )}
-        {/* </div>
-        ))} */}
-        {modal === "storyupload" && (
+
+        {open.type === "storyupload" && (
           <WhatsAppStoryPreview
-            setModal={setModal}
+            // setModal={setModal}
             setOpen={setOpen}
             files={files}
           />

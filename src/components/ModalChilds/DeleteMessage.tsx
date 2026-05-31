@@ -1,10 +1,10 @@
-import { Message } from "@/lib/dummy";
+import { Message, valueProps } from "@/lib/dummy";
 import { useAppDispatch } from "@/lib/hooks";
 import { useDeleteMessagesMutation, chatApi } from "@/redux/Apis/Chat";
 import React, { Dispatch, SetStateAction } from "react";
 
 interface deleteMessageProps {
-  setShowModal: Dispatch<SetStateAction<boolean>>;
+  setShowModal: Dispatch<SetStateAction<valueProps>>;
   setSelected: Dispatch<SetStateAction<number[]>>;
   selectedMessages: number[];
   chat_id: number;
@@ -42,7 +42,10 @@ const DeleteMessage = ({
         delete_type,
       }).unwrap();
 
-      setShowModal(false);
+      setShowModal({
+        type: null,
+        open: false
+      });
       setSelected([]);
       setSelectedMessages([]);
     } catch (error) {

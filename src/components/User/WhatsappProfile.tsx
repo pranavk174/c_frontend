@@ -5,7 +5,7 @@ import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 
 import { Camera, Pencil, Check, X, Ban } from "lucide-react";
 
-import { profileProps, socketResponse } from "@/lib/dummy";
+import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
 import {
   useUnBlockUserMutation,
   useUpdateUserMutation,
@@ -22,7 +22,7 @@ interface whatsappProfileProps {
   isUser: boolean;
   loading?: boolean;
 
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen: Dispatch<SetStateAction<valueProps>>;
   onSave?: (data: whatsappProfileProps["profile"]) => void;
 }
 
@@ -144,7 +144,9 @@ const WhatsappProfile = ({
           <div className="h-[60px] relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
             Profile
             <button
-              onClick={() => setOpen((p) => !p)}
+              onClick={() => setOpen({
+                type: "null", open: false
+              })}
               className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700"
             >
               X

@@ -1,5 +1,6 @@
 "use client";
 
+import { modalValue, valueProps } from "@/lib/dummy";
 import { uploadImage } from "@/lib/utils";
 import { useCreateStoryMutation } from "@/redux/Apis/Story";
 import Image from "next/image";
@@ -7,14 +8,14 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 interface PreviewProps {
   files: File[];
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  setModal: Dispatch<SetStateAction<"storyupload" | "storypreview" | null>>;
+  setOpen: Dispatch<SetStateAction<valueProps>>;
+  // setModal: Dispatch<SetStateAction<"storyupload" | "storypreview" | null>>;
 }
 
 export default function WhatsAppStoryPreview({
   files,
   setOpen,
-  setModal,
+  // setModal,
 }: PreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [textData, setTextData] = useState<string>("");
@@ -57,8 +58,8 @@ export default function WhatsAppStoryPreview({
           }),
         );
 
-        setOpen(false);
-        setModal(null);
+        setOpen(modalValue);
+
         // await createStory({ text_data: textData, content: "" }).unwrap();
       }
     } catch (error) {
@@ -109,9 +110,8 @@ export default function WhatsAppStoryPreview({
                 className="h-1 flex-1 rounded-full bg-white/20 overflow-hidden"
               >
                 <div
-                  className={`h-full bg-white transition-all ${
-                    i <= currentIndex ? "w-full" : "w-0"
-                  }`}
+                  className={`h-full bg-white transition-all ${i <= currentIndex ? "w-full" : "w-0"
+                    }`}
                 />
               </div>
             ))}
@@ -138,11 +138,10 @@ export default function WhatsAppStoryPreview({
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${
-                  currentIndex === index
-                    ? "border-wa-primary"
-                    : "border-transparent"
-                }`}
+                className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${currentIndex === index
+                  ? "border-wa-primary"
+                  : "border-transparent"
+                  }`}
               >
                 <Image
                   priority
