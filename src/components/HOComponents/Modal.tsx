@@ -1,9 +1,7 @@
 "use client";
 import React, { ReactNode, SetStateAction } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { valueProps } from "@/lib/dummy";
-
-
 
 const Modal = ({
   // open,
@@ -12,15 +10,16 @@ const Modal = ({
   children,
   values = {
     type: null,
-    open: false
-  }
+    open: false,
+  },
 }: {
   // open: boolean;
   values: valueProps;
-  setModal: React.Dispatch<SetStateAction<valueProps>>
+  setModal: React.Dispatch<SetStateAction<valueProps>>;
   // setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: ReactNode;
 }) => {
+  const shouldReduceMotion = useReducedMotion();
   return (
     <AnimatePresence>
       {values.open && (
@@ -30,19 +29,30 @@ const Modal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setModal({
-              type: null,
-              open: false
-            })}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+            onClick={() =>
+              setModal({
+                type: null,
+                open: false,
+              })
+            }
             className="absolute inset-0 bg-black/50"
           />
 
           {/* Modal Content */}
           <motion.div
-            initial={{ x: "-300%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-300%", opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            initial={
+              shouldReduceMotion ? { opacity: 0 } : { x: "-300%", opacity: 0 }
+            }
+            animate={shouldReduceMotion ? { opacity: 1 } : { x: 0, opacity: 1 }}
+            exit={
+              shouldReduceMotion ? { opacity: 0 } : { x: "-300%", opacity: 0 }
+            }
+            transition={
+              shouldReduceMotion
+                ? { duration: 0 }
+                : { type: "spring", damping: 25, stiffness: 200 }
+            }
             className="z-50 relative w-full flex justify-center"
           >
             {children}

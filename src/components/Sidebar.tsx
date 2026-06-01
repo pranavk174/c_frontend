@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import { RootState } from "@/redux/store";
 import {
   MessageSquare,
@@ -20,13 +21,14 @@ import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
 export default function Sidebar() {
+
   const pathname = usePathname();
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
-      console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
+      // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
       return {
         user: data?.data?.getUser?.data,
         isLoading,
@@ -57,7 +59,7 @@ export default function Sidebar() {
     (state: RootState) => state.onlineUsersSlice,
   );
 
-  console.log(user?.profile_pic, "user profile dataaaa");
+  console.log(pathname, "user profile dataaaa");
 
   return (
     <aside className="w-full h-full flex flex-col bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark">
@@ -117,19 +119,20 @@ export default function Sidebar() {
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto bg-wa-panel dark:bg-wa-panel-dark">
+      <div className="flex flex-col overflow-y-auto  gap-1 px-2 bg-wa-panel dark:bg-wa-panel-dark">
         {filteredChats?.map((chat: Chat) => {
           const isActive = pathname === `/chat/${chat?.chat_id}`;
           // console.log(typeof chat?.chat_id, "royeeeeeetttee")
           return (
-            <Link href={`/chat/${chat?.chat_id}`} key={chat?.chat_id}>
+            <Link className=" overflow-hidden" href={`/chat/${chat?.chat_id}`} key={chat?.chat_id}>
               <div
                 className={cn(
-                  "flex items-center px-4 py-3 hover:bg-wa-header dark:hover:bg-wa-header-dark cursor-pointer transition-colors",
-                  isActive && "bg-wa-header dark:bg-wa-header-dark",
+
+                  "flex items-center rounded-md px-4 py-3 hover:bg-wa-header dark:hover:bg-gray-600 cursor-pointer transition-colors",
+                  isActive && "bg-wa-header dark:bg-gray-600",
                 )}
               >
-                <div className="relative w-[48px] h-[48px]  mr-4 shrink-0 overflow-hidden">
+                <div className="relative size-12  mr-4 shrink-0 overflow-hidden">
                   <Image priority
                     // style={{ height: "auto", width: "auto" }}
                     // height={300}
@@ -144,7 +147,7 @@ export default function Sidebar() {
                     className={`size-[10px] ${onlineUsers.includes(chat.user_id.toString()) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
                   ></span>
                 </div>
-                <div className="flex-1 min-w-0 border-b border-wa-divider dark:border-wa-divider-dark pb-3">
+                <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-base font-normal text-gray-900 dark:text-gray-100 truncate">
                       {chat?.name}

@@ -327,15 +327,18 @@ const StoryViewer = ({
         patchResult.undo();
       }
 
+      console.log(response, "res ponseeeeee result in like story.....")
+
     } catch (error) {
 
       console.log(error);
 
-    } finally {
-
-      setIsPaused(false);
-
     }
+
+    setIsPaused(false);
+
+
+
   };
 
   console.log(isPaused, "is Pauseddddd")
@@ -496,7 +499,7 @@ const StoryViewer = ({
                       </div>
                     </div>
                     <div className="mr-5">
-                      {interaction.liked && (
+                      {interaction.liked === true && (
                         <button>
                           <Heart className="h-5 w-5 font-thin text-wa-primary fill-wa-primary" />
                         </button>

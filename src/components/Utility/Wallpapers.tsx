@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-
+import { useSetWallPaperMutation } from "@/redux/Apis/Chat";
 import { Upload, Check, X } from "lucide-react";
 import { valueProps } from "@/lib/dummy";
+import { useToast } from "./Toast";
 
 const defaultWallpapers = [
     "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200",
@@ -19,17 +21,29 @@ export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalV
         defaultWallpapers[0]
     );
 
+    const { showToast } = useToast()
+    const [setWallPaper] = useSetWallPaperMutation()
+
     const [uploadedWallpapers, setUploadedWallpapers] = useState<string[]>([]);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
 
         // if (typeof files === 'object')
         const imageUrls = files.map((file) => URL.createObjectURL(file as never));
 
         setUploadedWallpapers((prev) => [...imageUrls, ...prev]);
+
+
+        try {
+            await setWallPaper({ url: selectedWallpaper }).unwrap()
+            showToast("Successs in wallpaper setup", "success")
+        } catch (error) {
+            showToast("Error in wallpaper setup", "error")
+
+        }
     };
 
     const wallpapers = [...uploadedWallpapers, ...defaultWallpapers];
@@ -74,14 +88,16 @@ export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalV
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[70vh] overflow-y-auto pr-1">
                             {wallpapers.map((wallpaper, index) => (
                                 <div
-                                    key={index}
+                                    key={wallpaper}
                                     onClick={() => setSelectedWallpaper(wallpaper)}
                                     className={`relative cursor-pointer rounded-2xl overflow-hidden border-4 transition-all duration-200 ${selectedWallpaper === wallpaper
                                         ? "border-[#25D366] scale-[0.96]"
                                         : "border-transparent hover:scale-[0.97]"
                                         }`}
                                 >
-                                    <img
+                                    <Image
+                                        fill
+
                                         src={wallpaper}
                                         alt="wallpaper"
                                         className="h-44 w-full object-cover"
@@ -110,7 +126,10 @@ export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalV
                         <div className="relative z-10 flex flex-col h-full">
                             {/* HEADER */}
                             <div className="bg-[#202c33]/90 px-4 py-3 flex items-center gap-3 backdrop-blur">
-                                <img
+                                <Image
+                                    height={100}
+                                    width={100}
+                                    alt={"profie pic"}
                                     src="https://i.pravatar.cc/100?img=12"
                                     className="w-10 h-10 rounded-full"
                                 />

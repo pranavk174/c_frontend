@@ -136,7 +136,7 @@ export default function WhatsAppStoryPreview({
           <div className="absolute bottom-4 left-0 right-0 flex gap-2 overflow-x-auto px-4">
             {previewFiles.map((item, index) => (
               <button
-                key={index}
+                key={item.preview}
                 onClick={() => setCurrentIndex(index)}
                 className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${currentIndex === index
                   ? "border-wa-primary"

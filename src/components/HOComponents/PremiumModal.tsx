@@ -1,7 +1,7 @@
 "use client";
 
 import { valueProps } from "@/lib/dummy";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import React, { ReactNode, useEffect } from "react";
 
 interface PremiumModalProps {
@@ -10,8 +10,7 @@ interface PremiumModalProps {
   children: ReactNode;
   className?: string;
   closeOnOutsideClick?: boolean;
-  values: valueProps
-
+  values: valueProps;
 }
 
 const backdropVariants = {
@@ -26,6 +25,11 @@ const backdropVariants = {
       duration: 0.25,
     },
   },
+};
+
+const backdropVariantsReduced = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0 } },
 };
 
 const modalVariants = {
@@ -54,19 +58,25 @@ const modalVariants = {
   },
 };
 
+const modalVariantsReduced = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 0, transition: { duration: 0 } },
+};
+
 const PremiumModal = ({
   // open,
   onClose,
   children,
 
-
   values = {
     type: null,
-    open: false
+    open: false,
   },
   className = "",
   closeOnOutsideClick = true,
 }: PremiumModalProps) => {
+  const shouldReduceMotion = useReducedMotion();
   useEffect(() => {
     if (values.open) {
       document.body.style.overflow = "hidden";
@@ -83,7 +93,9 @@ const PremiumModal = ({
     <AnimatePresence>
       {values.open && (
         <motion.div
-          variants={backdropVariants}
+          variants={
+            shouldReduceMotion ? backdropVariantsReduced : backdropVariants
+          }
           initial="hidden"
           animate="visible"
           exit="hidden"
@@ -95,7 +107,7 @@ const PremiumModal = ({
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
         >
           <motion.div
-            variants={modalVariants}
+            variants={shouldReduceMotion ? modalVariantsReduced : modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"

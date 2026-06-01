@@ -1,7 +1,7 @@
 import React, { Dispatch, SetStateAction, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Chat, Message } from "@/lib/dummy";
-import { motion, useMotionValue, animate } from "framer-motion";
+import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Reply, CheckCheck, Check, Smile } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,29 +17,28 @@ interface messageProps {
   user_id: number | null;
   data: Message[];
   setReplyMessage: React.Dispatch<React.SetStateAction<Message | null>>;
-  startUpload: () => Promise<void>;
+
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
-  // setMessages: Dispatch<SetStateAction<Message[]>>
 
   pausedRef: React.RefObject<boolean>;
-  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+
   progress: number;
   uploadId: string;
   chatDetails: Chat;
-  file?: File | null;
+
 }
 
 const Messages = ({
   data,
   msg,
-  file,
+
   emojis,
   user_id,
-  startUpload,
+
 
   setReplyMessage,
-  setFile,
+
   uploadChunks,
   chatDetails,
   pausedRef,
@@ -47,6 +46,7 @@ const Messages = ({
   uploadId,
   cancelUpload,
 }: messageProps) => {
+  const shouldReduceMotion = useReducedMotion();
   const x = useMotionValue(0);
   const triggered = useRef(false);
   const router = useRouter();
@@ -62,9 +62,10 @@ const Messages = ({
     }
 
     animate(x, 0, {
-      type: "spring",
-      stiffness: 300,
-      damping: 20,
+      type: shouldReduceMotion ? "tween" : "spring",
+      duration: shouldReduceMotion ? 0 : undefined,
+      stiffness: shouldReduceMotion ? undefined : 300,
+      damping: shouldReduceMotion ? undefined : 20,
     });
   };
 
@@ -74,17 +75,6 @@ const Messages = ({
       : null;
 
   const repliedStory = msg.story_id ? msg.story_item : null;
-
-  // console.log(
-  //   msg.content,
-  //   "message content",
-  //   msg,
-  //   repliedMessage,
-  //   msg.reply_to_message_id,
-  //   msg.reply_to_message_id !== null,
-  // );
-
-  // console.log(msg.sender_id === user_id, "condition.......", msg.sender_id, user_id)
 
   return (
     <div
@@ -98,7 +88,7 @@ const Messages = ({
         <motion.div
           style={{
             opacity: x.get() > 20 ? 1 : 0,
-            scale: x.get() > 20 ? 1 : 0.5,
+            scale: shouldReduceMotion ? 1 : (x.get() > 20 ? 1 : 0.5),
           }}
           className="absolute -left-10 bg-green-500 text-white p-2 rounded-full shadow-lg"
         >
@@ -107,11 +97,11 @@ const Messages = ({
 
         {/* Message Bubble */}
         <motion.div
-          drag="x"
+          drag={shouldReduceMotion ? false : "x"}
           dragConstraints={{ left: 0, right: 120 }}
           style={{ x }}
           onDragEnd={handleDragEnd}
-          className="cursor-grab active:cursor-grabbing"
+          className={shouldReduceMotion ? "" : "cursor-grab active:cursor-grabbing"}
         >
           <div
             className={cn(

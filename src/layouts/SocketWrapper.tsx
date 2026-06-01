@@ -16,6 +16,7 @@ import {
   useContext,
   ReactNode,
   useEffect,
+  useState,
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAppDispatch } from "@/lib/hooks";
@@ -42,21 +43,23 @@ type SocketProviderProps = {
 
 const SocketProvider = ({ children }: SocketProviderProps) => {
   const [refreshToken] = useRefreshTokenMutation();
-  // const socket = useMemo<Socket>(() => {
-  //   return io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
-  //     withCredentials: true,
-  //     // reconnection: true,
-  //     // reconnectionAttempts: 5,
-  //     // reconnectionDelay: 1000,
-  //   });
-  // }, []);
+  const socket = useMemo<Socket>(() => {
+    return io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
+      withCredentials: true,
+      // reconnection: true,
+      // reconnectionAttempts: 5,
+      // reconnectionDelay: 1000,
+    });
+  }, []);
 
-  const socket = io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
-    withCredentials: true,
-    // reconnection: true,
-    // reconnectionAttempts: 5,
-    // reconnectionDelay: 1000,
-  });
+  const [socketId, setSocketId] = useState(null)
+
+  // const socket = io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
+  //   withCredentials: true,
+  //   // reconnection: true,
+  //   // reconnectionAttempts: 5,
+  //   // reconnectionDelay: 1000,
+  // });
 
   const { showToast } = useToast();
   const dispatch = useAppDispatch();
@@ -87,9 +90,9 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
           socket.connect();
         } catch (e) {
           // logout user
-        } finally {
-          isRefreshing = false;
         }
+        isRefreshing = false;
+
       }
     });
 
@@ -99,9 +102,15 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   }, [socket, refreshToken]);
 
   // useEffect(() => {
-  //   return () => {
-  //     socket.disconnect();
-  //   };
+
+  //   socket.on("connect", () => {
+  //     console.log("FRONTEND:", socket.id);
+  //   });
+
+  //   console.log(socket.id, "use effect")
+
+  //   return () => { socket.disconnect() }
+
   // }, [socket]);
 
   useSocketEvents(socket, handler);

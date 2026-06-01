@@ -19,11 +19,11 @@ export default function MainLayout({
           <div className="absolute top-0 left-0 w-full h-[127px] bg-wa-primary dark:bg-wa-primary-dark hidden md:block z-0"></div>
 
           {/* Main Container Wrapper */}
-          <div className="relative z-10 flex w-full h-full md:p-[19px] md:max-w-[1600px] md:mx-auto">
+          <div className="relative z-10 flex w-full h-full md:p-[19px] max-w-[1600px] md:mx-auto">
             <div className="flex w-full h-full bg-wa-panel dark:bg-wa-panel-dark md:shadow-lg md:rounded-sm overflow-hidden">
               <div
                 className={cn(
-                  "w-full md:w-[30%] md:min-w-[300px] lg:w-[400px] h-full",
+                  "w-full md:w-[30%] md:max-w-[300px] lg:max-w-[400px] h-full",
                   // isChatOpen ? "hidden md:block" : "block",
                 )}
               >

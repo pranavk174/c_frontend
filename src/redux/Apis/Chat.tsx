@@ -256,6 +256,62 @@ export const chatApi = BaseApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "chats", id: "LIST" }],
     }),
+    setWallPaper: builder.mutation({
+      query: ({ url }) => ({
+        url: '',
+        method: 'POST',
+        body: {
+          query: `
+          
+
+          mutation setWallpaper($url:String!){
+          setWallpaper(url:$url){
+          
+          message,error,success
+          
+          
+          }}
+          
+          
+          
+          `, variables: {
+            url
+          }
+        }
+      })
+      , invalidatesTags: ['wallpaper']
+    })
+
+
+    ,
+
+    getWallpaper: builder.query({
+      query: () => ({
+        url: '',
+        method: "POST",
+        body: {
+          query: `
+          
+         query getWallPaper{
+         getWallPaper{
+         
+         error,message,success,data{
+         
+         __typename
+         ... on Wallpaper {
+         
+         url 
+         
+         }
+         
+         }
+         
+         }}
+          `
+        }
+
+      })
+    })
   }),
 });
 
@@ -271,4 +327,7 @@ export const {
   useReactMessageMutation,
   useReplyToMessageMutation,
   useSendMessageMutation,
+
+  useGetWallpaperQuery,
+  useLazyGetWallpaperQuery, useSetWallPaperMutation
 } = chatApi;

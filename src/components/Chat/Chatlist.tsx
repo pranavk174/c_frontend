@@ -4,9 +4,9 @@ import { MESSAGE_REACTION, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 // import { useReactMessageMutation } from "@/redux/Apis/User";
-import { chatApi, useReactMessageMutation } from "@/redux/Apis/Chat";
+import { chatApi, useGetWallpaperQuery, useReactMessageMutation } from "@/redux/Apis/Chat";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { data } from "framer-motion/client";
 import React, {
   Dispatch,
@@ -14,7 +14,6 @@ import React, {
   RefObject,
   SetStateAction,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -89,12 +88,21 @@ const Chatlist = memo(
     show,
   }: chatListProps) => {
     const socket = useSocket();
-    const [reactMessage, { }] = useReactMessageMutation({});
     const [selectionMode, setSelectionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    const shouldReduceMotion = useReducedMotion();
+    const { url } = useGetWallpaperQuery(null, {
+      selectFromResult: ({ data, isLoading }) => {
+        return {
+          url: data?.data?.getWallPaper?.data?.url,
+          isLoading
+        }
+      }
+    })
 
     const dispatch = useAppDispatch();
     useEffect(() => {
@@ -106,7 +114,7 @@ const Chatlist = memo(
       const observer = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting && hasMore && !isFetching) {
-            console.log(entries, "entriesssssssss");
+
             setCursor(() => nextCursor);
           }
         },
@@ -239,10 +247,12 @@ const Chatlist = memo(
       }
     };
     return (
-      <div className="flex-1  p-1 z-10">
+      <div className="flex-1  p-1 z-10 object-cover" style={{
+        backgroundImage: `url(${url})`,
+      }}>
         <div
           ref={chatContainerRef}
-          className="flex  flex-col gap-y-2  overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full"
+          className={`flex  flex-col gap-y-2       overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full`}
         >
           {/* Encrypted Notice */}
 
@@ -282,7 +292,7 @@ const Chatlist = memo(
                   }
                 }}
                 className={cn(
-                  "group relative flex items-center px-2 py-[2px] justify-end transition-all duration-200",
+                  "group relative flex items-center px-2 py-0.5 justify-end transition-all duration-200",
 
                   msg.sender_id == user_id ? "" : "flex-row-reverse",
 
@@ -375,14 +385,13 @@ const Chatlist = memo(
                   <Messages
                     msg={msg}
                     pausedRef={pausedRef}
-                    setFile={setFile}
+
                     progress={progress}
                     uploadId={uploadId}
                     uploadChunks={uploadChunks}
-                    // file={file}
                     chatDetails={chatDetails}
                     cancelUpload={cancelUpload}
-                    startUpload={startUpload}
+
                     user_id={user_id}
                     data={data}
                     emojis={icons}

@@ -29,6 +29,7 @@ interface chatHeadProps {
 }
 
 const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
+  const socket = useSocket()
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [popup, setPopup] = useState<boolean>(false);
   const [block, setBlock] = useState<boolean>(false);

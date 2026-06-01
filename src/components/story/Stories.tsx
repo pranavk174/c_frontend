@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Plus, Camera } from "lucide-react";
 
 import StoryRing from "@/components/story/Rounded";
@@ -9,14 +9,17 @@ import StoryViewer from "./Storypreview";
 import PremiumModal from "../HOComponents/PremiumModal";
 
 import WhatsAppStoryPreview from "./StoryuploadPreview";
-import { useGetStoriesQuery } from "@/redux/Apis/Story";
-import { modalValue, UserStories, valueProps } from "@/lib/dummy";
+import { storyApi, useGetStoriesQuery } from "@/redux/Apis/Story";
+import { modalValue, StoryContent, UserStories, valueProps } from "@/lib/dummy";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useGetUserQuery } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
+import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
+import { STORY_LIKE, STORY_SEEN } from "@/lib/events";
 
 const StoryList = () => {
+  const socket = useSocket();
   const [open, setOpen] = useState<valueProps>(modalValue);
   const handleClose = useCallback(() => setOpen({
     type: null,
@@ -90,7 +93,109 @@ const StoryList = () => {
       storyRef.current?.click();
     }
   };
-  const socket = useSocket();
+
+  const dispatch = useAppDispatch()
+
+  const handler = useMemo(
+    () => ({
+      [STORY_SEEN]: (data: any, callback: any) => {
+        if (!data) {
+          return callback({
+            message: "no data recieved",
+            status: 404,
+            success: false,
+          });
+        }
+
+        dispatch(
+          storyApi.util.updateQueryData("getStories", null, (draft) => {
+            console.log(data, "story seen successssss");
+            draft.data.getAllStories.data.stories.forEach(
+              (story: UserStories) => {
+                console.log(data, "story seen inner  successssss");
+                story.stories.forEach((st) => {
+                  if (st.id === data.story_id) {
+                    if (!st.interactions) {
+                      st.interactions = [];
+                    }
+
+                    const alreadyExists = st.interactions.some(
+                      (i) => i.id === data.user_id,
+                    );
+
+                    console.log("ye condition true hai", alreadyExists);
+
+                    if (!alreadyExists) {
+                      st.interactions.push({
+                        id: data.user_id,
+                        seen: true,
+                        name: data.name,
+                        seen_at: data.seen_at,
+                        liked: false,
+                        liked_at: null,
+                        profile_pic: data.profile_pic,
+                      });
+                    }
+                  } else {
+                    console.log("condition false....");
+                  }
+                });
+              },
+            );
+          }),
+        );
+
+        return callback({
+          message: "Frontend Updated",
+          status: 201,
+          success: true,
+        });
+      },
+      [STORY_LIKE]: (data: any, callback: any) => {
+
+        if (!data) {
+          return callback({
+            message: "Data is mIssing",
+            status: 400,
+            success: false
+          })
+        }
+
+        console.log("liked ddaaaaataa..", data)
+
+        dispatch(storyApi.util.updateQueryData(
+          "getStories", null, (draft) => {
+
+            draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
+              story.stories.forEach((st: StoryContent) => {
+
+
+                if (st.id === data.story_id) {
+                  st?.interactions?.forEach((int) => {
+
+                    if (int.id === data.user_id) {
+                      int.liked = data.liked
+
+                    }
+
+
+                  })
+                }
+
+              })
+            })
+          }
+        ))
+
+      }
+    }),
+    [dispatch],
+  );
+
+  useSocketEvents(socket, handler);
+
+
+
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       console.log(e.target.files, "input eventssss");
