@@ -1,3 +1,7 @@
+import { Notification } from "@/lib/dummy";
+import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import Image from "next/image";
+
 const notifications = [
     {
         id: 1,
@@ -47,11 +51,27 @@ const notifications = [
 ];
 
 export default function NotificationUI() {
+
+
+    const { notifications } = useGetNotificationsQuery(null, {
+        selectFromResult: ({ data, isLoading, isSuccess }) => {
+
+            return {
+                notifications: data?.data?.getNotification?.data?.items,
+                isLoading,
+                isSuccess
+            }
+        }
+    })
+
+    console.log(notifications, "notofcationssss")
+
+
     return (
         <div className="w-full max-w-md space-y-3">
-            {notifications.map((item) => (
+            {notifications.map((item: Notification) => (
                 <div
-                    key={item.id}
+                    key={item.notification_id}
                     className="
             bg-[#111B21]
             border border-white/10
@@ -67,8 +87,10 @@ export default function NotificationUI() {
                     <div className="flex items-start gap-3">
                         {/* Avatar */}
                         <div className="relative">
-                            <img
-                                src={item.avatar}
+                            <Image
+                                height={100}
+                                width={100}
+                                src={item.profile_pic}
                                 alt="profile"
                                 className="w-14 h-14 rounded-full object-cover"
                             />
@@ -120,7 +142,7 @@ export default function NotificationUI() {
                                         background: item.color,
                                     }}
                                 >
-                                    {item.type.replace("_", " ")}
+                                    {item.notification_type.replace("_", " ")}
                                 </span>
                             </div>
                         </div>

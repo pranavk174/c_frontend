@@ -4,11 +4,12 @@ import { useToast } from "@/components/Utility/Toast";
 import {
   CONNECTION_ERROR,
   ERROR,
+  NEW_NOTIFICATION,
   ONLINE_USERS,
 } from "@/lib/events";
 import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 import { useSocketEvents } from "@/lib/hooks";
-
+import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
 import {
   createContext,
   useMemo,
@@ -51,6 +52,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     });
   }, []);
 
+  const { data } = useGetNotificationsQuery(null)
   const [socketId, setSocketId] = useState(null)
 
   // const socket = io(`${process.env.NEXT_PUBLIC_BASE_URL}`, {
@@ -75,6 +77,9 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
         //   message: "recved on line user...", data
         // })
       },
+      [NEW_NOTIFICATION]: (data: any) => {
+        console.log(data, "data recieved in notication")
+      }
     }),
     [showToast, dispatch],
   );

@@ -128,6 +128,25 @@ export const modalValue = {
   type: null, open: false
 }
 
+export interface Notification {
+  notification_id: number;
+
+  notification_type:
+  | "new_message"
+  | "story_like"
+  | "post_like"
+  | "follow";
+
+  name: string;
+
+  message: string;
+
+  profile_pic: string;
+
+  time: string;
+  color?: string
+}
+
 // export type Message = {
 //   id: string;
 //   senderId: string;
