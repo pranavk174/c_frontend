@@ -12,6 +12,7 @@ import {
   Search,
   Filter,
   CircleDashed,
+  Bell,
 } from "lucide-react";
 import { Chat, modalValue, valueProps } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,7 @@ import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
+import WhatsAppNotificationUI from "./Notifications/Notification";
 export default function Sidebar() {
 
   const pathname = usePathname();
@@ -85,7 +87,20 @@ export default function Sidebar() {
             />
           </button>
         </div>
-        <div className="flex items-center space-x-4 text-wa-icon dark:text-wa-icon-dark">
+        <div className="flex items-center  space-x-4 text-wa-icon dark:text-wa-icon-dark">
+
+
+          <button onClick={() => setOpen({
+            open: true, type: 'notification'
+          })} className="hover:text-green-400 cursor-pointer relative">
+            <  Bell className="size-5" />
+            <span className="size-3 text-white text-[10px] flex items-center justify-center p-1 absolute top-0 right-0 rounded-[50%]   bg-green-500">
+              3
+            </span>
+          </button>
+
+
+
           <Link
             href="/story"
             className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
@@ -134,9 +149,6 @@ export default function Sidebar() {
               >
                 <div className="relative size-12  mr-4 shrink-0 overflow-hidden">
                   <Image priority
-                    // style={{ height: "auto", width: "auto" }}
-                    // height={300}
-                    // width={300}
                     fill
                     sizes="48px"
                     src={chat?.profile_pic}
@@ -174,6 +186,11 @@ export default function Sidebar() {
                     )} */}
                   </div>
                 </div>
+                <div>
+                  <span>
+                    {chat.last_message_at.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </Link>
           );
@@ -184,7 +201,11 @@ export default function Sidebar() {
         {user && open.type === "profile" && (
           <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
         )}
+
+        {open.type === "notification" && (
+          <WhatsAppNotificationUI />
+        )}
       </Modal>
-    </aside>
+    </aside >
   );
 }

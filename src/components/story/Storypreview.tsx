@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { X, Heart, Send, Mic, ClockFading } from "lucide-react";
+import { X, Heart, Send, Mic, ClockFading, Eye } from "lucide-react";
 import {
   startTransition,
   useActionState,
@@ -112,33 +112,33 @@ const StoryViewer = ({
 
   // console.log(isPending, "loading stateee");
   // Story Progress
-  useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + 2;
+  // useEffect(() => {
+  //   if (isPaused) return;
+  //   const interval = setInterval(() => {
+  //     setProgress((prev) => {
+  //       const next = prev + 2;
 
-        // Move to next story
-        if (next >= 100) {
-          if (currentIndex < stories.stories.length - 1) {
-            setCurrentIndex((p) => p + 1);
-            return 0;
-          }
+  //       // Move to next story
+  //       if (next >= 100) {
+  //         if (currentIndex < stories.stories.length - 1) {
+  //           setCurrentIndex((p) => p + 1);
+  //           return 0;
+  //         }
 
-          // Close viewer safely
-          setTimeout(() => {
-            onCloseRef.current?.();
-          }, 0);
+  //         // Close viewer safely
+  //         setTimeout(() => {
+  //           onCloseRef.current?.();
+  //         }, 0);
 
-          return 100;
-        }
+  //         return 100;
+  //       }
 
-        return next;
-      });
-    }, STORY_DURATION / 50);
+  //       return next;
+  //     });
+  //   }, STORY_DURATION / 50);
 
-    return () => clearInterval(interval);
-  }, [currentIndex, stories.stories.length, isPaused]);
+  //   return () => clearInterval(interval);
+  // }, [currentIndex, stories.stories.length, isPaused]);
 
   const handler = useMemo(
     () => ({
@@ -440,16 +440,25 @@ const StoryViewer = ({
       {currentStory?.interactions && stories?.user_id === user_id && (
         <div
           onClick={() => setIsPaused((p) => !p)}
-          className="absolute w-full cursor-pointer   bottom-0 h-screen  z-50  transition-all duration-300"
+          className="absolute w-full cursor-pointer   h-screen  z-50  transition-all duration-300"
           style={{
             // opacity: isPaused ? 1 : 0,
-            height: !isPaused ? "12%" : "100%",
-            // transform: `${isPaused ? "translateY(100px)" : "translateY(580px)"}`,
+            // height: !isPaused ? "12%" : "100%",
+            transform: `${isPaused ? "translateY(0px)" : "translateY(920px)"}`,
           }}
         >
+
+          <div className={`flex w-full justify-center items-center font-bold gap-2 ${isPaused ? 'hidden' : ''} `}>
+            <Eye className="h-5 w-5 " /> {currentStory.interactions.length}
+          </div>
           <div
-            className={`absolute w-full px-2 overflow-y-hidden cursor-pointer ${isPaused ? "bottom-0" : "bottom-0"}  h-2/3`}
+            className={`absolute w-full px-2 overflow-y-hidden cursor-pointer  bottom-0  h-2/3`}
           >
+
+
+
+
+
             <div className="py-7  px-5 flex justify-between items-center bg-gray-800">
               <h4 className="text-[clamp(16px,15vw,16px)] font-bold capitalize">
                 Viewed by {"  "}

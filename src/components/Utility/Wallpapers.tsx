@@ -96,8 +96,9 @@ export default function ChatWallpaperSelector({ modalValues, setOpen }: { modalV
                                         }`}
                                 >
                                     <Image
-                                        fill
 
+                                        height={400}
+                                        width={400}
                                         src={wallpaper}
                                         alt="wallpaper"
                                         className="h-44 w-full object-cover"

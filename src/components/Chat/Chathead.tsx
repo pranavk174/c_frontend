@@ -13,6 +13,7 @@ import {
   Video,
   Ban,
   Wallpaper,
+
 } from "lucide-react";
 import React, { Dispatch, memo, SetStateAction, useState } from "react";
 import Modal from "../HOComponents/Modal";
@@ -32,7 +33,7 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
   const socket = useSocket()
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [popup, setPopup] = useState<boolean>(false);
-  const [block, setBlock] = useState<boolean>(false);
+
   return (
     <div className="relative">
       {menu ? (
@@ -133,7 +134,7 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
                       })
                       setPopup(false);
                     }}
-                    className="p-2 flex w-full text-center  items-center justify-center  gap-2 text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition"
+                    className={`p-2 flex w-full text-center  items-center justify-center  ${chatDetails?.blocked ? 'hidden' : ''}  gap-2 text-[clamp(16px,4vw,16px)] hover:text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition`}
                   >
                     Block User <Ban className="w-4 h-4" />
                   </button>
@@ -176,8 +177,8 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
           userId={chatDetails?.user_id}
           name={chatDetails?.name}
           chatId={chatDetails.chat_id}
-          open={block}
-          setOpen={setBlock}
+          open={open}
+          setOpen={setOpen}
         />}
       </Modal>
       {/* <Modal open={block} values setModal={setBlock}>

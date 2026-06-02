@@ -1,11 +1,10 @@
 "use client";
 
 import { valueProps } from "@/lib/dummy";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import React, { ReactNode, useEffect } from "react";
 
 interface PremiumModalProps {
-  // open: boolean;
   onClose: () => void;
   children: ReactNode;
   className?: string;
@@ -27,10 +26,7 @@ const backdropVariants = {
   },
 };
 
-const backdropVariantsReduced = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0 } },
-};
+
 
 const modalVariants = {
   hidden: {
@@ -58,11 +54,6 @@ const modalVariants = {
   },
 };
 
-const modalVariantsReduced = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0 } },
-  exit: { opacity: 0, transition: { duration: 0 } },
-};
 
 const PremiumModal = ({
   // open,
@@ -76,7 +67,7 @@ const PremiumModal = ({
   className = "",
   closeOnOutsideClick = true,
 }: PremiumModalProps) => {
-  const shouldReduceMotion = useReducedMotion();
+
   useEffect(() => {
     if (values.open) {
       document.body.style.overflow = "hidden";
@@ -93,9 +84,7 @@ const PremiumModal = ({
     <AnimatePresence>
       {values.open && (
         <motion.div
-          variants={
-            shouldReduceMotion ? backdropVariantsReduced : backdropVariants
-          }
+          variants={backdropVariants}
           initial="hidden"
           animate="visible"
           exit="hidden"
@@ -104,10 +93,10 @@ const PremiumModal = ({
               onClose();
             }
           }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-9999 flex items-center justify-center bg-black/50 p-4"
         >
           <motion.div
-            variants={shouldReduceMotion ? modalVariantsReduced : modalVariants}
+            variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"

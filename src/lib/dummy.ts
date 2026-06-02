@@ -7,6 +7,7 @@ export type Chat = {
   // unread: number;
   isOnline?: boolean;
   chat_id: number;
+  blocked: boolean;
   chat_type: string;
   user_id: number;
   profile_pic: string;

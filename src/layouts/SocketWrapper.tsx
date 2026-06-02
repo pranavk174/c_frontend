@@ -5,7 +5,6 @@ import {
   CONNECTION_ERROR,
   ERROR,
   ONLINE_USERS,
-  REFETCH_CHATS,
 } from "@/lib/events";
 import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 import { useSocketEvents } from "@/lib/hooks";
@@ -71,6 +70,10 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       [ONLINE_USERS]: (data: string[]) => {
         console.log("online user dataaa budddyyyy...");
         dispatch(addOnlineUsers(data));
+
+        // return callback({
+        //   message: "recved on line user...", data
+        // })
       },
     }),
     [showToast, dispatch],

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { chatApi, useGetWallpaperQuery, useReactMessageMutation } from "@/redux/Apis/Chat";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { data } from "framer-motion/client";
+
 import React, {
   Dispatch,
   memo,

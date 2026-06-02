@@ -19,7 +19,7 @@ const Modal = ({
   // setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: ReactNode;
 }) => {
-  const shouldReduceMotion = useReducedMotion();
+
   return (
     <AnimatePresence>
       {values.open && (
@@ -29,7 +29,7 @@ const Modal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+            transition={{ duration: 0.2 }}
             onClick={() =>
               setModal({
                 type: null,
@@ -41,18 +41,10 @@ const Modal = ({
 
           {/* Modal Content */}
           <motion.div
-            initial={
-              shouldReduceMotion ? { opacity: 0 } : { x: "-300%", opacity: 0 }
-            }
-            animate={shouldReduceMotion ? { opacity: 1 } : { x: 0, opacity: 1 }}
-            exit={
-              shouldReduceMotion ? { opacity: 0 } : { x: "-300%", opacity: 0 }
-            }
-            transition={
-              shouldReduceMotion
-                ? { duration: 0 }
-                : { type: "spring", damping: 25, stiffness: 200 }
-            }
+            initial={{ x: "-300%", opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "-300%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="z-50 relative w-full flex justify-center"
           >
             {children}

@@ -62,10 +62,9 @@ const Messages = ({
     }
 
     animate(x, 0, {
-      type: shouldReduceMotion ? "tween" : "spring",
-      duration: shouldReduceMotion ? 0 : undefined,
-      stiffness: shouldReduceMotion ? undefined : 300,
-      damping: shouldReduceMotion ? undefined : 20,
+      type: "spring",
+      stiffness: 300,
+      damping: 20,
     });
   };
 
@@ -88,7 +87,7 @@ const Messages = ({
         <motion.div
           style={{
             opacity: x.get() > 20 ? 1 : 0,
-            scale: shouldReduceMotion ? 1 : (x.get() > 20 ? 1 : 0.5),
+            scale: x.get() > 20 ? 1 : 0.5,
           }}
           className="absolute -left-10 bg-green-500 text-white p-2 rounded-full shadow-lg"
         >
@@ -97,11 +96,11 @@ const Messages = ({
 
         {/* Message Bubble */}
         <motion.div
-          drag={shouldReduceMotion ? false : "x"}
+          drag="x"
           dragConstraints={{ left: 0, right: 120 }}
           style={{ x }}
           onDragEnd={handleDragEnd}
-          className={shouldReduceMotion ? "" : "cursor-grab active:cursor-grabbing"}
+          className="cursor-grab active:cursor-grabbing"
         >
           <div
             className={cn(

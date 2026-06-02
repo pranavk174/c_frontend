@@ -40,6 +40,7 @@ import {
 } from "@/lib/events";
 // import Chatlist from "@/components/Chat/Chatlist";
 import Chatlist from "@/components/Chat/Chatlist";
+import VirtualChatlist from "@/components/Chat/VirtualChatList";
 import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
@@ -841,7 +842,7 @@ const ChatPage = ({ id }: { id: number }) => {
         chatDetails={chatDetails}
       />
 
-      <Chatlist
+      <VirtualChatlist
 
         setSelectedMessages={setSelectedMessages}
         setCursor={setCursor}
@@ -874,6 +875,9 @@ const ChatPage = ({ id }: { id: number }) => {
         menu={menu}
         chatDetails={chatDetails}
       />
+
+
+      {/* <VirtualChatlist /> */}
 
       {/* Input */}
 

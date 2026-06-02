@@ -2,7 +2,7 @@
 
 import React, { Dispatch, SetStateAction, useState } from "react";
 import { ShieldAlert } from "lucide-react";
-import { profileProps, socketResponse } from "@/lib/dummy";
+import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
 import { useBlockUserMutation } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_LEAVED } from "@/lib/events";
@@ -10,8 +10,8 @@ type BlockUserProps = {
   userId?: number | string;
 
   name?: string;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  open: boolean;
+  setOpen: Dispatch<SetStateAction<valueProps>>;
+  open: valueProps;
   chatId?: number;
 };
 
@@ -48,7 +48,10 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
           console.log("user left ", response);
         },
       );
-      setOpen(false);
+      setOpen({
+        type: null,
+        open: false
+      });
     } catch (error) {
       console.log(error, "error in bloackkk.....");
     }
@@ -83,11 +86,10 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
         {reasons.map((reason) => (
           <label
             key={reason}
-            className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${
-              selectedReason === reason
-                ? "border-[#25D366] bg-[#25D366]/10"
-                : "border-[#2A3942] bg-[#1F2C34]"
-            }`}
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-all ${selectedReason === reason
+              ? "border-[#25D366] bg-[#25D366]/10"
+              : "border-[#2A3942] bg-[#1F2C34]"
+              }`}
           >
             <input
               type="radio"
@@ -115,7 +117,10 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
       {/* Footer */}
       <div className="flex items-center justify-end gap-3 border-t border-[#202C33] bg-[#202C33] px-5 py-4">
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => setOpen({
+            type: null,
+            open: false
+          })}
           className="rounded-full px-5 py-2 text-sm font-medium text-gray-300 transition hover:bg-[#1F2C34]"
         >
           Cancel
@@ -129,7 +134,7 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
           {isLoading ? "Blocking..." : "Block User"}
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 
