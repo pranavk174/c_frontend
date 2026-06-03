@@ -86,6 +86,26 @@ export const authApi = BaseApi.injectEndpoints({
         },
       }),
     }),
+    logout: builder.mutation({
+      query: () => ({
+        url: '',
+        method: "POST",
+
+        body: {
+          query: `
+          
+          mutation logout{
+          logout{
+          message,success,error}}
+          
+          `
+        }
+
+
+      })
+      , invalidatesTags: ['User']
+    }),
+
     getUser: builder.query({
       query: () => ({
         url: "",
@@ -205,6 +225,7 @@ export const authApi = BaseApi.injectEndpoints({
 export const {
   useLoginMutation,
   useBlockUserMutation,
+  useLogoutMutation,
   useGetUserQuery,
   useLazyGetUserQuery,
   useRefreshTokenMutation,

@@ -16,18 +16,21 @@ import {
 } from "lucide-react";
 import { Chat, modalValue, valueProps } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
-import { useGetUserQuery } from "@/redux/Apis/Users";
+import { useGetUserQuery, useLogoutMutation } from "@/redux/Apis/Users";
 import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
 import WhatsAppNotificationUI from "./Notifications/Notification";
+import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { useToast } from "./Utility/Toast";
 export default function Sidebar() {
-
+  const [logout] = useLogoutMutation()
   const pathname = usePathname();
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { showToast } = useToast()
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
       // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
@@ -52,6 +55,17 @@ export default function Sidebar() {
     },
   );
 
+  const { notifications } = useGetNotificationsQuery(null, {
+    selectFromResult: ({ data, isLoading, isSuccess }) => {
+
+      return {
+        notifications: data?.data?.getNotification?.data?.items,
+        isLoading,
+        isSuccess
+      }
+    }
+  })
+
   // console.log(data, "dataaaaa in chatss");
   const filteredChats = data?.filter((chat: Chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -61,7 +75,14 @@ export default function Sidebar() {
     (state: RootState) => state.onlineUsersSlice,
   );
 
-  console.log(pathname, "user profile dataaaa");
+  const handleLogout = async () => {
+    try {
+
+      await logout(null).unwrap()
+    } catch (error) {
+      // showToast(error.message, "error")
+    }
+  }
 
   return (
     <aside className="w-full h-full flex flex-col bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark">
@@ -92,10 +113,10 @@ export default function Sidebar() {
 
           <button onClick={() => setOpen({
             open: true, type: 'notification'
-          })} className="hover:text-green-400 cursor-pointer relative">
+          })} className={`hover:text-green-400 ${notifications?.length > 0 ? '' : 'hidden'} cursor-pointer relative`}>
             <  Bell className="size-5" />
             <span className="size-3 text-white text-[10px] flex items-center justify-center p-1 absolute top-0 right-0 rounded-[50%]   bg-green-500">
-              3
+              {notifications?.length}
             </span>
           </button>
 
@@ -110,7 +131,7 @@ export default function Sidebar() {
           <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <MessageSquare className="w-5 h-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
+          <button onClick={handleLogout} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <MoreVertical className="w-5 h-5" />
           </button>
         </div>
@@ -203,7 +224,7 @@ export default function Sidebar() {
         )}
 
         {open.type === "notification" && (
-          <WhatsAppNotificationUI />
+          <WhatsAppNotificationUI notifications={notifications} />
         )}
       </Modal>
     </aside >

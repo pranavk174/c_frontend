@@ -1,3 +1,4 @@
+import { useToast } from "@/components/Utility/Toast";
 import {
   createApi,
   fetchBaseQuery,
@@ -11,6 +12,20 @@ export const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
+
+export interface refreshToken {
+
+  data: {
+    generateRefreshToken: {
+      status?: number
+      success?: boolean,
+      message?: string
+    }
+  }
+
+}
+
+
 export interface GraphQLErrorLocation {
   line: number;
   column: number;
@@ -23,7 +38,7 @@ export interface GraphQLError {
 }
 
 export interface GraphQLResponse<T> {
-  data: T | null;
+  data: refreshToken | T | null;
   errors?: GraphQLError[];
 }
 
@@ -33,6 +48,7 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
+
 
   const data = result.data as GraphQLResponse<unknown>;
 
@@ -65,12 +81,13 @@ const baseQueryWithReauth: BaseQueryFn<
     );
 
     // refresh success
-    if (refreshResult.data) {
-      // retry original api
+    if (refreshResult?.data?.data?.generateRefreshToken?.status !== 401) {
       result = await baseQuery(args, api, extraOptions);
     } else {
       // logout user
+
       localStorage.removeItem("user");
+
 
       // optional redirect
       window.location.href = "/login";

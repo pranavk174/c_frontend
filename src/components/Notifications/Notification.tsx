@@ -1,5 +1,6 @@
 import { Notification } from "@/lib/dummy";
 import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { div } from "framer-motion/client";
 import Image from "next/image";
 
 const notifications = [
@@ -50,29 +51,21 @@ const notifications = [
     },
 ];
 
-export default function NotificationUI() {
+export default function NotificationUI({ notifications }: { notifications: Notification }) {
 
 
-    const { notifications } = useGetNotificationsQuery(null, {
-        selectFromResult: ({ data, isLoading, isSuccess }) => {
 
-            return {
-                notifications: data?.data?.getNotification?.data?.items,
-                isLoading,
-                isSuccess
-            }
-        }
-    })
 
     console.log(notifications, "notofcationssss")
 
 
     return (
-        <div className="w-full max-w-md space-y-3">
-            {notifications.map((item: Notification) => (
-                <div
-                    key={item.notification_id}
-                    className="
+        <div className=" ">
+            <div className="w-full  space-y-3 h-[70vh] overflow-y-auto hide-scrollbar">
+                {Array.isArray(notifications) && notifications?.map((item: Notification) => (
+                    <div
+                        key={item.notification_id}
+                        className="
             bg-[#111B21]
             border border-white/10
             rounded-2xl
@@ -83,20 +76,20 @@ export default function NotificationUI() {
             duration-300
             cursor-pointer
           "
-                >
-                    <div className="flex items-start gap-3">
-                        {/* Avatar */}
-                        <div className="relative">
-                            <Image
-                                height={100}
-                                width={100}
-                                src={item.profile_pic}
-                                alt="profile"
-                                className="w-14 h-14 rounded-full object-cover"
-                            />
+                    >
+                        <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div className="relative">
+                                <Image
+                                    height={100}
+                                    width={100}
+                                    src={item.profile_pic}
+                                    alt="profile"
+                                    className="w-14 h-14 rounded-full object-cover"
+                                />
 
-                            <span
-                                className="
+                                <span
+                                    className="
                   absolute
                   bottom-0
                   right-0
@@ -105,32 +98,32 @@ export default function NotificationUI() {
                   rounded-full
                   border-2 border-[#111B21]
                 "
-                                style={{
-                                    background: item.color,
-                                }}
-                            />
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-white font-semibold text-sm">
-                                    {item.name}
-                                </h3>
-
-                                <span className="text-xs text-gray-400">
-                                    {item.time}
-                                </span>
+                                    style={{
+                                        background: item.color,
+                                    }}
+                                />
                             </div>
 
-                            <p className="text-sm text-gray-300 mt-1">
-                                {item.message}
-                            </p>
+                            {/* Content */}
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-white font-semibold text-sm">
+                                        {item.name}
+                                    </h3>
 
-                            {/* Type Badge */}
-                            <div className="mt-3">
-                                <span
-                                    className="
+                                    <span className="text-xs text-gray-400">
+                                        {item.time}
+                                    </span>
+                                </div>
+
+                                <p className="text-sm text-gray-300 mt-1">
+                                    {item.message}
+                                </p>
+
+                                {/* Type Badge */}
+                                <div className="mt-3">
+                                    <span
+                                        className="
                     text-[11px]
                     px-3
                     py-1
@@ -138,17 +131,18 @@ export default function NotificationUI() {
                     text-white
                     font-medium
                   "
-                                    style={{
-                                        background: item.color,
-                                    }}
-                                >
-                                    {item.notification_type.replace("_", " ")}
-                                </span>
+                                        style={{
+                                            background: item.color,
+                                        }}
+                                    >
+                                        {item.notification_type.replace("_", " ")}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 }

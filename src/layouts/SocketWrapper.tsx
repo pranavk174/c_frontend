@@ -9,7 +9,7 @@ import {
 } from "@/lib/events";
 import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 import { useSocketEvents } from "@/lib/hooks";
-import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
 import {
   createContext,
   useMemo,
@@ -79,6 +79,12 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       },
       [NEW_NOTIFICATION]: (data: any) => {
         console.log(data, "data recieved in notication")
+        dispatch(NotificationApi.util.updateQueryData(
+          'getNotifications', null, (draft) => {
+
+            draft.data.getNotification.data.items = [...draft.data.getNotification.data.items, data]
+          }
+        ))
       }
     }),
     [showToast, dispatch],

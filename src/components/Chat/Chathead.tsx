@@ -23,6 +23,7 @@ import BlockUser from "../ModalChilds/Blockuser";
 import Popups from "../HOComponents/Popups";
 import { useSocket } from "@/layouts/SocketWrapper";
 import ChatWallpaperSelector from "../Utility/Wallpapers";
+import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
 interface chatHeadProps {
   menu: boolean;
   setShowModal: Dispatch<SetStateAction<valueProps>>;
@@ -33,6 +34,8 @@ const Chathead = memo(({ menu, setShowModal, chatDetails }: chatHeadProps) => {
   const socket = useSocket()
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [popup, setPopup] = useState<boolean>(false);
+
+
 
   return (
     <div className="relative">
