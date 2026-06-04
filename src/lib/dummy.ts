@@ -131,6 +131,7 @@ export const modalValue = {
 export interface Notification {
   notification_id: number;
 
+  reference_id: number | null;
   notification_type:
   | "new_message"
   | "story_like"

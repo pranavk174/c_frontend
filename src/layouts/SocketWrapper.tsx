@@ -6,7 +6,9 @@ import {
   ERROR,
   NEW_NOTIFICATION,
   ONLINE_USERS,
+  SEEN_NOTIFICATION,
 } from "@/lib/events";
+
 import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 import { useSocketEvents } from "@/lib/hooks";
 import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
@@ -85,6 +87,16 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
             draft.data.getNotification.data.items = [...draft.data.getNotification.data.items, data]
           }
         ))
+      }
+      , [SEEN_NOTIFICATION]: (data: any) => {
+        dispatch(NotificationApi.util.updateQueryData(
+          'getNotifications', null, (draft) => {
+
+            console.log(data, "notifcation responseeeeeeeee seen wala...")
+            draft.data.getNotification.data.items = draft.data.getNotification.data.items.filter((seen: Notification) => data.includes(seen.notification_id))
+          }
+        ))
+
       }
     }),
     [showToast, dispatch],

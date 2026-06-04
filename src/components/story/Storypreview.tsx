@@ -25,13 +25,14 @@ import { chatApi } from "@/redux/Apis/Chat";
 
 import { useToast } from "../Utility/Toast";
 import { useSocket } from "@/layouts/SocketWrapper";
-import { STORY_LIKE, STORY_REPLY, STORY_SEEN } from "@/lib/events";
+import { SEEN_NOTIFICATION, STORY_LIKE, STORY_REPLY, STORY_SEEN } from "@/lib/events";
 import { socketCallback } from "@/lib/utils";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { div } from "framer-motion/client";
 import Loader from "../Utility/Loader";
 import SmallLoader from "../Utility/SpinLoader";
-
+import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { Notification } from "@/lib/dummy";
 // interface StoryItem {
 //   id: number;
 //   url: string;
@@ -66,9 +67,22 @@ const StoryViewer = ({
   }, [onClose]);
   const { showToast } = useToast();
   const [replyMessage, setReplyMessage] = useState<string>("");
+
+
+  const { notifications } = useGetNotificationsQuery(null, {
+    selectFromResult: ({ data, isLoading, isSuccess }) => {
+
+      return {
+        notifications: data?.data?.getNotification?.data?.items,
+        isLoading,
+        isSuccess
+      }
+    }
+  })
+
   const currentStory = stories.stories[currentIndex];
   const dispatch = useAppDispatch();
-  const [likeStory] = useLikeStoryMutation();
+
   const handelSendReplyStory = async () => {
     try {
       // await replyToStory({
@@ -112,33 +126,33 @@ const StoryViewer = ({
 
   // console.log(isPending, "loading stateee");
   // Story Progress
-  // useEffect(() => {
-  //   if (isPaused) return;
-  //   const interval = setInterval(() => {
-  //     setProgress((prev) => {
-  //       const next = prev + 2;
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        const next = prev + 2;
 
-  //       // Move to next story
-  //       if (next >= 100) {
-  //         if (currentIndex < stories.stories.length - 1) {
-  //           setCurrentIndex((p) => p + 1);
-  //           return 0;
-  //         }
+        // Move to next story
+        if (next >= 100) {
+          if (currentIndex < stories.stories.length - 1) {
+            setCurrentIndex((p) => p + 1);
+            return 0;
+          }
 
-  //         // Close viewer safely
-  //         setTimeout(() => {
-  //           onCloseRef.current?.();
-  //         }, 0);
+          // Close viewer safely
+          setTimeout(() => {
+            onCloseRef.current?.();
+          }, 0);
 
-  //         return 100;
-  //       }
+          return 100;
+        }
 
-  //       return next;
-  //     });
-  //   }, STORY_DURATION / 50);
+        return next;
+      });
+    }, STORY_DURATION / 50);
 
-  //   return () => clearInterval(interval);
-  // }, [currentIndex, stories.stories.length, isPaused]);
+    return () => clearInterval(interval);
+  }, [currentIndex, stories.stories.length, isPaused]);
 
   const handler = useMemo(
     () => ({
@@ -237,51 +251,110 @@ const StoryViewer = ({
     }
   }, [currentStory, seenStory, socket, stories.user_id, user_id, dispatch]);
 
-  // const handleLikeStory = (like: boolean) => {
+
+
+  // useEffect(() => {
+
+  //   if (progress !== 100) return
   //   try {
+  //     if (stories.user_id === user_id && notifications) {
 
-  //     const patchResult = dispatch(storyApi.util.updateQueryData(
-  //       "getStories", null, (draft) => {
+  //       const ids = notifications.filter((not: Notification) => {
+
+  //         if (not.reference_id && not.reference_id === currentStory.id && not.notification_type === 'story_like') {
+
+  //           return not.notification_id
+  //           // 
+  //         }
+
+  //       }).reduce((acc, idx) => {
+  //         const data = idx.notification_id
+
+  //         acc.push(data)
+
+  //         return acc
+  //       }, [])
+
+  //       if (ids.length > 0) {
 
 
-  //         draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
+  //         const patchResult = dispatch(NotificationApi.util.updateQueryData(
+  //           "getNotifications", null, (draft) => {
 
-  //           story.stories.forEach((st: StoryContent) => {
-  //             if (st.id === currentStory.id) {
-  //               st.liked = like
-  //             }
-  //           })
+
+
+  //             draft.data.getNotification.data.items = draft.data?.getNotification?.data?.items.filter((d: Notification) => ids.includes(d.notification_id))
+  //           }
+  //         ))
+
+
+  //         socket.emit(SEEN_NOTIFICATION, ids, (res: socketResponse) => {
+
+
+  //           if (!res.success) {
+  //             patchResult.undo()
+
+  //             throw new Error(res.message)
+  //           }
+
   //         })
   //       }
-  //     ))
 
+  //       console.log(ids, "user ids notiofication.....")
 
-  //     socket.emit(
-  //       STORY_LIKE,
-  //       { id: currentStory.id, like },
-  //       (response: socketResponse) => {
-  //         console.log(response, "response from liked story....");
-
-  //         if (!response.success) {
-  //           patchResult.undo()
-  //         }
-  //         // setIsPaused(false)
-
-  //       },
-  //     );
-  //     // await likeStory({ id: currentStory.id, like }).unwrap();
+  //     }
 
   //   } catch (error) {
-  //     console.log("errrro", error);
-  //     showToast("erroro in liking", "error");
+  //     console.log(error, "errrorrr ")
+  //     showToast("error in notification seen", "error")
   //   }
-  //   finally {
-  //     console.log("finnnaly block....")
-  //     console.log(isPaused, "before");
-  //     setIsPaused(p => !p);
-  //     console.log(isPaused, "after");
-  //   }
-  // };
+
+  // }, [notifications, currentStory, progress, stories.user_id, user_id, dispatch, showToast, socket])
+
+  const notificationSentRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (progress !== 100) return;
+
+    if (notificationSentRef.current.has(currentStory.id)) {
+      return;
+    }
+
+    notificationSentRef.current.add(currentStory.id);
+
+    const ids = notifications
+      ?.filter(
+        (not: Notification) =>
+          not.reference_id === currentStory.id &&
+          not.notification_type === "story_like"
+      )
+      .map((not) => not.notification_id);
+
+    if (!ids?.length) return;
+
+    const patchResult = dispatch(
+      NotificationApi.util.updateQueryData(
+        "getNotifications",
+        null,
+        (draft) => {
+          draft.data.getNotification.data.items =
+            draft.data.getNotification.data.items.filter(
+              (n: Notification) => !ids.includes(n.notification_id)
+            );
+        }
+      )
+    );
+
+    socket.emit(SEEN_NOTIFICATION, ids, (res: socketResponse) => {
+      if (!res.success) {
+        patchResult.undo();
+
+        notificationSentRef.current.delete(currentStory.id);
+      }
+    });
+  }, [progress, dispatch, notifications, socket, currentStory.id]);
+
+
 
   const handleLikeStory = async (like: boolean) => {
 
