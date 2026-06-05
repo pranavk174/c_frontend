@@ -39,12 +39,17 @@ export default function VerifyOtp({ email }: { email: string }) {
           return;
         }
 
-        console.log(verified.data.verifyOtp.data.id, "verified ddaaaaataaaa.");
+        if (verified.data.verifyOtp.data.is_verified) {
+          router.push(`/login/verifyotp/${encodeURIComponent(email)}/create-profile`);
+          return;
+        }
 
-        dispatch(addUser(verified.data.verifyOtp.data));
+
+
+        // dispatch(addUser(verified.data.verifyOtp.data));
         router.replace("/");
 
-        // router.push("/chat");
+
       } catch (error) {
         // console.log(error?.data.errors[0].message, "errorrrr")
         // alert(error?.data.errors[0].message)

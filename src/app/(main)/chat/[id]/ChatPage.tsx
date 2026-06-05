@@ -46,6 +46,7 @@ import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import { useToast } from "@/components/Utility/Toast";
 import SpinLoader from "@/components/Utility/SpinLoader";
+import { NotificationApi } from "@/redux/Apis/Notification";
 
 interface mediaProps {
   file_name: string;
@@ -761,14 +762,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
     if (!unseenMessages.length) return;
     console.log(unseenMessages, "un seend is useEffect are....", messages);
-
     throttleRef.current = true;
-
-
-
-
-
-
     socket.emit(
       MESSAGE_SEEN,
       {
@@ -797,6 +791,31 @@ const ChatPage = ({ id }: { id: number }) => {
               })
             }
           ))
+
+          dispatch(chatApi.util.updateQueryData(
+            'getAllChats', {}, (draft) => {
+
+              const item = draft.data.getAllChats.data.items.find((c: Chat) =>
+
+                c.chat_id === id
+              )
+
+              if (item) {
+                item.unread_count -= unseenMessages
+              }
+            }
+          ))
+
+          // dispatch(NotificationApi.util.updateQueryData("getNotifications", {}, (draft) => {
+
+          // }))
+
+
+
+
+
+
+
           // patchResult?.undo();
 
           console.log(response, "callback response in seen message", response);

@@ -1,6 +1,6 @@
 "use client";
 import { Chat, Message, reaction, socketResponse } from "@/lib/dummy";
-import { MESSAGE_REACTION, REFETCH_CHATS } from "@/lib/events";
+import { MESSAGE_REACTION, MESSAGE_SEEN, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 // import { useReactMessageMutation } from "@/redux/Apis/User";
@@ -138,6 +138,27 @@ const Chatlist = memo(
           chatContainerRef.current.scrollHeight;
       }
     }, [data, nextCursor]);
+
+
+
+    // useEffect(() => {
+    //   try {
+
+    //     if (nextCursor === null || !user_id) return
+
+    //     const message_ids = data.filter((d: Message) => d.sender_id !== user_id && !d.seen_users.includes(user_id)).reduce((acc, idx) => {
+
+    //       acc.push(idx.id)
+    //       return acc
+    //     }, [])
+
+    //     console.log(message_ids, "unseen message idsssssss")
+    //     socket.emit(MESSAGE_SEEN)
+
+    //   } catch (error) {
+
+    //   }
+    // }, [data, nextCursor])
 
     const handleLike = async (msg_id: number, react_id: number) => {
       console.log(user_id);

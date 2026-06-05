@@ -70,6 +70,34 @@ export const authApi = BaseApi.injectEndpoints({
         },
       }),
     }),
+    createUser: builder.mutation({
+
+      query: ({ formData }) => ({
+
+        url: "",
+        method: 'POST',
+        body: {
+          query: `
+          
+          
+          mutation createUser($input:UserInput){
+          
+          createUser(input:$input){
+          
+          
+          message,status,error,success
+          
+          }
+          
+          }
+          
+          `, variables: {
+            input: formData
+          }
+        }
+      }),
+      invalidatesTags: ['User']
+    }),
     refreshToken: builder.mutation({
       query: () => ({
         url: "",
@@ -128,6 +156,40 @@ export const authApi = BaseApi.injectEndpoints({
       profile_pic
       cover_pic
     
+              
+              }
+              }
+              }
+              }
+              
+              `,
+        },
+      }),
+      providesTags: ["User"],
+    }),
+    getUsers: builder.query({
+      query: () => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: `
+              
+              query getUsers{
+              
+              getUsers{
+              message , error,success, data {
+              ... on Users {
+              
+           items{
+              name
+      id
+      user_name
+      email
+      bio
+      mobile
+      profile_pic
+      cover_pic
+    }
               
               }
               }
@@ -224,13 +286,16 @@ export const authApi = BaseApi.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useCreateUserMutation,
   useBlockUserMutation,
   useLogoutMutation,
   useGetUserQuery,
+  useGetUsersQuery,
   useLazyGetUserQuery,
   useRefreshTokenMutation,
   useUnBlockUserMutation,
   useUpdateUserMutation,
+
   useVerifyOtpMutation,
   usePrefetch,
 } = authApi;

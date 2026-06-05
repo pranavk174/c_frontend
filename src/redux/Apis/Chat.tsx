@@ -22,6 +22,7 @@ export const chatApi = BaseApi.injectEndpoints({
                         cover_pic,
                           bio
                           blocked
+                          unread_count
       email
       mobile
                     }
@@ -174,6 +175,32 @@ export const chatApi = BaseApi.injectEndpoints({
       }),
       invalidatesTags: ["chats"],
     }),
+    newChat: builder.mutation({
+      query: ({ member_id }) => ({
+        url: '',
+        method: 'POST',
+        body: {
+          query: `
+  
+  mutation createNewChat($member_id:Int!){
+  createNewChat(member_id:$member_id){
+  
+  message, error,success,data{
+  
+  ... newChat{
+  chat_id}
+  
+  }
+  
+  }
+  }
+  
+  ` , variables: {
+            member_id
+          }
+        }
+      })
+    }),
 
     sendMessage: builder.mutation({
       query: ({ content, chat_ids, reciever_ids, media }) => ({
@@ -307,7 +334,7 @@ export const chatApi = BaseApi.injectEndpoints({
          }
          
          }}
-          `
+          `,
         }
 
       })
@@ -320,6 +347,7 @@ export const {
   useGetAllChatsQuery,
   useGetEmojisQuery,
   useGetSingleChatQuery,
+
   useLazyGetAllChatsQuery,
   useLazyGetEmojisQuery,
   useLazyGetSingleChatQuery,
@@ -327,7 +355,7 @@ export const {
   useReactMessageMutation,
   useReplyToMessageMutation,
   useSendMessageMutation,
-
+  useNewChatMutation,
   useGetWallpaperQuery,
   useLazyGetWallpaperQuery, useSetWallPaperMutation
 } = chatApi;

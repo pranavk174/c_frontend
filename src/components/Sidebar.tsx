@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useParams } from "next/navigation";
+import { chatApi } from "@/redux/Apis/Chat";
+import { Chat } from "@/lib/dummy";
 import { RootState } from "@/redux/store";
 import {
   MessageSquare,
@@ -14,9 +15,9 @@ import {
   CircleDashed,
   Bell,
 } from "lucide-react";
-import { Chat, modalValue, valueProps } from "@/lib/dummy";
+import { modalValue, valueProps } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
-import { useGetUserQuery, useLogoutMutation } from "@/redux/Apis/Users";
+import { useGetUserQuery, useGetUsersQuery, useLogoutMutation } from "@/redux/Apis/Users";
 import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
@@ -24,12 +25,19 @@ import Modal from "./HOComponents/Modal";
 import WhatsAppNotificationUI from "./Notifications/Notification";
 import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
 import { useToast } from "./Utility/Toast";
+import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
+import { addUser } from "@/redux/slices/User";
+import { NEW_MESSAGE_ALERT } from "@/lib/events";
+import { useSocket } from "@/layouts/SocketWrapper";
+import { current } from "@reduxjs/toolkit";
+import NewChat from "./Chat/NewChat";
 export default function Sidebar() {
   const [logout] = useLogoutMutation()
   const pathname = usePathname();
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const socket = useSocket()
+  const dispatch = useAppDispatch()
   const { showToast } = useToast()
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
@@ -63,6 +71,60 @@ export default function Sidebar() {
         isLoading,
         isSuccess
       }
+    }
+  })
+
+  const { users } = useGetUsersQuery(null, {
+    selectFromResult: ({ data, isSuccess }) => {
+      return {
+        users: data?.data?.getUsers?.data?.items
+      }
+    }
+  })
+
+
+  console.log(users, "all usersss....")
+
+
+  const handler = useMemo(() => ({
+    [NEW_MESSAGE_ALERT]: (data: Chat) => {
+
+
+      console.log("data oin new chat", data)
+
+      dispatch(chatApi.util.updateQueryData(
+        "getAllChats", {}, (draft) => {
+
+          const chat = draft.data.getAllChats.data.items.find(
+            (c: Chat) => c.chat_id === data.chat_id
+          );
+
+          if (chat) {
+
+            const currentUnreadCount = chat.unread_count;
+
+            Object.assign(chat, {
+              ...data,
+              unread_count: currentUnreadCount + data.unread_count,
+            });
+            // chat.unread_count += data.unread_count;
+          }
+
+          console.log(current(draft.data.getAllChats.data.items), "current proxy data")
+        }
+      ))
+
+
+
+    }
+  }), [dispatch])
+
+  useSocketEvents(socket, handler)
+
+
+  useEffect(() => {
+    if (user) {
+      dispatch(addUser(user))
     }
   })
 
@@ -128,7 +190,10 @@ export default function Sidebar() {
           >
             <CircleDashed className="w-5 h-5" />
           </Link>
-          <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
+          <button onClick={() => setOpen({
+            type: 'new-chat',
+            open: true
+          })} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <MessageSquare className="w-5 h-5" />
           </button>
           <button onClick={handleLogout} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
@@ -188,9 +253,9 @@ export default function Sidebar() {
                     <span
                       className={cn(
                         "text-xs whitespace-nowrap",
-                        // chat.unread > 0
-                        //   ? "text-wa-primary dark:text-wa-primary-dark font-medium"
-                        //   : "text-gray-500 dark:text-gray-400",
+                        chat.unread_count > 0
+                          ? "text-wa-primary dark:text-wa-primary-dark font-medium"
+                          : "text-gray-500 dark:text-gray-400",
                       )}
                     >
                       {/* {Date(chat?.last_message_at)} */}
@@ -200,11 +265,11 @@ export default function Sidebar() {
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
                       {chat?.last_message}
                     </p>
-                    {/* {chat.unread > 0 && (
+                    {chat.unread_count > 0 && (
                       <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                        {chat.unread}
+                        {chat.unread_count}
                       </span>
-                    )} */}
+                    )}
                   </div>
                 </div>
                 <div>
@@ -222,6 +287,10 @@ export default function Sidebar() {
         {user && open.type === "profile" && (
           <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
         )}
+
+        {
+          users && open.type === "new-chat" && <NewChat users={users} />
+        }
 
         {open.type === "notification" && (
           <WhatsAppNotificationUI notifications={notifications} />

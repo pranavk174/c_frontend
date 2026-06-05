@@ -28,6 +28,10 @@ const StoryList = () => {
   const storyRef = useRef<HTMLInputElement | null>(null);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
+
+  console.log(user_id
+    , "user id..."
+  )
   const [modal, setModal] = useState<"storyupload" | "storypreview" | null>(
     null,
   );
@@ -222,7 +226,7 @@ const StoryList = () => {
           <h2 className="text-white text-xl font-semibold">Updates</h2>
           <p className="text-gray-400 text-sm">
             Status updates from your contacts
-            {socket.id}
+
           </p>
         </div>
 
@@ -252,14 +256,14 @@ const StoryList = () => {
                   type: "storypreview",
                   open: true
                 });
-                setModal("storypreview");
+                // setModal("storypreview");
                 setStoryIndex(idx);
               }}
               key={story?.user_id}
               className="flex gap-4 bg-gray-700 rounded-lg hover:bg-gray-400 px-2 items-center cursor-pointer group"
             >
               {/* Own Story */}
-              {story?.user_id === user_id ? (
+              {(story?.user_id === user_id) || idx === 0 ? (
                 <div className="relative">
                   <StoryRing
                     segments={story?.stories?.length}

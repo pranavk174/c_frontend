@@ -1,10 +1,12 @@
+import { Dispatch, RefObject, SetStateAction } from "react";
+
 export type Chat = {
   // id: string;
   name: string;
   // avatar: string;
   // lastMessage: string;
   // time: string;
-  // unread: number;
+  unread_count: number;
   isOnline?: boolean;
   chat_id: number;
   blocked: boolean;
@@ -15,6 +17,44 @@ export type Chat = {
   last_message: string;
   last_message_at: string;
 };
+
+type emoji = {
+  react_id: number;
+  emoji: string;
+};
+
+export interface chatListProps {
+  menu: boolean;
+  setMenu: Dispatch<SetStateAction<boolean>>;
+  chat_id: number;
+  chatDetails: Chat;
+  setSelectedMessages: Dispatch<SetStateAction<number[]>>;
+  setCursor: Dispatch<SetStateAction<number | null>>;
+  setSelected: Dispatch<SetStateAction<number[]>>;
+  hasMore: boolean;
+  setShow: Dispatch<SetStateAction<string | number | null>>;
+  setActive: Dispatch<SetStateAction<string | number | null>>;
+  emojis: emoji[];
+  show: string | number | null;
+  nextCursor: number;
+  timerRef: RefObject<NodeJS.Timeout | null>;
+  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
+  data: Message[];
+  active: string | number | null;
+  isFetching: boolean;
+  selectedMessages: number[];
+  user_id: number | null;
+
+  startUpload: () => Promise<void>;
+  cancelUpload: () => Promise<"success" | undefined>;
+  uploadChunks: (id: string) => Promise<void>;
+  // setMessages?: Dispatch<SetStateAction<Message[]>>;
+  messages: Message[];
+  pausedRef: React.RefObject<boolean>;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  progress: number;
+  uploadId: string;
+}
 export enum delete_type {
   onlyme,
   ONLYME,

@@ -1,5 +1,5 @@
 "use client";
-import { Chat, Message, reaction, socketResponse } from "@/lib/dummy";
+import { Chat, chatListProps, Message, reaction, socketResponse } from "@/lib/dummy";
 import { MESSAGE_REACTION, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -21,43 +21,7 @@ import React, {
 import Messages from "./Messages";
 import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
-type emoji = {
-    react_id: number;
-    emoji: string;
-};
 
-interface chatListProps {
-    menu: boolean;
-    setMenu: Dispatch<SetStateAction<boolean>>;
-    chat_id: number;
-    chatDetails: Chat;
-    setSelectedMessages: Dispatch<SetStateAction<number[]>>;
-    setCursor: Dispatch<SetStateAction<number | null>>;
-    setSelected: Dispatch<SetStateAction<number[]>>;
-    hasMore: boolean;
-    setShow: Dispatch<SetStateAction<string | number | null>>;
-    setActive: Dispatch<SetStateAction<string | number | null>>;
-    emojis: emoji[];
-    show: string | number | null;
-    nextCursor: number;
-    timerRef: RefObject<NodeJS.Timeout | null>;
-    setReplyMessage: Dispatch<SetStateAction<Message | null>>;
-    data: Message[];
-    active: string | number | null;
-    isFetching: boolean;
-    selectedMessages: number[];
-    user_id: number | null;
-
-    startUpload: () => Promise<void>;
-    cancelUpload: () => Promise<"success" | undefined>;
-    uploadChunks: (id: string) => Promise<void>;
-    // setMessages?: Dispatch<SetStateAction<Message[]>>;
-    messages: Message[];
-    pausedRef: React.RefObject<boolean>;
-    setFile: React.Dispatch<React.SetStateAction<File | null>>;
-    progress: number;
-    uploadId: string;
-}
 const VirtualChatlist = memo(
     ({
         startUpload,
