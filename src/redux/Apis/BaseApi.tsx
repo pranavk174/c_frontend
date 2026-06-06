@@ -95,7 +95,22 @@ const baseQueryWithReauth: BaseQueryFn<
   } else if (!data) {
     console.log(data, "error dataaaaa");
     throw new Error("Internal Server Error");
+  } else if (data.errors?.length) {
+
+
+    console.log("error in base api", data.errors[0])
+
+    return {
+
+
+      error: {
+        status: 500,
+        data: data.errors[0]
+      }
+    };
   }
+
+  console.log(data, "data isn base api...")
 
   return result;
 };

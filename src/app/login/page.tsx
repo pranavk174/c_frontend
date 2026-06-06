@@ -60,6 +60,7 @@ export default function LoginPage() {
               />
             </div>
             <button
+              disabled={isLogging}
               type="submit"
               className="w-full bg-wa-primary hover:bg-wa-primary-dark text-white font-medium py-3 rounded flex items-center justify-center transition-colors"
             >

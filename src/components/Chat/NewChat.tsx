@@ -34,11 +34,13 @@ export default function NewChat({
 
             if (data.data.createNewChat.data.chat_id) {
 
-                router.push('/chat)
+                console.log(data.data.createNewChat.data.chat_id, "chat idddd")
+                router.push(`/chat/${data.data.createNewChat.data.chat_id}`)
 
             }
         } catch (error) {
             console.log(error, "error in creating chat...")
+
 
         }
     }
@@ -65,7 +67,20 @@ export default function NewChat({
 
             {/* Users */}
             <div className="flex-1 overflow-y-auto">
-                {users.map((user) => (
+
+
+
+                {users.length === 0 ? (<div>
+
+                    <div className="flex   flex-1 justify-center items-center ">
+
+                        <h3 className="font-bold text-white text-[clamp(16px,50vw,17px)]">
+                            No New Users Found
+                        </h3>
+
+                    </div>
+
+                </div>) : users.map((user) => (
                     <button
                         key={user.id}
                         onClick={() => handleCreate(user.id)}

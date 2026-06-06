@@ -6,6 +6,7 @@ import onlineUsersSlice from "./slices/onLineUsers";
 import userSlice from "./slices/User";
 import { UserApi } from "./Apis/User";
 import { BaseApi } from "./Apis/BaseApi";
+import { errorMiddleware } from "./middlewares/erroreMiddleware";
 
 const persistConfig = {
   key: "root",
@@ -28,7 +29,8 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(BaseApi.middleware),
+    }).concat(BaseApi.middleware)
+      .concat(errorMiddleware)
 });
 
 export const persistor = persistStore(store);

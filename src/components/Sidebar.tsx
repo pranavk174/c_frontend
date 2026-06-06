@@ -267,14 +267,14 @@ export default function Sidebar() {
                     </p>
                     {chat.unread_count > 0 && (
                       <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                        {chat.unread_count}
+                        {chat?.unread_count}
                       </span>
                     )}
                   </div>
                 </div>
                 <div>
                   <span>
-                    {chat.last_message_at.toLocaleString()}
+                    {chat?.last_message_at?.toLocaleString()}
                   </span>
                 </div>
               </div>

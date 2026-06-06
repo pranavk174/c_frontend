@@ -187,8 +187,10 @@ export const chatApi = BaseApi.injectEndpoints({
   
   message, error,success,data{
   
-  ... newChat{
-  chat_id}
+  ... on newChat{
+  chat_id
+  
+  }
   
   }
   
@@ -199,7 +201,7 @@ export const chatApi = BaseApi.injectEndpoints({
             member_id
           }
         }
-      })
+      }), invalidatesTags: ['chats']
     }),
 
     sendMessage: builder.mutation({

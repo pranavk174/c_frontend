@@ -112,7 +112,7 @@ export default function VerifyOtp({ email }: { email: string }) {
             </button>
             <button
               type="submit"
-              disabled={otp.length !== 6}
+              disabled={otp.length !== 6 || isLoading}
               className="flex-1 bg-wa-primary hover:bg-wa-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded transition-colors"
             >
               {isLoading ? "Verifying...." : "Verify"}
@@ -120,6 +120,7 @@ export default function VerifyOtp({ email }: { email: string }) {
           </div>
         </form>
         <button
+          disabled={isLoading}
           onClick={resendOtp}
           className="text-white bg-transparent cursor-pointer hover:text-gray-200 font-semibold text-center w-full mt-4 "
         >

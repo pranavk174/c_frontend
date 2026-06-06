@@ -1,11 +1,12 @@
 "use client";
-
+import { registerToast } from "@/redux/toastservices";
 import React, {
     createContext,
     useContext,
     useState,
     ReactNode,
     useCallback,
+    useEffect,
 } from "react";
 
 import {
@@ -148,6 +149,12 @@ export const ToastProvider = ({
         toastStyles[
         toast.type
         ];
+
+
+
+    useEffect(() => {
+        registerToast(showToast);
+    }, [showToast]);
 
     return (
         <ToastContext.Provider
