@@ -6,10 +6,11 @@ import { PersistGate } from "redux-persist/integration/react"
 import { store, persistor } from "./store"
 
 export default function Wrapper({ children }: { children: React.ReactNode }) {
-    return <Provider store={store}> <PersistGate
-        loading={null}
-        persistor={persistor}
-    >
-        {children}
-    </PersistGate></Provider>
+    return <Provider store={store}>
+        <PersistGate
+            loading={null}
+            persistor={persistor}
+        >
+            {children}
+        </PersistGate></Provider>
 }

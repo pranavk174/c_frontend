@@ -6,6 +6,7 @@ export const getAllNotifictaionQuery = `
                    
                    message,status,success, data
                    {
+                   
                    ... on notifications {
                    
            items
