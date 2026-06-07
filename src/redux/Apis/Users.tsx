@@ -1,5 +1,7 @@
 import { profileProps } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
+import { blockUserMutation, createUserMutation, loginMutation, logoutMutaion, refreshTokenGenerateMutation, unBlockUserMutation, updateUserMutation, veridyOtpMutation } from "@/graphql/Modules/Users/User.mutation";
+import { getAllUsersQuery, getUserQuery } from "@/graphql/Modules/Users/User.queries";
 
 export const authApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -8,16 +10,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-                        
-                 mutation sendOtpMail ($email:String!){
-        sendOtpMail(email:$email){
-            message,success,status
-    
-        }
-    }
-                        
-                        `,
+          query: loginMutation,
           variables: { email },
         },
       }),
@@ -34,29 +27,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-                        
-                        mutation verifyOtp ($input:verifyOtpInput!){
-                                            verifyOtp(input:$input){
-                                            message,success,status data{
-                                          
-                                            ... on verifyOtpData {
-                                            email,
-                                            is_verified
-                                            
-                                            }
-                                            ... on User {
-                                            
-                                            id
-                                            user_name
-                                            email
-                                            }
-                                            
-                                            }
-                                                }
-                                            }
-                        
-                        `,
+          query: veridyOtpMutation,
           variables: {
             input: {
               email,
@@ -77,21 +48,8 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: 'POST',
         body: {
-          query: `
-          
-          
-          mutation createUser($input:UserInput){
-          
-          createUser(input:$input){
-          
-          
-          message,status,error,success
-          
-          }
-          
-          }
-          
-          `, variables: {
+          query: createUserMutation
+          , variables: {
             input: formData
           }
         }
@@ -103,14 +61,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-               mutation generateRefreshToken{
-        generateRefreshToken{
-            message,status,success,error
-        }
-    }
-              `,
+          query: refreshTokenGenerateMutation,
         },
       }),
     }),
@@ -120,13 +71,7 @@ export const authApi = BaseApi.injectEndpoints({
         method: "POST",
 
         body: {
-          query: `
-          
-          mutation logout{
-          logout{
-          message,success,error}}
-          
-          `
+          query: logoutMutaion
         }
 
 
@@ -139,30 +84,8 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              query getUser{
-              
-              getUser{
-              message , error,success, data {
-              ... on User {
-              
-              name
-      id
-      user_name
-      email
-      bio
-      mobile
-      profile_pic
-      cover_pic
-    
-              
-              }
-              }
-              }
-              }
-              
-              `,
+          query:
+            getUserQuery,
         },
       }),
       providesTags: ["User"],
@@ -172,31 +95,8 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              query getUsers{
-              
-              getUsers{
-              message , error,success, data {
-              ... on Users {
-              
-           items{
-              name
-      id
-      user_name
-      email
-      bio
-      mobile
-      profile_pic
-      cover_pic
-    }
-              
-              }
-              }
-              }
-              }
-              
-              `,
+          query:
+            getAllUsersQuery,
         },
       }),
       providesTags: ["User"],
@@ -206,14 +106,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              mutation updateUser($input: UpdateUserInput){
-              updateUser(input:$input){
-              message, status,success,error}
-              }
-              
-              `,
+          query: updateUserMutation,
           variables: {
             input: {
               name,
@@ -231,16 +124,8 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              mutation blockUser($input:blockUserInput!){
-              
-              blockUser(input:$input){
-              message , success, error}
-              
-    
-              }
-              
-              `,
+          query:
+            blockUserMutation,
           variables: {
             input: {
               blocked_user_id,
@@ -256,22 +141,8 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              mutation unBlockUser($input:blockUserInput!){
-              unBlockUser(input:$input){
-              
-              message ,
-    error,success
-    
-    
-              
-              }
-              
-              }
-              
-    
-              `,
+          query:
+            unBlockUserMutation,
           variables: {
             input: {
               blocked_user_id,

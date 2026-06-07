@@ -1,5 +1,7 @@
 import { Message } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
+import { getAllchatsQuery, getEmojiQuery, getSingleChatQuery, getWallpaperQuery } from "@/graphql/Modules/Chat/Chat.queries";
+import { deletMessageMutation, newChatMutation, replyMessageMutation, sendMessageMutation, setWallPaperMutation } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -8,31 +10,8 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-                
-                query getAllChats{
-        getAllChats{
-            message,error,success,
-            status, data{
-                ... on AllChats{
-                    items{
-                        user_id,
-                        name,profile_pic,last_message,last_message_at,chat_type,
-                        chat_id
-                        cover_pic,
-                          bio
-                          blocked
-                          unread_count
-      email
-      mobile
-                    }
-                }
-            }
-        }
-    }
-                
-                
-                `,
+          query:
+            getAllchatsQuery,
         },
         providesTags: ["chats"],
       }),
@@ -43,41 +22,8 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              query getChatById($input:ChatInput!){
-        getChatById(input:$input){
-            message,status,success,error,data{
-            ... on SingleChat {
-    
-            nextCursor,
-            hasMore,
-                     items{
-                         id ,
-      sender_id ,
-      created_at,
-      seen_at,
-      is_forwarded ,
-      story_item,
-      preview,
-      content,
-      story_id ,
-      is_edited ,
-      seen_users,
-      reply_to_message_id ,
-      is_deleted ,
-      reactions{
-    
-       react_id,
-      user_id
-      
-      
-      }
-                     }
-                }
-            }
-        }
-    }
-              `,
+          query:
+            getSingleChatQuery,
           variables: {
             input: { chat_ids, limit, cursor },
           },
@@ -131,22 +77,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              query getEmojis{
-        getEmojis{
-            message,error,status,data{
-                
-                ... on Emojis{
-                    items{
-                        react_id,emoji
-                    }
-                }
-            }
-        }
-    }
-    
-                    `,
+          query: getEmojiQuery,
         },
       }),
     }),
@@ -180,24 +111,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: '',
         method: 'POST',
         body: {
-          query: `
-  
-  mutation createNewChat($member_id:Int!){
-  createNewChat(member_id:$member_id){
-  
-  message, error,success,data{
-  
-  ... on newChat{
-  chat_id
-  
-  }
-  
-  }
-  
-  }
-  }
-  
-  ` , variables: {
+          query: newChatMutation, variables: {
             member_id
           }
         }
@@ -209,16 +123,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              mutation sendMessage( $input:ChatInput!){
-        sendMessage(input:$input){
-    
-    message,status,error,success
-    
-        }
-    }
-              `,
+          query: sendMessageMutation,
           variables: {
             input: {
               content,
@@ -236,16 +141,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-              
-              mutation replyMessage($input:ChatInput!){
-        replyMessage(input:$input){
-            message,status,success,error
-        }
-    }
-              
-              
-              `,
+          query: replyMessageMutation,
           variables: {
             input: {
               message_ids,
@@ -262,18 +158,8 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-    
-              mutation DeleteMessage($input:ChatInput!) {
-      deleteMessage(input:$input) {
-        message
-        status
-        success
-        error
-      }
-    }
-              
-              `,
+          query:
+            deletMessageMutation,
           variables: {
             input: {
               delete_type,
@@ -290,20 +176,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: '',
         method: 'POST',
         body: {
-          query: `
-          
-
-          mutation setWallpaper($url:String!){
-          setWallpaper(url:$url){
-          
-          message,error,success
-          
-          
-          }}
-          
-          
-          
-          `, variables: {
+          query: setWallPaperMutation, variables: {
             url
           }
         }
@@ -319,24 +192,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: '',
         method: "POST",
         body: {
-          query: `
-          
-         query getWallPaper{
-         getWallPaper{
-         
-         error,message,success,data{
-         
-         __typename
-         ... on Wallpaper {
-         
-         url 
-         
-         }
-         
-         }
-         
-         }}
-          `,
+          query: getWallpaperQuery,
         }
 
       })

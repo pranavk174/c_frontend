@@ -1,4 +1,6 @@
+import { createStoryMutation, likeStoryMutation, replySToryMutation, seenStoryMutation } from "@/graphql/Modules/Story/stories.mutation";
 import { BaseApi } from "./BaseApi";
+import { getStoriesQuery } from "@/graphql/Modules/Story/stories.queries";
 
 export const storyApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,15 +9,7 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-                    mutation createStory($input:createStoryInput!){
-                    createStory(input:$input){
-                    
-                    message,success,status,error
-                    
-                    }}
-                    
-                    `,
+          query: createStoryMutation,
           variables: {
             input: {
               text_data,
@@ -32,48 +26,7 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-          
-          query getAllStories{
-          getAllStories{
-          
-          message,error,success,data {
-          
-          ... on StoriesData{
-          
-          stories{
-
-  user_id
-  name
-  profile_pic
-  stories{
-  
-
-      id,
-
-  text_data,  content,  created_at,
-  seen,liked,
-
-
-  interactions{
-   id
-  name
-  seen
-  liked
-  seen_at
-  liked_at
-  profile_pic
-  
-  }
-        }    
-          }
-          
-          }
-          
-          }
-          }}
-          
-          `,
+          query: getStoriesQuery,
         },
       }),
       providesTags: ["story"],
@@ -83,14 +36,9 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-          mutation seenStory($id){
-          seenStory(id:$id){
-          message,status,error}
-          }
-          
-          
-          `,
+          query:
+
+            seenStoryMutation,
           variables: {
             id,
           },
@@ -103,16 +51,8 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-          
-          mutation replyToStory($id: Int! , $content: String!){
-          replyToStory(id:$id , content:$content){
-          
-          message, error , success
-          }
-          }
-          
-          `,
+          query:
+            replySToryMutation,
           variables: {
             id,
             content,
@@ -126,18 +66,8 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-
-          mutation likeStory($input:storyLikeInput!){
-          likeStory(input:$input){
-          
-          message,error,status
-          
-          }
-          
-          
-          }
-          `,
+          query:
+            likeStoryMutation,
           variables: {
             input: {
               id,

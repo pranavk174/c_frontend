@@ -48,16 +48,16 @@ export default function NewChat({
 
 
     return (
-        <div className="h-[50vh] w-full max-w-[80%]  bg-[#111b21] flex flex-col">
+        <div className="h-[50vh] w-full max-w-[80%]  bg-wa-bg-dark flex flex-col">
             {/* Header */}
-            <div className="bg-[#202c33] px-4 py-4 border-b border-[#2a3942]">
+            <div className="bg-[#202c33] px-4 py-4 border-b border-wa-search-input-dark">
                 <h2 className="text-xl font-semibold text-white">
                     New Chat
                 </h2>
             </div>
 
             {/* Search */}
-            <div className="bg-[#111b21] p-3 border-b border-[#2a3942]">
+            <div className="bg-wa-bg-dark p-3 border-b border-wa-search-input-dark">
                 <input
                     type="text"
                     placeholder="Search name..."
@@ -96,7 +96,7 @@ export default function NewChat({
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-[#00a884] flex items-center justify-center text-white font-semibold">
+                            <div className="w-12 h-12 rounded-full bg-wa-primary flex items-center justify-center text-white font-semibold">
                                 {user.name.charAt(0).toUpperCase()}
                             </div>
                         )}
