@@ -18,10 +18,16 @@ export type Chat = {
   last_message_at: string;
 };
 
-type emoji = {
+export type emoji = {
   react_id: number;
   emoji: string;
 };
+
+export interface selectedProp {
+  message: string;
+  id: number;
+  sender_id: number;
+}
 
 export interface chatListProps {
   menu: boolean;
@@ -30,7 +36,7 @@ export interface chatListProps {
   chatDetails: Chat;
   setSelectedMessages: Dispatch<SetStateAction<number[]>>;
   setCursor: Dispatch<SetStateAction<number | null>>;
-  setSelected: Dispatch<SetStateAction<number[]>>;
+  setSelected: Dispatch<SetStateAction<number[] | null>>;
   hasMore: boolean;
   setShow: Dispatch<SetStateAction<string | number | null>>;
   setActive: Dispatch<SetStateAction<string | number | null>>;
@@ -149,10 +155,9 @@ export interface StoryContent {
   interactions: interactions[] | null;
 }
 
-
 export interface valueProps {
   type: string | null;
-  open: boolean
+  open: boolean;
 }
 
 export interface UserStories {
@@ -163,20 +168,16 @@ export interface UserStories {
   stories: StoryContent[];
 }
 
-
 export const modalValue = {
-  type: null, open: false
-}
+  type: null,
+  open: false,
+};
 
 export interface Notification {
   notification_id: number;
 
   reference_id: number | null;
-  notification_type:
-  | "new_message"
-  | "story_like"
-  | "post_like"
-  | "follow";
+  notification_type: "new_message" | "story_like" | "post_like" | "follow";
 
   name: string;
 
@@ -185,7 +186,7 @@ export interface Notification {
   profile_pic: string;
 
   time: string;
-  color?: string
+  color?: string;
 }
 
 // export type Message = {

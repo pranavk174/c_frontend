@@ -1,7 +1,19 @@
 import { Message } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
-import { getAllchatsQuery, getEmojiQuery, getSingleChatQuery, getWallpaperQuery } from "@/graphql/Modules/Chat/Chat.queries";
-import { deletMessageMutation, newChatMutation, replyMessageMutation, sendMessageMutation, setWallPaperMutation } from "@/graphql/Modules/Chat/Chat.mutation";
+import {
+  getAllchatsQuery,
+  getEmojiQuery,
+  getSingleChatQuery,
+  getWallpaperQuery,
+} from "@/graphql/Modules/Chat/Chat.queries";
+import {
+  deletMessageMutation,
+  editMessageMutation,
+  newChatMutation,
+  replyMessageMutation,
+  sendMessageMutation,
+  setWallPaperMutation,
+} from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,8 +22,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
-            getAllchatsQuery,
+          query: getAllchatsQuery,
         },
         providesTags: ["chats"],
       }),
@@ -22,8 +33,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
-            getSingleChatQuery,
+          query: getSingleChatQuery,
           variables: {
             input: { chat_ids, limit, cursor },
           },
@@ -33,12 +43,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // console.log(result, "result.......");
         return result
           ? [
-            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
+              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -108,14 +118,16 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     newChat: builder.mutation({
       query: ({ member_id }) => ({
-        url: '',
-        method: 'POST',
+        url: "",
+        method: "POST",
         body: {
-          query: newChatMutation, variables: {
-            member_id
-          }
-        }
-      }), invalidatesTags: ['chats']
+          query: newChatMutation,
+          variables: {
+            member_id,
+          },
+        },
+      }),
+      invalidatesTags: ["chats"],
     }),
 
     sendMessage: builder.mutation({
@@ -153,13 +165,28 @@ export const chatApi = BaseApi.injectEndpoints({
       }),
       invalidatesTags: ["chats"],
     }),
+    editMessage: builder.mutation({
+      query: ({ message_id, content, chat_id }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: editMessageMutation,
+          variables: {
+            input: {
+              message_ids: [message_id],
+              chat_ids: chat_id,
+              content,
+            },
+          },
+        },
+      }),
+    }),
     deleteMessages: builder.mutation({
       query: ({ message_ids, chat_ids, delete_type }) => ({
         url: "",
         method: "POST",
         body: {
-          query:
-            deletMessageMutation,
+          query: deletMessageMutation,
           variables: {
             input: {
               delete_type,
@@ -173,30 +200,27 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     setWallPaper: builder.mutation({
       query: ({ url }) => ({
-        url: '',
-        method: 'POST',
+        url: "",
+        method: "POST",
         body: {
-          query: setWallPaperMutation, variables: {
-            url
-          }
-        }
-      })
-      , invalidatesTags: ['wallpaper']
-    })
-
-
-    ,
+          query: setWallPaperMutation,
+          variables: {
+            url,
+          },
+        },
+      }),
+      invalidatesTags: ["wallpaper"],
+    }),
 
     getWallpaper: builder.query({
       query: () => ({
-        url: '',
+        url: "",
         method: "POST",
         body: {
           query: getWallpaperQuery,
-        }
-
-      })
-    })
+        },
+      }),
+    }),
   }),
 });
 
@@ -206,6 +230,7 @@ export const {
   useGetEmojisQuery,
   useGetSingleChatQuery,
 
+  useEditMessageMutation,
   useLazyGetAllChatsQuery,
   useLazyGetEmojisQuery,
   useLazyGetSingleChatQuery,
@@ -215,5 +240,6 @@ export const {
   useSendMessageMutation,
   useNewChatMutation,
   useGetWallpaperQuery,
-  useLazyGetWallpaperQuery, useSetWallPaperMutation
+  useLazyGetWallpaperQuery,
+  useSetWallPaperMutation,
 } = chatApi;

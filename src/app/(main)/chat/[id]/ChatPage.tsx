@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, use, useMemo, useCallback } from "react";
-import Link from "next/link";
-import { useSelector, UseSelector } from "react-redux";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+
+import { useSelector } from "react-redux";
 // import { chatApi } from "../../../../redux/Apis/User";
-import { chatApi, useSendMessageMutation } from "@/redux/Apis/Chat";
+import { chatApi } from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
@@ -17,8 +17,7 @@ import {
   socketResponse,
   valueProps,
 } from "@/lib/dummy";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+
 import Modal from "@/components/HOComponents/Modal";
 import {
   useGetAllChatsQuery,
@@ -30,23 +29,23 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import {
   CHAT_JOINED,
   CHAT_LEAVED,
+  EDIT_MESSAGE,
   MESSAGE_REACTION,
   MESSAGE_SEEN,
-  NEW_MESSAGE,
-  ONLINE_USERS,
+
   REFETCH_CHATS,
   REPLY_MESSAGE,
   SEND_MESSAGE,
 } from "@/lib/events";
 // import Chatlist from "@/components/Chat/Chatlist";
-import Chatlist from "@/components/Chat/Chatlist";
+
 import VirtualChatlist from "@/components/Chat/VirtualChatList";
 import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import { useToast } from "@/components/Utility/Toast";
 import SpinLoader from "@/components/Utility/SpinLoader";
-import { NotificationApi } from "@/redux/Apis/Notification";
+
 
 interface mediaProps {
   file_name: string;
@@ -55,12 +54,42 @@ interface mediaProps {
   file_size: string;
 }
 
-type emoji = {
-  react_id: number;
-  emoji: string;
-};
+
 
 const ChatPage = ({ id }: { id: number }) => {
+
+  const [show, setShow] = useState<number | string | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [uploadId, setUploadId] = useState<string>("");
+  const [currentChunk, setCurrentChunk] = useState(0);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  const CHUNK_SIZE = 1024 * 1024;
+  const pausedRef = useRef(false);
+
+  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+
+  const [replyMessage, setReplyMessage] = useState<Message | null>(null);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState<valueProps>({
+    open: false,
+    type: null,
+  });
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
+
+  const throttleRef = useRef(false);
+
+  const socket = useSocket();
+
+  const [active, setActive] = useState<number | string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [selected, setSelected] = useState<number[] | null>([]);
+  const [menu, setMenu] = useState(false);
+  const [inputText, setInputText] = useState("");
   // const resolvedParams = use(params);
   const { showToast } = useToast();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
@@ -80,15 +109,6 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-
-
-  const [show, setShow] = useState<number | string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
-
-  const [replyMessage, setReplyMessage] = useState<Message | null>(null);
-  const [cursor, setCursor] = useState<number | null>(null);
 
   const {
     data: messages,
@@ -129,20 +149,12 @@ const ChatPage = ({ id }: { id: number }) => {
   );
 
   const chat = messages;
-  const socket = useSocket();
 
-  const [active, setActive] = useState<number | string | null>(null);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<number[] | []>([]);
-  const [menu, setMenu] = useState(false);
-  const [inputText, setInputText] = useState("");
   // console.log(messages, "messagessss");
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesEndRef]);
 
-  const dispatch = useAppDispatch();
 
   const bottomRef = useRef(null);
   useEffect(() => {
@@ -165,8 +177,6 @@ const ChatPage = ({ id }: { id: number }) => {
     return () => observer.disconnect();
   }, [messages, nextCursor, hasMore, isFetching]);
 
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -175,10 +185,7 @@ const ChatPage = ({ id }: { id: number }) => {
   }, [messages, nextCursor]);
 
   // useSocketEvents(socket, handler);
-  const [showModal, setShowModal] = useState<valueProps>({
-    open: false,
-    type: null
-  });
+
 
   const handleSendMessage = useCallback(
     async (e: React.FormEvent | mediaProps) => {
@@ -266,7 +273,7 @@ const ChatPage = ({ id }: { id: number }) => {
             if (!response.success) {
               // rollback
               patchResult?.undo();
-
+              chatPatchResult?.undo();
               console.log(response, "callback response");
             }
             console.log(response, "callback response outside");
@@ -298,14 +305,6 @@ const ChatPage = ({ id }: { id: number }) => {
     ],
   );
 
-  const [file, setFile] = useState<File | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [uploadId, setUploadId] = useState<string>("");
-  const [currentChunk, setCurrentChunk] = useState(0);
-  const controllerRef = useRef<AbortController | null>(null);
-
-  const CHUNK_SIZE = 1024 * 1024;
-  const pausedRef = useRef(false);
 
   const uploadChunks = useCallback(
     async (id: string) => {
@@ -325,14 +324,11 @@ const ChatPage = ({ id }: { id: number }) => {
           form.append("chunk", chunk);
           form.append("index", i.toString());
 
-          await fetch(
-            `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/upload`,
-            {
-              method: "POST",
-              body: form,
-              signal: controllerRef.current?.signal,
-            },
-          );
+          await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/upload`, {
+            method: "POST",
+            body: form,
+            signal: controllerRef.current?.signal,
+          });
           setCurrentChunk(i + 1);
           setProgress(Math.round(((i + 1) / totalChunk) * 100));
         }
@@ -396,7 +392,6 @@ const ChatPage = ({ id }: { id: number }) => {
       setCurrentChunk(0);
       setFile(null);
       // setMessages(prev => prev.filter(pf => pf.id !== prev[prev.length - 1].id))
-
     },
     [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage, dispatch],
   );
@@ -532,7 +527,6 @@ const ChatPage = ({ id }: { id: number }) => {
           return;
         }
 
-
         const chatPatchResult = dispatch(
           chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
             const items = draft.data.getAllChats.data.items;
@@ -585,12 +579,16 @@ const ChatPage = ({ id }: { id: number }) => {
                 .map((m: Message) => m.id);
 
               console.log(
-                unseenNewMessages, current(draft.data.getChatById.data.items),
+                unseenNewMessages,
+                current(draft.data.getChatById.data.items),
                 " <<<<====in reftech message unseen new messagessssssss===>>>>",
               );
 
               if (unseenNewMessages.length > 0) {
-                console.log("eejhkdsahf kdfdthis unseeed message", unseenNewMessages);
+                console.log(
+                  "eejhkdsahf kdfdthis unseeed message",
+                  unseenNewMessages,
+                );
                 socket.emit(
                   MESSAGE_SEEN,
                   {
@@ -599,27 +597,34 @@ const ChatPage = ({ id }: { id: number }) => {
                     reciever_id: chatDetails?.user_id,
                   },
                   (response: socketResponse) => {
-
-                    const patchResult3 = dispatch(chatApi.util.updateQueryData(
-                      "getSingleChat", { chat_ids: [id], cursor, limit: 20 }, (draft) => {
-                        draft?.data?.getChatById?.data?.items?.forEach((chat: Message) => {
-
-                          if (user_id && chat.sender_id !== user_id && !chat.seen_users.includes(user_id) && unseenNewMessages.includes(chat.id)) {
-                            console.log("ye condition true hai")
-                            chat.seen_users = [...chat.seen_users, user_id]
-
-                          }
-                          console.log("ye condition false hai......")
-
-                        })
-                      }
-                    ))
+                    const patchResult3 = dispatch(
+                      chatApi.util.updateQueryData(
+                        "getSingleChat",
+                        { chat_ids: [id], cursor, limit: 20 },
+                        (draft) => {
+                          draft?.data?.getChatById?.data?.items?.forEach(
+                            (chat: Message) => {
+                              if (
+                                user_id &&
+                                chat.sender_id !== user_id &&
+                                !chat.seen_users.includes(user_id) &&
+                                unseenNewMessages.includes(chat.id)
+                              ) {
+                                console.log("ye condition true hai");
+                                chat.seen_users = [...chat.seen_users, user_id];
+                              }
+                              console.log("ye condition false hai......");
+                            },
+                          );
+                        },
+                      ),
+                    );
                     // agar backend fail
                     if (!response.success) {
                       // rollback
                       patchResult.undo();
                       patchResult3.undo();
-                      chatPatchResult.undo()
+                      chatPatchResult.undo();
 
                       console.log(response, "callback response");
                     }
@@ -630,9 +635,7 @@ const ChatPage = ({ id }: { id: number }) => {
             },
           ),
         );
-
       },
-
 
       [MESSAGE_REACTION]: (data: message_reactions) => {
         if (!data) {
@@ -705,6 +708,28 @@ const ChatPage = ({ id }: { id: number }) => {
           ),
         );
       },
+
+      [EDIT_MESSAGE]: (data: Message) => {
+        console.log(data, "data from edit message ");
+        const patchResult = dispatch(
+          chatApi.util.updateQueryData(
+            "getSingleChat",
+            { chat_ids: [id] },
+            (draft) => {
+              const items = draft?.data?.getChatById?.data?.items;
+
+              if (!items) return;
+
+              items.forEach((msg: Message) => {
+                if (msg.id === data.id) {
+                  msg.content = data.content;
+                  msg.is_edited = data.is_edited;
+                }
+              });
+            },
+          ),
+        );
+      },
     }),
     [dispatch, id, socket, user_id, chatDetails, cursor],
   );
@@ -741,24 +766,14 @@ const ChatPage = ({ id }: { id: number }) => {
     };
   }, [user_id, socket, id]);
 
-  const throttleRef = useRef(false);
-
   useEffect(() => {
-
-
-
-
-
-
     if (!user_id || !messages?.length || throttleRef.current) return;
-
 
     const unseenMessages = messages
       .filter(
         (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
       )
       .map((d: Message) => d.id);
-
 
     if (!unseenMessages.length) return;
     console.log(unseenMessages, "un seend is useEffect are....", messages);
@@ -773,48 +788,45 @@ const ChatPage = ({ id }: { id: number }) => {
       (response: socketResponse) => {
         // agar backend fail
 
-
-
         if (response.success) {
           // rollback
-          dispatch(chatApi.util.updateQueryData(
-            "getSingleChat", { chat_ids: [id], cursor, limit: 20 }, (draft) => {
-              draft?.data?.getChatById?.data?.items?.forEach((chat: Message) => {
+          dispatch(
+            chatApi.util.updateQueryData(
+              "getSingleChat",
+              { chat_ids: [id], cursor, limit: 20 },
+              (draft) => {
+                draft?.data?.getChatById?.data?.items?.forEach(
+                  (chat: Message) => {
+                    if (
+                      chat.sender_id !== user_id &&
+                      !chat.seen_users.includes(user_id) &&
+                      unseenMessages.includes(chat.id)
+                    ) {
+                      console.log("ye condition true hai");
+                      chat.seen_users = [...chat.seen_users, user_id];
+                    }
+                    console.log("ye condition false hai......");
+                  },
+                );
+              },
+            ),
+          );
 
-                if (chat.sender_id !== user_id && !chat.seen_users.includes(user_id) && unseenMessages.includes(chat.id)) {
-                  console.log("ye condition true hai")
-                  chat.seen_users = [...chat.seen_users, user_id]
-
-                }
-                console.log("ye condition false hai......")
-
-              })
-            }
-          ))
-
-          dispatch(chatApi.util.updateQueryData(
-            'getAllChats', {}, (draft) => {
-
-              const item = draft.data.getAllChats.data.items.find((c: Chat) =>
-
-                c.chat_id === id
-              )
+          dispatch(
+            chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
+              const item = draft.data.getAllChats.data.items.find(
+                (c: Chat) => c.chat_id === id,
+              );
 
               if (item) {
-                item.unread_count -= unseenMessages
+                item.unread_count -= unseenMessages;
               }
-            }
-          ))
+            }),
+          );
 
           // dispatch(NotificationApi.util.updateQueryData("getNotifications", {}, (draft) => {
 
           // }))
-
-
-
-
-
-
 
           // patchResult?.undo();
 
@@ -831,14 +843,13 @@ const ChatPage = ({ id }: { id: number }) => {
     return () => clearTimeout(timer);
   }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
 
-
-
   if (isLoading) {
-    return (<div className="h-screen flex flex-col justify-center items-center">
-
-      <SpinLoader height={"100px"} width={"100px"} />
-      Chats Loading...
-    </div>)
+    return (
+      <div className="h-screen flex flex-col justify-center items-center">
+        <SpinLoader height={"100px"} width={"100px"} />
+        Chats Loading...
+      </div>
+    );
   }
 
   if (!chat) {
@@ -849,6 +860,19 @@ const ChatPage = ({ id }: { id: number }) => {
     );
   }
 
+  console.log(
+    "filter dataaaaaa",
+    selectedMessages,
+    messages.filter((msg: Message) => msg.id === selectedMessages[0]),
+    {
+      message: messages.find((msg: Message) => msg.id === selectedMessages[0])
+        ?.content,
+      sender_id: messages.find((msg: Message) => msg.id === selectedMessages[0])
+        ?.sender_id,
+      id: messages.find((msg: Message) => msg.id === selectedMessages[0])?.id,
+    },
+  );
+
   // console.log(chat, "chat detaillssss.");
 
   return (
@@ -858,11 +882,21 @@ const ChatPage = ({ id }: { id: number }) => {
       <Chathead
         menu={menu}
         setShowModal={setShowModal}
+        selected={{
+          message: messages.find(
+            (msg: Message) => msg.id === selectedMessages[0],
+          )?.content,
+          sender_id: messages.find(
+            (msg: Message) => msg.id === selectedMessages[0],
+          )?.sender_id,
+          id: messages.find((msg: Message) => msg.id === selectedMessages[0])
+            ?.id,
+        }}
+        selectedMessages={selectedMessages}
         chatDetails={chatDetails}
       />
 
       <VirtualChatlist
-
         setSelectedMessages={setSelectedMessages}
         setCursor={setCursor}
         setSelected={setSelected}
@@ -895,7 +929,6 @@ const ChatPage = ({ id }: { id: number }) => {
         chatDetails={chatDetails}
       />
 
-
       {/* <VirtualChatlist /> */}
 
       {/* Input */}
@@ -920,15 +953,16 @@ const ChatPage = ({ id }: { id: number }) => {
         startUpload={startUpload}
       />
 
-      <Modal values={showModal} setModal={setShowModal} >
-
-        {showModal.type === "delete" && <DeleteMessage
-          setShowModal={setShowModal}
-          setSelected={setSelected}
-          setSelectedMessages={setSelectedMessages}
-          selectedMessages={selectedMessages}
-          chat_id={id}
-        />}
+      <Modal values={showModal} setModal={setShowModal}>
+        {showModal.type === "delete" && (
+          <DeleteMessage
+            setShowModal={setShowModal}
+            setSelected={setSelected}
+            setSelectedMessages={setSelectedMessages}
+            selectedMessages={selectedMessages}
+            chat_id={id}
+          />
+        )}
       </Modal>
     </div>
   );

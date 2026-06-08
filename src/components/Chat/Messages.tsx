@@ -1,7 +1,12 @@
 import React, { Dispatch, SetStateAction, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Chat, Message } from "@/lib/dummy";
-import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  animate,
+  useReducedMotion,
+} from "framer-motion";
 import { Reply, CheckCheck, Check, Smile } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -26,7 +31,6 @@ interface messageProps {
   progress: number;
   uploadId: string;
   chatDetails: Chat;
-
 }
 
 const Messages = ({
@@ -35,7 +39,6 @@ const Messages = ({
 
   emojis,
   user_id,
-
 
   setReplyMessage,
 
@@ -263,7 +266,12 @@ const Messages = ({
             </div>
 
             {/* Time + Tick */}
-            <div className="flex items-center justify-end gap-1 mt-1">
+            <div className="flex items-center justify-between gap-1 mt-1">
+              {msg.is_edited && (
+                <span className="text-[10px] font-medium text-gray-500">
+                  edited
+                </span>
+              )}
               <span className="text-[10px] text-gray-500 dark:text-gray-400">
                 {msg.created_at}
               </span>

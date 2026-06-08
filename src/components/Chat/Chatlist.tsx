@@ -4,7 +4,11 @@ import { MESSAGE_REACTION, MESSAGE_SEEN, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 // import { useReactMessageMutation } from "@/redux/Apis/User";
-import { chatApi, useGetWallpaperQuery, useReactMessageMutation } from "@/redux/Apis/Chat";
+import {
+  chatApi,
+  useGetWallpaperQuery,
+  useReactMessageMutation,
+} from "@/redux/Apis/Chat";
 
 import { motion, useReducedMotion } from "framer-motion";
 
@@ -99,10 +103,10 @@ const Chatlist = memo(
       selectFromResult: ({ data, isLoading }) => {
         return {
           url: data?.data?.getWallPaper?.data?.url,
-          isLoading
-        }
-      }
-    })
+          isLoading,
+        };
+      },
+    });
 
     const dispatch = useAppDispatch();
     useEffect(() => {
@@ -114,7 +118,6 @@ const Chatlist = memo(
       const observer = new IntersectionObserver(
         (entries) => {
           if (entries[0].isIntersecting && hasMore && !isFetching) {
-
             setCursor(() => nextCursor);
           }
         },
@@ -138,8 +141,6 @@ const Chatlist = memo(
           chatContainerRef.current.scrollHeight;
       }
     }, [data, nextCursor]);
-
-
 
     // useEffect(() => {
     //   try {
@@ -224,13 +225,13 @@ const Chatlist = memo(
     const toggleSelection = (ids: number) => {
       // debugger;
       setSelectedMessages((prev) => {
-        console.log(
-          typeof prev[0],
-          "type of fddddd",
-          prev,
-          prev.includes(ids),
-          ids,
-        );
+        // console.log(
+        //   typeof prev[0],
+        //   "type of fddddd",
+        //   prev,
+        //   prev.includes(ids),
+        //   ids,
+        // );
         if (prev.includes(ids)) {
           const filtered = prev.filter((item) => item !== ids);
 
@@ -268,9 +269,12 @@ const Chatlist = memo(
       }
     };
     return (
-      <div className="flex-1  p-1 z-10 object-cover" style={{
-        backgroundImage: `url(${url})`,
-      }}>
+      <div
+        className="flex-1  p-1 z-10 object-cover"
+        style={{
+          backgroundImage: `url(${url})`,
+        }}
+      >
         <div
           ref={chatContainerRef}
           className={`flex  flex-col gap-y-2       overflow-y-auto mx-auto max-h-[79.5vh] hide-scrollbar h-full`}
@@ -286,10 +290,11 @@ const Chatlist = memo(
             </div>
           </div>
 
-          {isFetching && <div className="h-50 w-full flex justify-center ">
-            <SpinLoader height={"40px"} width={"40px"} />
-          </div>
-          }
+          {isFetching && (
+            <div className="h-50 w-full flex justify-center ">
+              <SpinLoader height={"40px"} width={"40px"} />
+            </div>
+          )}
 
           {data.map((msg: Message) => {
             const icons = emojis?.filter((emoji: emoji) =>
@@ -406,13 +411,11 @@ const Chatlist = memo(
                   <Messages
                     msg={msg}
                     pausedRef={pausedRef}
-
                     progress={progress}
                     uploadId={uploadId}
                     uploadChunks={uploadChunks}
                     chatDetails={chatDetails}
                     cancelUpload={cancelUpload}
-
                     user_id={user_id}
                     data={data}
                     emojis={icons}

@@ -6,7 +6,7 @@ export const reactMessageMutation = `
         }
     }
                     
-                    `
+                    `;
 
 export const newChatMutation = `
   
@@ -25,7 +25,19 @@ export const newChatMutation = `
   }
   }
   
-  `
+  `;
+
+export const editMessageMutation = `
+
+mutation editMessage($input: ChatInput!){
+editMessage(input: $input){
+
+message,error,success,status
+
+}
+}
+
+`;
 
 export const sendMessageMutation = `
               
@@ -36,7 +48,7 @@ export const sendMessageMutation = `
     
         }
     }
-              `
+              `;
 export const replyMessageMutation = `
               
               mutation replyMessage($input:ChatInput!){
@@ -46,7 +58,7 @@ export const replyMessageMutation = `
     }
               
               
-              `
+              `;
 export const deletMessageMutation = `
     
               mutation DeleteMessage($input:ChatInput!) {
@@ -58,7 +70,7 @@ export const deletMessageMutation = `
       }
     }
               
-              `
+              `;
 export const setWallPaperMutation = `
           
 
@@ -72,4 +84,4 @@ export const setWallPaperMutation = `
           
           
           
-          `
+          `;
