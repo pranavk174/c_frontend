@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  Suspense,
+  useMemo,
+  useCallback,
+} from "react";
 
+import dynamic from "next/dynamic";
+const VirtualChatlist = dynamic(
+  () => import("@/components/Chat/VirtualChatList"),
+);
 import { useSelector } from "react-redux";
 // import { chatApi } from "../../../../redux/Apis/User";
 import { chatApi } from "@/redux/Apis/Chat";
@@ -12,7 +23,6 @@ import {
   Chat,
   Message,
   message_reactions,
-  reaction,
   seen_user,
   socketResponse,
   valueProps,
@@ -32,20 +42,27 @@ import {
   EDIT_MESSAGE,
   MESSAGE_REACTION,
   MESSAGE_SEEN,
-
   REFETCH_CHATS,
   REPLY_MESSAGE,
   SEND_MESSAGE,
 } from "@/lib/events";
-// import Chatlist from "@/components/Chat/Chatlist";
 
-import VirtualChatlist from "@/components/Chat/VirtualChatList";
+// import VirtualChatlist from "@/components/Chat/VirtualChatList";
+
 import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import { useToast } from "@/components/Utility/Toast";
 import SpinLoader from "@/components/Utility/SpinLoader";
-
+import {
+  addMessage,
+  editMessage,
+  reactMessage,
+  refetchChat,
+  seenMessage,
+  updateAllChatcache,
+} from "@/lib/cacaheupdateutils";
+import Loader from "@/components/Utility/Loader";
 
 interface mediaProps {
   file_name: string;
@@ -54,10 +71,7 @@ interface mediaProps {
   file_size: string;
 }
 
-
-
 const ChatPage = ({ id }: { id: number }) => {
-
   const [show, setShow] = useState<number | string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -79,7 +93,6 @@ const ChatPage = ({ id }: { id: number }) => {
   });
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-
   const throttleRef = useRef(false);
 
   const socket = useSocket();
@@ -93,6 +106,7 @@ const ChatPage = ({ id }: { id: number }) => {
   // const resolvedParams = use(params);
   const { showToast } = useToast();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
+
   const { data: chatDetails } = useGetAllChatsQuery(
     {},
     {
@@ -108,7 +122,6 @@ const ChatPage = ({ id }: { id: number }) => {
       },
     },
   );
-
 
   const {
     data: messages,
@@ -155,7 +168,6 @@ const ChatPage = ({ id }: { id: number }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesEndRef]);
 
-
   const bottomRef = useRef(null);
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -184,9 +196,6 @@ const ChatPage = ({ id }: { id: number }) => {
     }
   }, [messages, nextCursor]);
 
-  // useSocketEvents(socket, handler);
-
-
   const handleSendMessage = useCallback(
     async (e: React.FormEvent | mediaProps) => {
       if ("preventDefault" in e) {
@@ -210,42 +219,15 @@ const ChatPage = ({ id }: { id: number }) => {
           chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
-            (draft) => {
-              const items = draft?.data?.getChatById?.data?.items;
-
-              if (!items) return;
-
-              items.push({
-                id: (items[items.length - 1]?.id || 0) + 1,
-                sender_id: user_id ?? 2,
-                created_at: new Date().toISOString(),
-                seen_at: null,
-                story_id: null,
-                seen_users: [],
-                content: inputText,
-                preview: null,
-                reply_to_message_id: replyMessage?.id ?? null,
-                is_forwarded: false,
-                is_edited: false,
-                is_deleted: false,
-                reactions: [],
-                isLocal: true,
-              });
-              // update existing
-            },
+            addMessage(inputText, user_id ?? 2, replyMessage),
           ),
         );
         chatPatchResult = dispatch(
-          chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-            const items = draft.data.getAllChats.data.items;
-            draft.data.getAllChats.data.items.forEach((item: Chat) => {
-              if (item.chat_id === id) {
-                item.last_message = inputText;
-                item.last_message_at = new Date().toISOString();
-                item.last_message_id = (items[items.length - 1]?.id || 0) + 1;
-              }
-            });
-          }),
+          chatApi.util.updateQueryData(
+            "getAllChats",
+            {},
+            updateAllChatcache(id, inputText),
+          ),
         );
       }
 
@@ -304,7 +286,6 @@ const ChatPage = ({ id }: { id: number }) => {
       user_id,
     ],
   );
-
 
   const uploadChunks = useCallback(
     async (id: string) => {
@@ -396,57 +377,15 @@ const ChatPage = ({ id }: { id: number }) => {
     [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage, dispatch],
   );
   const startUpload = useCallback(async () => {
-    if (!file || currentChunk > 0) return;
+    if (!file || currentChunk > 0 || !user_id) return;
 
-    // console.log(inputText, "input test/.....")
-
-    // setMessages((prev) => [
-    //   ...prev,
-    //   {
-    //     id: (prev[prev.length - 1]?.id || 0) + 1,
-    //     sender_id: user_id ?? 2,
-    //     created_at: new Date().toISOString(),
-    //     seen_at: null,
-    //     story_id: null,
-    //     content: inputText,
-    //     preview: URL.createObjectURL(file),
-    //     reply_to_message_id: replyMessage?.id ?? null,
-    //     is_forwarded: false,
-    //     seen_users: [],
-    //     is_edited: false,
-    //     is_deleted: false,
-    //     reactions: [],
-    //     isLocal: true,
-    //   },
-    // ]);
+    const url = URL.createObjectURL(file);
 
     const pathResult = dispatch(
       chatApi.util.updateQueryData(
         "getSingleChat",
         { chat_ids: [id] },
-        (draft) => {
-          const items = draft?.data?.getChatById?.data?.items;
-
-          if (!items) return;
-
-          items.push({
-            id: (items[items.length - 1]?.id || 0) + 1,
-            sender_id: user_id ?? 2,
-            created_at: new Date().toISOString(),
-            seen_at: null,
-            story_id: null,
-            content: inputText,
-            preview: URL.createObjectURL(file),
-            reply_to_message_id: replyMessage?.id ?? null,
-            is_forwarded: false,
-            seen_users: [],
-            is_edited: false,
-            is_deleted: false,
-            reactions: [],
-            isLocal: true,
-          });
-          // update existing
-        },
+        addMessage(inputText, user_id, replyMessage, url),
       ),
     );
 
@@ -478,11 +417,11 @@ const ChatPage = ({ id }: { id: number }) => {
     dispatch,
     file,
     // setMessages,
+    replyMessage,
     id,
     user_id,
     uploadChunks,
     inputText,
-    replyMessage?.id,
   ]);
 
   useEffect(() => {
@@ -526,215 +465,30 @@ const ChatPage = ({ id }: { id: number }) => {
         if (!data) {
           return;
         }
-
-        const chatPatchResult = dispatch(
-          chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-            const items = draft.data.getAllChats.data.items;
-            draft.data.getAllChats.data.items.forEach((item: Chat) => {
-              if (item.chat_id === id) {
-                item.last_message = data[0]?.content
-                  ? data[0]?.content
-                  : "image";
-                item.last_message_at = data[0].created_at;
-                item.last_message_id = data[0].id;
-              }
-            });
-          }),
-        );
-
-        const patchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              const items = draft?.data?.getChatById?.data?.items;
-
-              if (!items) return;
-
-              const exists = items.find((m: Message) => m?.id === data[0].id);
-
-              // update existing
-              if (exists) {
-                console.log("triggered here and exitsssss");
-                draft.data.getChatById.data.items = items.map((m: Message) => {
-                  if (m?.id === data[0].id) {
-                    return { ...m, ...data[0], isLocal: false };
-                  }
-
-                  return m;
-                });
-
-                return;
-              }
-
-              // add new
-              draft.data.getChatById.data.items.push(...data);
-
-              const unseenNewMessages = draft.data.getChatById.data.items
-                .filter(
-                  (m: Message) =>
-                    m.sender_id !== user_id &&
-                    (!m.seen_users || m.seen_users.length === 0),
-                )
-                .map((m: Message) => m.id);
-
-              console.log(
-                unseenNewMessages,
-                current(draft.data.getChatById.data.items),
-                " <<<<====in reftech message unseen new messagessssssss===>>>>",
-              );
-
-              if (unseenNewMessages.length > 0) {
-                console.log(
-                  "eejhkdsahf kdfdthis unseeed message",
-                  unseenNewMessages,
-                );
-                socket.emit(
-                  MESSAGE_SEEN,
-                  {
-                    chat_id: id,
-                    message_ids: unseenNewMessages,
-                    reciever_id: chatDetails?.user_id,
-                  },
-                  (response: socketResponse) => {
-                    const patchResult3 = dispatch(
-                      chatApi.util.updateQueryData(
-                        "getSingleChat",
-                        { chat_ids: [id], cursor, limit: 20 },
-                        (draft) => {
-                          draft?.data?.getChatById?.data?.items?.forEach(
-                            (chat: Message) => {
-                              if (
-                                user_id &&
-                                chat.sender_id !== user_id &&
-                                !chat.seen_users.includes(user_id) &&
-                                unseenNewMessages.includes(chat.id)
-                              ) {
-                                console.log("ye condition true hai");
-                                chat.seen_users = [...chat.seen_users, user_id];
-                              }
-                              console.log("ye condition false hai......");
-                            },
-                          );
-                        },
-                      ),
-                    );
-                    // agar backend fail
-                    if (!response.success) {
-                      // rollback
-                      patchResult.undo();
-                      patchResult3.undo();
-                      chatPatchResult.undo();
-
-                      console.log(response, "callback response");
-                    }
-                    console.log(response, "callback response outside");
-                  },
-                );
-              }
-            },
-          ),
-        );
+        if (!user_id) return;
+        refetchChat(dispatch, data, id, user_id, chatDetails, socket, cursor);
       },
 
       [MESSAGE_REACTION]: (data: message_reactions) => {
-        if (!data) {
+        if (!data || !user_id) {
           return;
         }
-        const patchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              const message = draft?.data?.getChatById?.data?.items?.find(
-                (m: Message) => m?.id === data.message_id,
-              );
-
-              if (message) {
-                const exists = message?.reactions?.find(
-                  (i: reaction) => i.user_id === data.user_id,
-                );
-                if (exists) {
-                  message.reactions.map((i: reaction) => {
-                    if (i.user_id === data.user_id) {
-                      i.react_id = data.react_id;
-                    }
-                  });
-                } else {
-                  message.reactions.push(data);
-                }
-              }
-            },
-          ),
-        );
-
-        console.log("dataaaaa  in reaction", data);
+        reactMessage(dispatch, data, id);
       },
       [MESSAGE_SEEN]: (data: seen_user[]) => {
         if (!data) {
           return;
         }
-
-        dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              const seenMap = new Map(data.map((d) => [d.message_id, d]));
-
-              draft.data.getChatById.data.items.forEach((message: Message) => {
-                const seenData = seenMap.get(message.id);
-
-                // console.log(seenData, "seen dataaaa.", seenMap);
-                if (!seenData) return;
-
-                message.seen_users = message.seen_users || [];
-
-                if (!message.seen_users.includes(seenData.seen_user)) {
-                  message.seen_users = [
-                    ...message.seen_users,
-                    seenData.seen_user,
-                  ];
-                }
-
-                message.seen_at = seenData.seen_at;
-              });
-
-              // console.log(
-              //   current(draft.data.getChatById.data.items),
-              //   "latest updated dataaaaaaaa",
-              // );
-            },
-          ),
-        );
+        seenMessage(dispatch, id, data);
       },
 
       [EDIT_MESSAGE]: (data: Message) => {
         console.log(data, "data from edit message ");
-        const patchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              const items = draft?.data?.getChatById?.data?.items;
-
-              if (!items) return;
-
-              items.forEach((msg: Message) => {
-                if (msg.id === data.id) {
-                  msg.content = data.content;
-                  msg.is_edited = data.is_edited;
-                }
-              });
-            },
-          ),
-        );
+        editMessage(dispatch, id, data);
       },
     }),
     [dispatch, id, socket, user_id, chatDetails, cursor],
   );
-
-  // console.log(onlineUsers, "onlineUserssssss");
 
   useSocketEvents(socket, handler);
 
@@ -744,7 +498,6 @@ const ChatPage = ({ id }: { id: number }) => {
         CHAT_JOINED,
         {
           chat_id: id,
-
           user_id,
         },
         (response: socketResponse) => {
@@ -860,21 +613,6 @@ const ChatPage = ({ id }: { id: number }) => {
     );
   }
 
-  console.log(
-    "filter dataaaaaa",
-    selectedMessages,
-    messages.filter((msg: Message) => msg.id === selectedMessages[0]),
-    {
-      message: messages.find((msg: Message) => msg.id === selectedMessages[0])
-        ?.content,
-      sender_id: messages.find((msg: Message) => msg.id === selectedMessages[0])
-        ?.sender_id,
-      id: messages.find((msg: Message) => msg.id === selectedMessages[0])?.id,
-    },
-  );
-
-  // console.log(chat, "chat detaillssss.");
-
   return (
     <div className="flex flex-col h-full w-full chat-bg relative">
       {/* Header */}
@@ -896,38 +634,46 @@ const ChatPage = ({ id }: { id: number }) => {
         chatDetails={chatDetails}
       />
 
-      <VirtualChatlist
-        setSelectedMessages={setSelectedMessages}
-        setCursor={setCursor}
-        setSelected={setSelected}
-        isFetching={isFetching}
-        data={messages}
-        nextCursor={nextCursor}
-        hasMore={hasMore}
-        setMenu={setMenu}
-        selectedMessages={selectedMessages}
-        pausedRef={pausedRef}
-        progress={progress}
-        uploadChunks={uploadChunks}
-        cancelUpload={cancelUpload}
-        startUpload={startUpload}
-        timerRef={timerRef}
-        setActive={setActive}
-        emojis={emojis}
-        chat_id={id}
-        user_id={user_id}
-        messages={messages}
-        setShow={setShow}
-        // setMessages={setMessages}
-        active={active}
-        // file={file}
-        setReplyMessage={setReplyMessage}
-        uploadId={uploadId}
-        setFile={setFile}
-        show={show}
-        menu={menu}
-        chatDetails={chatDetails}
-      />
+      <Suspense
+        fallback={
+          <div className="h-screen w-full flex  justify-center items-center">
+            <SpinLoader height={"50px"} width={"50px"} />
+          </div>
+        }
+      >
+        <VirtualChatlist
+          setSelectedMessages={setSelectedMessages}
+          setCursor={setCursor}
+          setSelected={setSelected}
+          isFetching={isFetching}
+          data={messages}
+          nextCursor={nextCursor}
+          hasMore={hasMore}
+          setMenu={setMenu}
+          selectedMessages={selectedMessages}
+          pausedRef={pausedRef}
+          progress={progress}
+          uploadChunks={uploadChunks}
+          cancelUpload={cancelUpload}
+          startUpload={startUpload}
+          timerRef={timerRef}
+          setActive={setActive}
+          emojis={emojis}
+          chat_id={id}
+          user_id={user_id}
+          messages={messages}
+          setShow={setShow}
+          // setMessages={setMessages}
+          active={active}
+          // file={file}
+          setReplyMessage={setReplyMessage}
+          uploadId={uploadId}
+          setFile={setFile}
+          show={show}
+          menu={menu}
+          chatDetails={chatDetails}
+        />
+      </Suspense>
 
       {/* <VirtualChatlist /> */}
 

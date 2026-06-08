@@ -35,10 +35,9 @@ import SpinLoader from "../Utility/SpinLoader";
 
 const VirtualChatlist = memo(
   ({
-    startUpload,
+
     cancelUpload,
-    // setMessages,
-    setFile,
+
     uploadChunks,
     pausedRef,
     progress,
@@ -47,7 +46,7 @@ const VirtualChatlist = memo(
     chat_id,
     setSelectedMessages,
     setCursor,
-    setSelected,
+
     isFetching,
     data,
     nextCursor,

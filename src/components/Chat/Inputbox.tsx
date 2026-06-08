@@ -46,18 +46,18 @@ const Inputbox = memo(
     uploadChunks,
     pausedRef,
     setFile,
-    chatDetails,
+
     replyMessage,
     messages,
     setReplyMessage,
-    scrollToBottom,
+
     chat_id,
   }: inputBoxProps) => {
     // const [inputText, setInputText] = useState("");
     const [open, setOpen] = useState(false);
 
     return (
-      <footer className="h-[62px] bg-wa-header dark:bg-wa-header-dark flex items-center px-4 py-2 shrink-0 z-10">
+      <footer className="h-15.5 bg-wa-header dark:bg-wa-header-dark flex items-center px-4 py-2 shrink-0 z-10">
         <div className="flex relative items-center space-x-2 text-wa-icon dark:text-wa-icon-dark mr-2 shrink-0">
           <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <Smile className="w-6 h-6" />
@@ -97,13 +97,13 @@ const Inputbox = memo(
         >
           {/* Reply Preview */}
           {replyMessage !== null && (
-            <div className="flex items-start absolute -top-[50px] w-full justify-between bg-gray-100 dark:bg-[#2a3942] border-l-4 border-green-500 px-3 py-2 rounded-t-xl">
+            <div className="flex items-start absolute -top-12.5 w-full justify-between bg-gray-100 dark:bg-wa-search-input-dark border-l-4 border-green-500 px-3 py-2 rounded-t-xl">
               <div className="flex flex-col overflow-hidden">
                 <span className="text-xs font-semibold text-green-600 dark:text-green-400">
                   Replying to
                 </span>
 
-                <p className="text-sm text-gray-700 dark:text-gray-200 truncate max-w-[250px]">
+                <p className="text-sm text-gray-700 dark:text-gray-200 truncate max-w-62.5">
                   {replyMessage?.content}
                 </p>
               </div>
