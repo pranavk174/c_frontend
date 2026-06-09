@@ -60,10 +60,11 @@ const VirtualChatlistGrouped = memo(
     const rowVirtualizer = useVirtualizer({
       count: data.length,
       getScrollElement: () => parentRef.current,
-      estimateSize: () => 35,
+      estimateSize: () => 20,
       overscan: 10,
       measureElement: (el) => el.getBoundingClientRect().height,
     });
+
 
     const initialScrollDone = useRef(false);
 
@@ -147,6 +148,8 @@ const VirtualChatlistGrouped = memo(
 
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
+
+    console.log(data, "dataaaaa ")
 
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {
@@ -329,7 +332,7 @@ const VirtualChatlistGrouped = memo(
               msg.reply_to_message_id !== null
                 ? (messageMap?.get(msg.reply_to_message_id) ?? null)
                 : null;
-            console.log(msg, "msggggggg");
+            // console.log(msg, "msggggggg");
 
             const isSelected = selectedMessages.includes(msg?.id);
 

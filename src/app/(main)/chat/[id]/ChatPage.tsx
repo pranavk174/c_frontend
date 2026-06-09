@@ -137,7 +137,7 @@ const ChatPage = ({ id }: { id: number }) => {
         // const res = new Map();
         const result =
           data?.data?.getChatById?.data?.items.reduce(
-            (acc, idx) => {
+            (acc: Record<string, Message[]>, idx: Message) => {
               const date = new Date(Number(idx.created_at));
 
               const today = new Date();
@@ -169,7 +169,7 @@ const ChatPage = ({ id }: { id: number }) => {
             {} as Record<string, Message[]>,
           ) ?? [];
 
-        console.log("result daataaa.", result);
+        // console.log("result daataaa.", result);
         const flatData = Object.entries(result)?.flatMap(
           ([date, messagess]) => [
             { type: "header", date, id: crypto.randomUUID() },
@@ -180,7 +180,7 @@ const ChatPage = ({ id }: { id: number }) => {
           ],
         );
 
-        // console.log(flatData, "result daataaa.",result);
+        console.log(flatData, "result daataaa.", result);
 
         const mappedMessages = new Map(
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),

@@ -46,7 +46,7 @@ export interface chatListProps {
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
   setReplyMessage: Dispatch<SetStateAction<Message | null>>;
-  data: FlatItem[];
+  data: Message[];
   // active: string | number | null;
   isFetching: boolean;
   selectedMessages: number[];
@@ -78,7 +78,7 @@ export interface reaction {
 
 export interface Message {
   id: number;
-  // type?: "message" | "header";
+  type?: "message" | "header";
   date?: string;
   sender_id: number;
   created_at: string;
@@ -228,16 +228,3 @@ export interface MessageboxProps {
   setReplyMessage: Dispatch<SetStateAction<Message | null>>;
   emojis: emoji[];
 }
-
-
-type HeaderItem = {
-  type: "header";
-  id: string;
-  date: string;
-};
-
-export type MessageItem = Message & {
-  type: "message";
-};
-
-export type FlatItem = HeaderItem | MessageItem;
