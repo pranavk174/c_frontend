@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useRef } from "react";
+import React, { Dispatch, SetStateAction, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Chat, Message } from "@/lib/dummy";
 import {
@@ -20,9 +20,10 @@ interface messageProps {
   emojis: emoji[];
   msg: Message;
   user_id: number | null;
-  data: Message[];
+  // data: Message[];
+  mappedMessages: Map<number, Message>;
   setReplyMessage: React.Dispatch<React.SetStateAction<Message | null>>;
-
+  repliedMessage?: Message | null | undefined;
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
 
@@ -34,7 +35,7 @@ interface messageProps {
 }
 
 const Messages = ({
-  data,
+  // data,
   msg,
 
   emojis,
@@ -47,11 +48,14 @@ const Messages = ({
   pausedRef,
   progress,
   uploadId,
+  repliedMessage,
   cancelUpload,
 }: messageProps) => {
-  const shouldReduceMotion = useReducedMotion();
   const x = useMotionValue(0);
   const triggered = useRef(false);
+
+  // console.log("messages  triggereddddddddd");
+
   const router = useRouter();
   const handleDragEnd = () => {
     if (x.get() > 90 && !triggered.current) {
@@ -71,10 +75,7 @@ const Messages = ({
     });
   };
 
-  const repliedMessage =
-    msg.reply_to_message_id !== null
-      ? data.find((d) => d.id === msg.reply_to_message_id)
-      : null;
+  // console.log("replied message", repliedMessage);
 
   const repliedStory = msg.story_id ? msg.story_item : null;
 

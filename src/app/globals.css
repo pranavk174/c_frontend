@@ -21,6 +21,7 @@
   --color-wa-divider-dark: #222d34;
   --color-wa-icon: #54656f;
   --color-wa-icon-dark: #aebac1;
+  /* --color-wa-sidebar-menu: #323632; */
 }
 
 @layer utilities {

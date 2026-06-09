@@ -63,6 +63,7 @@ import {
   updateAllChatcache,
 } from "@/lib/cacaheupdateutils";
 import Loader from "@/components/Utility/Loader";
+import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
 
 interface mediaProps {
   file_name: string;
@@ -97,8 +98,6 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const socket = useSocket();
 
-  const [active, setActive] = useState<number | string | null>(null);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number[] | null>([]);
   const [menu, setMenu] = useState(false);
@@ -125,6 +124,8 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const {
     data: messages,
+    groupedMessages,
+    mappedMessages,
     isLoading,
     isFetching,
     nextCursor,
@@ -133,8 +134,62 @@ const ChatPage = ({ id }: { id: number }) => {
     { chat_ids: [id], cursor, limit: 20 },
     {
       selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
+        // const res = new Map();
+        const result =
+          data?.data?.getChatById?.data?.items.reduce(
+            (acc, idx) => {
+              const date = new Date(Number(idx.created_at));
+
+              const today = new Date();
+              const yesterday = new Date();
+              yesterday.setDate(today.getDate() - 1);
+
+              let key = "";
+
+              if (date.toDateString() === today.toDateString()) {
+                key = "Today";
+              } else if (date.toDateString() === yesterday.toDateString()) {
+                key = "Yesterday";
+              } else {
+                key = date.toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                });
+              }
+
+              if (!acc[key]) {
+                acc[key] = [];
+              }
+
+              acc[key].push(idx);
+
+              return acc;
+            },
+            {} as Record<string, Message[]>,
+          ) ?? [];
+
+        console.log("result daataaa.", result);
+        const flatData = Object.entries(result)?.flatMap(
+          ([date, messagess]) => [
+            { type: "header", date, id: crypto.randomUUID() },
+            ...messagess?.map((msg: Message) => ({
+              type: "message",
+              ...msg,
+            })),
+          ],
+        );
+
+        // console.log(flatData, "result daataaa.",result);
+
+        const mappedMessages = new Map(
+          data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
+        );
+
         return {
           data: data?.data?.getChatById?.data?.items,
+          groupedMessages: flatData,
+          mappedMessages,
           nextCursor: data?.data?.getChatById?.data?.nextCursor,
           hasMore: data?.data?.getChatById?.data?.hasMore,
           isLoading,
@@ -161,7 +216,7 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-  const chat = messages;
+  // const chat = messages;
 
   // console.log(messages, "messagessss");
   const scrollToBottom = useCallback(() => {
@@ -276,7 +331,7 @@ const ChatPage = ({ id }: { id: number }) => {
     },
     [
       id,
-      setInputText,
+
       dispatch,
       replyMessage,
       inputText,
@@ -305,17 +360,20 @@ const ChatPage = ({ id }: { id: number }) => {
           form.append("chunk", chunk);
           form.append("index", i.toString());
 
-          await fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/upload`, {
-            method: "POST",
-            body: form,
-            signal: controllerRef.current?.signal,
-          });
+          await fetch(
+            `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/upload`,
+            {
+              method: "POST",
+              body: form,
+              signal: controllerRef.current?.signal,
+            },
+          );
           setCurrentChunk(i + 1);
           setProgress(Math.round(((i + 1) / totalChunk) * 100));
         }
 
         const done = await fetch(
-          `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/finish`,
+          `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/finish`,
           {
             method: "POST",
             headers: { "Content-type": "application/json" },
@@ -394,7 +452,7 @@ const ChatPage = ({ id }: { id: number }) => {
     try {
       controllerRef.current = new AbortController();
       const upload = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/start`,
+        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
         {
           method: "POST",
           headers: {
@@ -605,7 +663,7 @@ const ChatPage = ({ id }: { id: number }) => {
     );
   }
 
-  if (!chat) {
+  if (!messages) {
     return (
       <div className="flex-1 h-screen flex items-center font-bold text-xl uppercase justify-center text-gray-500">
         Chat not found
@@ -641,12 +699,12 @@ const ChatPage = ({ id }: { id: number }) => {
           </div>
         }
       >
-        <VirtualChatlist
+        <VirtualChatlistGrouped
           setSelectedMessages={setSelectedMessages}
           setCursor={setCursor}
           setSelected={setSelected}
           isFetching={isFetching}
-          data={messages}
+          data={groupedMessages}
           nextCursor={nextCursor}
           hasMore={hasMore}
           setMenu={setMenu}
@@ -657,14 +715,14 @@ const ChatPage = ({ id }: { id: number }) => {
           cancelUpload={cancelUpload}
           startUpload={startUpload}
           timerRef={timerRef}
-          setActive={setActive}
+          // setActive={setActive}
           emojis={emojis}
           chat_id={id}
           user_id={user_id}
-          messages={messages}
+          // messages={groupedMessages}
           setShow={setShow}
           // setMessages={setMessages}
-          active={active}
+          // active={active}
           // file={file}
           setReplyMessage={setReplyMessage}
           uploadId={uploadId}

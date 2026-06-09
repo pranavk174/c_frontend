@@ -56,6 +56,7 @@ const Chathead = memo(
     const dispatch = useAppDispatch();
     // const [editMessage, { isLoading }] = useEditMessageMutation();
 
+    console.log("chat head trigged ");
     const handleSave = async (content: string) => {
       try {
         const patchResult = dispatch(

@@ -1,6 +1,5 @@
 import { Dispatch, RefObject, SetStateAction } from "react";
 
-
 export type Chat = {
   // id: string;
   name: string;
@@ -32,6 +31,7 @@ export interface selectedProp {
 
 export interface chatListProps {
   menu: boolean;
+
   setMenu: Dispatch<SetStateAction<boolean>>;
   chat_id: number;
   chatDetails: Chat;
@@ -40,14 +40,14 @@ export interface chatListProps {
   setSelected: Dispatch<SetStateAction<number[] | null>>;
   hasMore: boolean;
   setShow: Dispatch<SetStateAction<string | number | null>>;
-  setActive: Dispatch<SetStateAction<string | number | null>>;
+  // setActive: Dispatch<SetStateAction<string | number | null>>;
   emojis: emoji[];
   show: string | number | null;
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
   setReplyMessage: Dispatch<SetStateAction<Message | null>>;
-  data: Message[];
-  active: string | number | null;
+  data: FlatItem[];
+  // active: string | number | null;
   isFetching: boolean;
   selectedMessages: number[];
   user_id: number | null;
@@ -56,7 +56,7 @@ export interface chatListProps {
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
   // setMessages?: Dispatch<SetStateAction<Message[]>>;
-  messages: Message[];
+  // messages: Message[];
   pausedRef: React.RefObject<boolean>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   progress: number;
@@ -78,6 +78,8 @@ export interface reaction {
 
 export interface Message {
   id: number;
+  // type?: "message" | "header";
+  date?: string;
   sender_id: number;
   created_at: string;
   preview: string | null;
@@ -198,3 +200,44 @@ export interface Notification {
 //   isRead?: boolean;
 //   isSentByMe: boolean;
 // };
+
+export interface MessageboxProps {
+  startPressTimer: (id: number) => void;
+  cancelPressTimer: () => void;
+  msg: Message;
+  repliedMessage: Message | null;
+  setActive: Dispatch<SetStateAction<string | number | null>>;
+  show: string | number | null;
+  selectionMode: boolean;
+  toggleSelection: (id: number) => void;
+  isSelected: boolean;
+  user_id: number | null;
+  active: string | number | null;
+  // startUpload: () => Promise<void>;
+  setShow: Dispatch<SetStateAction<string | number | null>>;
+  handleLike: (id: number, react_id: number) => void;
+  pausedRef: RefObject<boolean>;
+  progress: number;
+  uploadId: string;
+  mappedMessages: Map<number, Message>;
+  cancelUpload: () => Promise<"success" | undefined>;
+  uploadChunks: (id: string) => Promise<void>;
+  chatDetails: Chat;
+  // data: Message[];
+  icons: emoji[];
+  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
+  emojis: emoji[];
+}
+
+
+type HeaderItem = {
+  type: "header";
+  id: string;
+  date: string;
+};
+
+export type MessageItem = Message & {
+  type: "message";
+};
+
+export type FlatItem = HeaderItem | MessageItem;
