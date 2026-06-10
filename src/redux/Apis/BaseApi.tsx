@@ -12,19 +12,15 @@ export const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
-
 export interface refreshToken {
-
   data: {
     generateRefreshToken: {
-      status?: number
-      success?: boolean,
-      message?: string
-    }
-  }
-
+      status?: number;
+      success?: boolean;
+      message?: string;
+    };
+  };
 }
-
 
 export interface GraphQLErrorLocation {
   line: number;
@@ -48,7 +44,6 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
-
 
   const data = result.data as GraphQLResponse<unknown>;
 
@@ -88,29 +83,24 @@ const baseQueryWithReauth: BaseQueryFn<
 
       localStorage.removeItem("user");
 
-
       // optional redirect
       window.location.href = "/login";
     }
   } else if (!data) {
     console.log(data, "error dataaaaa");
-    throw new Error("Internal Server Error");
+    // throw new Error("Internal Server Error");
   } else if (data.errors?.length) {
-
-
-    console.log("error in base api", data.errors[0])
+    console.log("error in base api", data.errors[0]);
 
     return {
-
-
       error: {
         status: 500,
-        data: data.errors[0]
-      }
+        data: data.errors[0],
+      },
     };
   }
 
-  console.log(data, "data isn base api...")
+  // console.log(data, "data isn base api...")
 
   return result;
 };
@@ -118,6 +108,6 @@ const baseQueryWithReauth: BaseQueryFn<
 export const BaseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["chats", "User", "story", 'wallpaper'],
+  tagTypes: ["chats", "User", "story", "wallpaper"],
   endpoints: () => ({}),
 });

@@ -65,7 +65,6 @@ const VirtualChatlistGrouped = memo(
       measureElement: (el) => el.getBoundingClientRect().height,
     });
 
-
     const initialScrollDone = useRef(false);
 
     const hasMountedRef = useRef(false);
@@ -149,7 +148,7 @@ const VirtualChatlistGrouped = memo(
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
-    console.log(data, "dataaaaa ")
+    // console.log(data, "dataaaaa ")
 
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {

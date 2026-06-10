@@ -180,7 +180,7 @@ const ChatPage = ({ id }: { id: number }) => {
           ],
         );
 
-        console.log(flatData, "result daataaa.", result);
+        // console.log(flatData, "result daataaa.", result);
 
         const mappedMessages = new Map(
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
@@ -519,7 +519,7 @@ const ChatPage = ({ id }: { id: number }) => {
   const handler = useMemo(
     () => ({
       [REFETCH_CHATS]: (data: Message[]) => {
-        console.log(data, "chats dataaaa.... new wala...");
+        // console.log(data, "chats dataaaa.... new wala...");
         if (!data) {
           return;
         }

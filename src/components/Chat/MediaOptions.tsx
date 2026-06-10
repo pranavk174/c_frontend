@@ -71,9 +71,9 @@ const MediaOptions = ({
 
           if (e.target.files?.[0]) {
             setShow({
-              type: 'preview',
-              open: true
-            })
+              type: "preview",
+              open: true,
+            });
           }
         }}
         accept="image/*"
@@ -194,7 +194,7 @@ const MediaOptions = ({
         </div>
       )}
       <Modal values={show} setModal={setShow}>
-        {file && show.type === 'preview' && (
+        {file && show.type === "preview" && (
           <MediaPreviewContent
             file={file}
             inputText={inputText}
@@ -202,10 +202,10 @@ const MediaOptions = ({
             onSend={(data) => {
               startUpload();
               setInputText(data.caption);
-              console.log(data, "dataaa detailllllllll");
+              // console.log(data, "dataaa detailllllllll");
               setShow({
                 type: null,
-                open: false
+                open: false,
               });
             }}
           />

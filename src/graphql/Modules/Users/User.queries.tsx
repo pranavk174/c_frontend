@@ -21,7 +21,7 @@ export const getUserQuery = `
               }
               }
               
-              `
+              `;
 
 export const getAllUsersQuery = `
               
@@ -47,5 +47,4 @@ export const getAllUsersQuery = `
               }
               }
               
-              `
-
+              `;
