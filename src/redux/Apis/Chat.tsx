@@ -3,6 +3,7 @@ import { BaseApi } from "./BaseApi";
 import {
   getAllchatsQuery,
   getEmojiQuery,
+  getMemberQuery,
   getSingleChatQuery,
   getWallpaperQuery,
 } from "@/graphql/Modules/Chat/Chat.queries";
@@ -43,12 +44,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // console.log(result, "result.......");
         return result
           ? [
-              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -81,6 +82,21 @@ export const chatApi = BaseApi.injectEndpoints({
         currentCache.data.getChatById.data.hasMore =
           newData.data.getChatById.data.hasMore;
       },
+    }),
+    getMembers: builder.query({
+      query: ({ chat_id }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: getMemberQuery,
+          variables: {
+            input: {
+              chat_ids: [chat_id]
+            }
+          }
+        }
+
+      })
     }),
     getEmojis: builder.query({
       query: () => ({
@@ -229,7 +245,8 @@ export const {
   useGetAllChatsQuery,
   useGetEmojisQuery,
   useGetSingleChatQuery,
-
+  useGetMembersQuery,
+  useLazyGetMembersQuery,
   useEditMessageMutation,
   useLazyGetAllChatsQuery,
   useLazyGetEmojisQuery,

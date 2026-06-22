@@ -2,6 +2,7 @@ import {
   Chat,
   Message,
   modalValue,
+  profileProps,
   selectedProp,
   socketResponse,
   valueProps,
@@ -31,8 +32,9 @@ import ChatWallpaperSelector from "../Utility/Wallpapers";
 import EditMessage from "./Editmessage";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { useAppDispatch } from "@/lib/hooks";
-import { chatApi } from "@/redux/Apis/Chat";
+import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
 import { EDIT_MESSAGE } from "@/lib/events";
+import { useGetUsersQuery } from "@/redux/Apis/Users";
 
 interface chatHeadProps {
   menu: boolean;
@@ -41,6 +43,8 @@ interface chatHeadProps {
   selectedMessages?: number[];
   selected: selectedProp | null;
 }
+
+
 
 const Chathead = memo(
   ({
@@ -54,6 +58,52 @@ const Chathead = memo(
     const [popup, setPopup] = useState<boolean>(false);
     const socket = useSocket();
     const dispatch = useAppDispatch();
+
+    const { members } = useGetMembersQuery({ chat_id: chatDetails.chat_id }, {
+      selectFromResult: ({ data }) => {
+
+
+
+
+        return {
+          members: data?.data?.getMembers?.items
+        }
+      },
+      skip: chatDetails?.chat_type !== 'group'
+    })
+    const { users } = useGetUsersQuery(null,
+      {
+        selectFromResult: ({ data, isSuccess }) => {
+
+
+          // console.log(members, "membersssss")
+
+          // const d = new Map(
+          //   members?.map((member: { member_id: number, role: string }) => [member.member_id, member])
+          // )
+          // const newData = data?.data?.getUsers?.data?.items.reduce((acc: profileProps[], idx: profileProps) => {
+
+          //   if (d.has(idx.id)) {
+          //     acc.push({ ...idx, role: d.get(idx.id) })
+
+          //   }
+
+
+
+          //   return acc
+
+          // }, [])
+
+          // 
+          // console.log(, "new Dataaaaa,,,")
+          return {
+            users: data?.data?.getUsers?.data?.items
+          };
+        },
+        skip: chatDetails?.chat_type !== 'group'
+      });
+
+
     // const [editMessage, { isLoading }] = useEditMessageMutation();
 
     console.log("chat head trigged ");
@@ -262,7 +312,7 @@ const Chathead = memo(
                   open: false,
                 });
               }}
-              onCancel={() => {}}
+              onCancel={() => { }}
             />
           )}
 

@@ -116,12 +116,14 @@ export interface socketResponse {
 }
 
 export interface profileProps {
+  id?: number
   profile_pic?: string;
   cover_pic?: string;
   name?: string;
   bio?: string;
   mobile?: string;
   email?: string;
+  role?: string | unknown
   blocked?: boolean;
   chat_id?: number;
   user_id?: number;

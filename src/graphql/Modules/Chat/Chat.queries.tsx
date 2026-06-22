@@ -93,3 +93,23 @@ export const getWallpaperQuery = `
          
          }}
           `
+
+export const getMemberQuery = `
+
+query getMembers($input:ChatInput!){
+    getMembers(input:$input){
+        success,message,error,status,
+        data{
+            ... on members {
+           
+               items {
+                   member_id,
+                   role
+               }
+       
+            }
+        }
+    }
+}
+
+`

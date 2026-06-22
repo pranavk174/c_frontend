@@ -23,16 +23,16 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const registerNewServiceWorker = async () => {
-    await navigator.serviceWorker
-      .register("/sw.js", { scope: "/" })
-      .then((registration) => {
-        console.log("New Service Worker Registered:", registration);
-      })
-      .catch((error) => {
-        console.log("Service Worker Registration Failed:", error);
-      });
-  };
+  // const registerNewServiceWorker = async () => {
+  //   await navigator.serviceWorker
+  //     .register("/sw.js", { scope: "/" })
+  //     .then((registration) => {
+  //       console.log("New Service Worker Registered:", registration);
+  //     })
+  //     .catch((error) => {
+  //       console.log("Service Worker Registration Failed:", error);
+  //     });
+  // };
 
   useEffect(() => {
     if (!navigator.onLine) {
@@ -49,7 +49,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
       // Clean up old service workers
       cleanOldServiceWorker();
       // Register the new service worker
-      registerNewServiceWorker();
+      // registerNewServiceWorker();
       // Ensure the service worker is ready
     }
     return () => {

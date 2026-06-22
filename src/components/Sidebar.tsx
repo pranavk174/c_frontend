@@ -259,11 +259,11 @@ export default function Sidebar() {
         <div className="flex mt-2 flex-col overflow-y-auto overflow-x-hidden  gap-1 h-full ">
           {filteredChats?.map((chat: Chat) => {
             const isActive = pathname === `/chat/${chat?.chat_id}`;
-            // console.log(typeof chat?.chat_id, "royeeeeeetttee")
+            console.log(chat?.chat_id, "royeeeeeetttee")
             return (
               <Link
                 className=" overflow-hidden"
-                href={`/chat/${chat?.chat_id}`}
+                href={`/chat/${chat?.chat_id}?chat_type=${chat.chat_type}`}
                 key={chat?.chat_id}
               >
                 <div
@@ -281,9 +281,11 @@ export default function Sidebar() {
                       alt={chat?.name}
                       className="w-full h-full object-cover rounded-full"
                     />
-                    <span
-                      className={`size-2.5 ${onlineUsers.includes(chat.user_id.toString()) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
-                    ></span>
+                    {/* {chat.user_id !== null &&
+                      <span
+                        className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
+                      ></span>
+                    } */}
                   </div>
                   <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
                     <div className="flex justify-between items-center mb-1">
