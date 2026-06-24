@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Dispatch, SetStateAction, useRef, useState } from "react";
+import React, { Dispatch, RefObject, SetStateAction, useRef, useState } from "react";
 import {
   Paperclip,
   Image as Pic,
@@ -28,24 +28,20 @@ interface mediaOptionsProps {
   file: File | null;
   uploadId: string;
   messages: Message[];
-  inputText: string;
+  inputRef: RefObject<HTMLInputElement | null>
   setInputText: Dispatch<SetStateAction<string>>;
 }
 import { useToast } from "../Utility/Toast";
 const MediaOptions = ({
-  messages,
   setInputText,
-  inputText,
+  inputRef,
   file,
   open,
-  pausedRef,
-  progress,
-  uploadId,
+
   setFile,
   startUpload,
   setOpen,
-  cancelUpload,
-  uploadChunks,
+
 }: mediaOptionsProps) => {
   const [show, setShow] = useState<valueProps>(modalValue);
   const imageRef = useRef<HTMLInputElement>(null);
@@ -197,7 +193,8 @@ const MediaOptions = ({
         {file && show.type === "preview" && (
           <MediaPreviewContent
             file={file}
-            inputText={inputText}
+            // inputText={}
+            inputRef={inputRef}
             setInputText={setInputText}
             onSend={(data) => {
               startUpload();

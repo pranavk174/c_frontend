@@ -96,12 +96,13 @@ const ChatPage = ({ id }: { id: number }) => {
   const dispatch = useAppDispatch();
   const throttleRef = useRef(false);
 
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<number[] | null>([]);
+
   const [menu, setMenu] = useState(false);
   const [inputText, setInputText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   // const resolvedParams = use(params);
   const { showToast } = useToast();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
@@ -135,6 +136,7 @@ const ChatPage = ({ id }: { id: number }) => {
     {
       selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
         // const res = new Map();
+
         const result =
           data?.data?.getChatById?.data?.items.reduce(
             (acc: Record<string, Message[]>, idx: Message) => {
@@ -185,6 +187,8 @@ const ChatPage = ({ id }: { id: number }) => {
         const mappedMessages = new Map(
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
         );
+
+        console.log(data?.data?.getChatById?.data?.items, "messages in select from result===============")
 
         return {
           data: data?.data?.getChatById?.data?.items,
@@ -240,9 +244,11 @@ const ChatPage = ({ id }: { id: number }) => {
 
     if (bottomRef.current) observer.observe(bottomRef.current);
 
-    //  console.log("= data =================")
+    console.log("= data =================", messages)
     return () => observer.disconnect();
   }, [messages, nextCursor, hasMore, isFetching]);
+
+
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -253,15 +259,29 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const handleSendMessage = useCallback(
     async (e: React.FormEvent | mediaProps) => {
+
+
+      const input = inputRef.current;
+
+      if (!input || !socket) return;
+
+      const content = input.value.trim();
+
+      if (!content && "preventDefault" in e) return;
+
       if ("preventDefault" in e) {
         console.log("gotr issueeee");
         e.preventDefault();
-      } else if ((!e.url && !inputText.trim()) || !socket) {
+      } else if ((!e.url && !inputRef.current && !input.value) || !socket) {
         return;
       }
+
+
+
+      console.log(input.value, "input text rfwaaaal")
       const newMessage = {
         chat_ids: [id],
-        content: inputText,
+        content: input.value,
         media: "preventDefault" in e ? [] : [e],
         reciever_ids: [chatDetails.user_id],
         message_ids: [replyMessage?.id],
@@ -274,14 +294,14 @@ const ChatPage = ({ id }: { id: number }) => {
           chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
-            addMessage(inputText, user_id ?? 2, replyMessage),
+            addMessage(input.value, user_id ?? 2, replyMessage),
           ),
         );
         chatPatchResult = dispatch(
           chatApi.util.updateQueryData(
             "getAllChats",
             {},
-            updateAllChatcache(id, inputText),
+            updateAllChatcache(id, input.value),
           ),
         );
       }
@@ -328,13 +348,18 @@ const ChatPage = ({ id }: { id: number }) => {
 
       // setMessages([...messages, newMessage]);
       setInputText("");
+      // inputRef.current = null
+      // if (inputRef.current) {
+      input.value = "";
+      // inputRef.current = null
+      // }
     },
     [
       id,
 
       dispatch,
       replyMessage,
-      inputText,
+      // inputText,
       chatDetails,
       socket,
       scrollToBottom,
@@ -429,6 +454,7 @@ const ChatPage = ({ id }: { id: number }) => {
       setInputText("");
       setUploadId("");
       setCurrentChunk(0);
+      inputRef.current = null
       setFile(null);
       // setMessages(prev => prev.filter(pf => pf.id !== prev[prev.length - 1].id))
     },
@@ -443,7 +469,7 @@ const ChatPage = ({ id }: { id: number }) => {
       chatApi.util.updateQueryData(
         "getSingleChat",
         { chat_ids: [id] },
-        addMessage(inputText, user_id, replyMessage, url),
+        addMessage(inputRef.current.value, user_id, replyMessage, url),
       ),
     );
 
@@ -479,14 +505,14 @@ const ChatPage = ({ id }: { id: number }) => {
     id,
     user_id,
     uploadChunks,
-    inputText,
+    // inputText,
   ]);
 
-  useEffect(() => {
-    socket.onAny((event, ...args) => {
-      console.log("ANY EVENT:", event, args);
-    });
-  }, [socket]);
+  // useEffect(() => {
+  //   socket.onAny((event, ...args) => {
+  //     console.log("ANY EVENT:", event, args);
+  //   });
+  // }, [socket]);
 
   const cancelUpload = useCallback(async () => {
     controllerRef.current?.abort();
@@ -550,6 +576,21 @@ const ChatPage = ({ id }: { id: number }) => {
 
   useSocketEvents(socket, handler);
 
+
+  const selecteds = useMemo(() => {
+    return {
+      message: messages?.find(
+        (msg: Message) => msg.id === selectedMessages[0],
+      )?.content,
+      sender_id: messages?.find(
+        (msg: Message) => msg.id === selectedMessages[0],
+      )?.sender_id,
+      id: messages?.find((msg: Message) => msg.id === selectedMessages[0])
+        ?.id,
+    }
+  }, [messages, selectedMessages])
+
+
   useEffect(() => {
     if (user_id) {
       socket.emit(
@@ -576,6 +617,7 @@ const ChatPage = ({ id }: { id: number }) => {
       }
     };
   }, [user_id, socket, id]);
+
 
   useEffect(() => {
     if (!user_id || !messages?.length || throttleRef.current) return;
@@ -678,16 +720,7 @@ const ChatPage = ({ id }: { id: number }) => {
       <Chathead
         menu={menu}
         setShowModal={setShowModal}
-        selected={{
-          message: messages.find(
-            (msg: Message) => msg.id === selectedMessages[0],
-          )?.content,
-          sender_id: messages.find(
-            (msg: Message) => msg.id === selectedMessages[0],
-          )?.sender_id,
-          id: messages.find((msg: Message) => msg.id === selectedMessages[0])
-            ?.id,
-        }}
+        selected={selecteds}
         selectedMessages={selectedMessages}
         chatDetails={chatDetails}
       />
@@ -702,7 +735,6 @@ const ChatPage = ({ id }: { id: number }) => {
         <VirtualChatlistGrouped
           setSelectedMessages={setSelectedMessages}
           setCursor={setCursor}
-          setSelected={setSelected}
           isFetching={isFetching}
           data={groupedMessages}
           nextCursor={nextCursor}
@@ -715,15 +747,11 @@ const ChatPage = ({ id }: { id: number }) => {
           cancelUpload={cancelUpload}
           startUpload={startUpload}
           timerRef={timerRef}
-          // setActive={setActive}
           emojis={emojis}
           chat_id={id}
           user_id={user_id}
-          // messages={groupedMessages}
           setShow={setShow}
-          // setMessages={setMessages}
-          // active={active}
-          // file={file}
+
           setReplyMessage={setReplyMessage}
           uploadId={uploadId}
           setFile={setFile}
@@ -743,7 +771,8 @@ const ChatPage = ({ id }: { id: number }) => {
         setReplyMessage={setReplyMessage}
         setFile={setFile}
         setInputText={setInputText}
-        inputText={inputText}
+        // inputText={inputRef.current}
+        inputRef={inputRef}
         file={file}
         handleSendMessage={handleSendMessage}
         // setMessages={setMessages}
@@ -761,7 +790,7 @@ const ChatPage = ({ id }: { id: number }) => {
         {showModal.type === "delete" && (
           <DeleteMessage
             setShowModal={setShowModal}
-            setSelected={setSelected}
+            // setSelected={setSelected}
             setSelectedMessages={setSelectedMessages}
             selectedMessages={selectedMessages}
             chat_id={id}

@@ -56,7 +56,7 @@ const Chathead = memo(
   }: chatHeadProps) => {
     const [open, setOpen] = useState<valueProps>(modalValue);
     const [popup, setPopup] = useState<boolean>(false);
-    const socket = useSocket();
+    const { chatSocket: socket, notificationSocket } = useSocket();;
     const dispatch = useAppDispatch();
 
     const { members } = useGetMembersQuery({ chat_id: chatDetails.chat_id }, {

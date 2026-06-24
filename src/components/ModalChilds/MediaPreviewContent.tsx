@@ -1,16 +1,17 @@
 "use client";
 
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, RefObject, SetStateAction, useState } from "react";
 import { Send } from "lucide-react";
 import Image from "next/image";
 
 const MediaPreviewContent = ({
     file,
     onSend,
-    setInputText, inputText,
+    setInputText, inputRef
 }: {
     file: File;
-    inputText: string
+    // inputText: string,
+    inputRef: RefObject<HTMLInputElement | null>
     setInputText: Dispatch<SetStateAction<string>>
     onSend: (data: {
         file: File;
@@ -42,12 +43,13 @@ const MediaPreviewContent = ({
                     <input
                         type="text"
                         placeholder="Add a caption..."
-                        value={caption}
-                        onChange={(e) => {
-                            setCaption(e.target.value)
-                            setInputText(e.target.value)
-                        }
-                        }
+                        ref={inputRef}
+                        // value={caption}
+                        // onChange={(e) => {
+                        //     setCaption(e.target.value)
+                        //     setInputText(e.target.value)
+                        // }
+                        // }
                         className="flex-1 h-12 rounded-full bg-white/10 px-4 text-white outline-none placeholder:text-gray-400"
                     />
 

@@ -25,7 +25,7 @@ const reasons = [
 ];
 
 const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
 

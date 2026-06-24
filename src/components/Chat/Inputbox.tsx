@@ -7,6 +7,7 @@ import React, {
   Dispatch,
   FormEvent,
   memo,
+  RefObject,
   SetStateAction,
   useState,
 } from "react";
@@ -28,8 +29,9 @@ interface inputBoxProps {
   progress: number;
   uploadId: string;
   file: File | null;
-  inputText: string;
+  // inputText: string;
   setInputText: Dispatch<SetStateAction<string>>;
+  inputRef: RefObject<HTMLInputElement | null>
   handleSendMessage: (e: FormEvent<Element>) => Promise<void>;
 }
 
@@ -39,7 +41,8 @@ const Inputbox = memo(
     handleSendMessage,
     cancelUpload,
     file,
-    inputText,
+    // inputText,
+    inputRef,
     setInputText,
     progress,
     uploadId,
@@ -66,8 +69,9 @@ const Inputbox = memo(
           <div>
             <MediaOptions
               setInputText={setInputText}
-              inputText={inputText}
+              // inputText={inputText}
               file={file}
+              inputRef={inputRef}
               pausedRef={pausedRef}
               setFile={setFile}
               progress={progress}
@@ -90,7 +94,9 @@ const Inputbox = memo(
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!inputText.trim()) return;
+
+            // console.log(inputRef.current.value, "input ref dataaaa")
+            if (!inputRef.current) return;
             handleSendMessage(e);
           }}
           className="flex-1 flex flex-col relative bg-white dark:bg-[#202c33] rounded-xl"
@@ -120,17 +126,25 @@ const Inputbox = memo(
 
           {/* Input */}
           <div className="flex items-center px-2 py-2">
+            {/* <input
+              type="text"
+              ref={inputRef}
+              // value={inputText}
+              // onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type a message"
+              className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            /> */}
+
             <input
               type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              ref={inputRef}
               placeholder="Type a message"
               className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
             <div className="ml-2 shrink-0">
-              {inputText.trim() ? (
+              {inputRef.current ? (
                 <button
-                  disabled={!inputText.trim()}
+                  disabled={!inputRef.current}
                   onClick={handleSendMessage}
                   className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
                 >

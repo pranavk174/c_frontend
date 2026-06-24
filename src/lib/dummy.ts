@@ -37,7 +37,7 @@ export interface chatListProps {
   chatDetails: Chat;
   setSelectedMessages: Dispatch<SetStateAction<number[]>>;
   setCursor: Dispatch<SetStateAction<number | null>>;
-  setSelected: Dispatch<SetStateAction<number[] | null>>;
+  // setSelected: Dispatch<SetStateAction<number[] | null>>;
   hasMore: boolean;
   setShow: Dispatch<SetStateAction<string | number | null>>;
   // setActive: Dispatch<SetStateAction<string | number | null>>;

@@ -62,7 +62,7 @@ const VirtualChatlist = memo(
     setReplyMessage,
     show,
   }: chatListProps) => {
-    const socket = useSocket();
+    const { chatSocket: socket, notificationSocket } = useSocket();;
     const parentRef = React.useRef<HTMLDivElement | null>(null);
     const topSentinelRef = useRef<HTMLDivElement | null>(null);
 

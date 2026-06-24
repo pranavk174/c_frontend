@@ -91,7 +91,7 @@ const Chatlist = memo(
     setReplyMessage,
     show,
   }: chatListProps) => {
-    const socket = useSocket();
+    const { chatSocket: socket, notificationSocket } = useSocket();;
     const [selectionMode, setSelectionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollToBottom = () => {

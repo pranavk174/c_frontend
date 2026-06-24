@@ -41,7 +41,7 @@ const WhatsappProfile = ({
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState(profile);
   const [file, setFile] = useState<string | null>(null);
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
   const [updateUser] = useUpdateUserMutation();
   const [unBlockUser] = useUnBlockUserMutation();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);

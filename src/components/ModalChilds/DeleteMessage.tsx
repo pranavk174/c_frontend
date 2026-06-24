@@ -5,7 +5,7 @@ import React, { Dispatch, SetStateAction } from "react";
 
 interface deleteMessageProps {
   setShowModal: Dispatch<SetStateAction<valueProps>>;
-  setSelected: Dispatch<SetStateAction<number[] | null>>;
+  // setSelected: Dispatch<SetStateAction<number[] | null>>;
   selectedMessages: number[];
   chat_id: number;
   setSelectedMessages: Dispatch<SetStateAction<number[]>>;
@@ -13,7 +13,7 @@ interface deleteMessageProps {
 
 const DeleteMessage = ({
   setShowModal,
-  setSelected,
+  // setSelected,
   setSelectedMessages,
   selectedMessages,
   chat_id,
@@ -46,7 +46,7 @@ const DeleteMessage = ({
         type: null,
         open: false,
       });
-      setSelected([]);
+      // setSelected([]);
       setSelectedMessages([]);
     } catch (error) {
       pathResult.undo();

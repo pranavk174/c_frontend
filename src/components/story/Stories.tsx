@@ -19,7 +19,7 @@ import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { STORY_LIKE, STORY_SEEN } from "@/lib/events";
 
 const StoryList = () => {
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
   const [open, setOpen] = useState<valueProps>(modalValue);
   const handleClose = useCallback(() => setOpen({
     type: null,

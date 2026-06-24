@@ -60,7 +60,7 @@ const StoryViewer = ({
   const [seenStory] = useSeenStoryMutation();
   const [isPaused, setIsPaused] = useState(false);
   // Keep onClose in a ref so the effect never needs it as a dependency
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;

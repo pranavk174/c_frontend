@@ -46,7 +46,7 @@ export default function Sidebar() {
     "chats",
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const socket = useSocket();
+  const { chatSocket: socket, notificationSocket } = useSocket();;
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { user } = useGetUserQuery(null, {
