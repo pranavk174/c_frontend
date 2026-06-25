@@ -40,7 +40,7 @@ export default function Sidebar() {
   const [logout] = useLogoutMutation();
   const pathname = usePathname();
   const [open, setOpen] = useState<valueProps>(modalValue);
-  const [expanded, setExpanded] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean>(true);
 
   const [current, setCurrent] = useState<"chats" | "newChat" | "stories">(
     "chats",
@@ -238,7 +238,7 @@ export default function Sidebar() {
 
       {/* Search Bar */}
       {/* {current === "chats" && ( */}
-      <div className={`transition-all rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? 'z-1 md:z-0' : ''}`}>
+      <div className={`transition-all relative rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? 'z-1 md:z-0' : ''}`}>
         <div className="p-2 rounded-lg shrink-0 bg-green-400 dark:bg-wa-panel-dark border-b border-wa-divider dark:border-wa-divider-dark flex items-center space-x-2">
           <div className="flex-1 flex items-center bg-wa-search dark:bg-wa-search-dark rounded-lg px-4 py-2">
             <Search className="w-4 h-4 text-wa-icon dark:text-wa-icon-dark mr-3" />
@@ -256,10 +256,10 @@ export default function Sidebar() {
         </div>
 
         {/* Chat List */}
-        <div className="flex mt-2 flex-col overflow-y-auto overflow-x-hidden  gap-1 h-full ">
+        <div className="flex mt-2  flex-col relative overflow-y-auto overflow-x-hidden  gap-1 h-full ">
           {filteredChats?.map((chat: Chat) => {
             const isActive = pathname === `/chat/${chat?.chat_id}`;
-            console.log(chat?.chat_id, "royeeeeeetttee")
+            // console.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
             return (
               <Link
                 className=" overflow-hidden"
@@ -272,7 +272,7 @@ export default function Sidebar() {
                     isActive && "bg-wa-header dark:bg-gray-600",
                   )}
                 >
-                  <div className="relative size-12  mr-4 shrink-0 overflow-hidden">
+                  <div className="relative size-12   mr-4 shrink-0 overflow-hidden">
                     <Image
                       priority
                       fill
@@ -281,11 +281,11 @@ export default function Sidebar() {
                       alt={chat?.name}
                       className="w-full h-full object-cover rounded-full"
                     />
-                    {/* {chat.user_id !== null &&
+                    {chat.user_id !== null &&
                       <span
-                        className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0 z-30 bg-green-400 rounded-[50%]`}
+                        className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
                       ></span>
-                    } */}
+                    }
                   </div>
                   <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
                     <div className="flex justify-between items-center mb-1">
@@ -305,9 +305,9 @@ export default function Sidebar() {
                     </div>
                     <div className="flex justify-between items-center">
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
-                        {chat?.last_message}
+                        {chat?.last_message && chat?.last_message.length > 10 ? `${chat?.last_message.substring(0, 10)}...` : chat.last_message}
                       </p>
-                      {chat.unread_count > 0 && (
+                      {chat?.unread_count > 0 && (
                         <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
                           {chat?.unread_count}
                         </span>
@@ -330,7 +330,7 @@ export default function Sidebar() {
           <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
         )}
 
-        {users && open.type === "new-chat" && <NewChat users={users} />}
+        {users && open.type === "new-chat" && <NewChat setModal={setOpen} users={users} />}
 
         {open.type === "notification" && (
           <WhatsAppNotificationUI notifications={notifications} />

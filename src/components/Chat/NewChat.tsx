@@ -1,23 +1,29 @@
 "use client";
 
+import { valueProps } from "@/lib/dummy";
+
 import { useNewChatMutation } from "@/redux/Apis/Chat";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction } from "react";
 
 interface User {
     id: number;
     name: string;
+    chat_id: number | null
     username: string;
     profile_pic?: string;
 }
 
 interface NewChatProps {
     users: User[];
+    setModal: Dispatch<SetStateAction<valueProps>>
     // onSelectUser: (user: User) => void;
 }
 
 export default function NewChat({
     users,
+    setModal
     // onSelectUser,
 }: NewChatProps) {
 
@@ -25,25 +31,41 @@ export default function NewChat({
 
     const router = useRouter()
 
-    const handleCreate = async (member_id: number) => {
-
-
+    const handleCreate = async (member_id: number, chat_id: number | null = null) => {
         try {
+            if (chat_id !== null) {
+                router.push(`/chat/${chat_id}?chat_type=private`)
+                console.log("ye chat dataaaa")
 
-            const data = await newChat({ member_id }).unwrap()
 
-            if (data.data.createNewChat.data.chat_id) {
+            } else {
 
-                console.log(data.data.createNewChat.data.chat_id, "chat idddd")
-                router.push(`/chat/${data.data.createNewChat.data.chat_id}`)
 
+
+                const data = await newChat({ member_id }).unwrap()
+
+                if (data.data.createNewChat.data.chat_id) {
+
+                    console.log(data.data.createNewChat.data.chat_id, "chat idddd")
+                    router.push(`/chat/${data.data.createNewChat.data.chat_id}?chat_type=private`)
+
+                }
             }
+            return
         } catch (error) {
             console.log(error, "error in creating chat...")
 
 
         }
+        finally {
+            setModal({
+                open: false,
+                type: null
+            })
+
+        }
     }
+
 
 
 
@@ -83,7 +105,7 @@ export default function NewChat({
                 </div>) : users.map((user) => (
                     <button
                         key={user.id}
-                        onClick={() => handleCreate(user.id)}
+                        onClick={() => handleCreate(user.id, user.chat_id)}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] transition-colors border-b border-[#182229]"
                     >
                         {/* Avatar */}

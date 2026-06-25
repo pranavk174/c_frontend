@@ -60,7 +60,7 @@ const Inputbox = memo(
     const [open, setOpen] = useState(false);
 
     return (
-      <footer className="h-15.5 bg-wa-header dark:bg-wa-header-dark flex items-center px-4 py-2 shrink-0 z-10">
+      <footer className=" py-1 h-fit relative  bg-wa-header dark:bg-wa-header-dark flex items-center px-4 shrink-0 z-10">
         <div className="flex relative items-center space-x-2 text-wa-icon dark:text-wa-icon-dark mr-2 shrink-0">
           <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
             <Smile className="w-6 h-6" />

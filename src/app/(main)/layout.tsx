@@ -31,7 +31,7 @@ export default function MainLayout({
               {/* </div> */}
               <div
                 className={cn(
-                  "flex-1 flex-col p-1 relative bg-wa-bg dark:bg-[#222e35]",
+                  "flex w-full p-1 relative bg-wa-bg dark:bg-[#222e35]",
                   // isChatOpen ? "flex" : "hidden md:flex",
                 )}
               >

@@ -39,6 +39,7 @@ export const getAllUsersQuery = `
       bio
       mobile
       profile_pic
+      chat_id
       cover_pic
     }
               

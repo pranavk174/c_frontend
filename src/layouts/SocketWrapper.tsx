@@ -1,6 +1,7 @@
 "use client";
 
 import { useToast } from "@/components/Utility/Toast";
+import { Notification } from "@/lib/dummy";
 import {
   CONNECTION_ERROR,
   ERROR,
@@ -9,6 +10,7 @@ import {
   SEEN_NOTIFICATION,
 } from "@/lib/events";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
+
 
 // import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 // import { useSocketEvents } from "@/lib/hooks";
@@ -259,6 +261,13 @@ export const SocketProvider = ({ children }: Props) => {
     [showToast, dispatch],
   );
   console.log("triggered wrappper...")
+
+
+  useEffect(() => {
+    chatSocket.onAnyOutgoing((event, ...args) => {
+      console.log("ANY outgoing Event in Backend EVENT:", event, args);
+    });
+  }, [chatSocket])
 
   useSocketEvents(chatSocket, handler);
   useSocketEvents(notificationSocket, handlerNotification);

@@ -6,6 +6,7 @@ import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
 import { useBlockUserMutation } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_LEAVED } from "@/lib/events";
+
 type BlockUserProps = {
   userId?: number | string;
 

@@ -15,6 +15,7 @@ import {
   sendMessageMutation,
   setWallPaperMutation,
 } from "@/graphql/Modules/Chat/Chat.mutation";
+import { current } from "@reduxjs/toolkit";
 
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -61,7 +62,19 @@ export const chatApi = BaseApi.injectEndpoints({
         return currentArg?.cursor !== previousArg?.cursor;
       },
 
-      merge: (currentCache, newData) => {
+      merge: (currentCache, newData, { arg }) => {
+        // cursor null means fresh/initial load — replace cache completely
+        if (arg.cursor === null || arg.cursor === undefined) {
+          currentCache.data.getChatById.data.items =
+            newData.data.getChatById.data.items;
+          currentCache.data.getChatById.data.nextCursor =
+            newData.data.getChatById.data.nextCursor;
+          currentCache.data.getChatById.data.hasMore =
+            newData.data.getChatById.data.hasMore;
+          return;
+        }
+
+        // cursor present means pagination — prepend older messages
         const currentItems = currentCache?.data?.getChatById?.data?.items ?? [];
         const newItems = newData?.data?.getChatById?.data?.items ?? [];
 
@@ -70,13 +83,11 @@ export const chatApi = BaseApi.injectEndpoints({
           (msg: Message) => !existingIds.has(msg.id),
         );
 
-        // purane messages ke upar naye (older) messages prepend karo
         currentCache.data.getChatById.data.items = [
           ...uniqueNewMessages,
           ...currentItems,
         ];
 
-        // nextCursor aur hasMore update karo
         currentCache.data.getChatById.data.nextCursor =
           newData.data.getChatById.data.nextCursor;
         currentCache.data.getChatById.data.hasMore =

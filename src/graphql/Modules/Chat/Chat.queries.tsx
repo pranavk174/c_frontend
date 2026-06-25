@@ -7,6 +7,7 @@ export const getAllchatsQuery = `
                 ... on AllChats{
                     items{
                         user_id,
+                              isOnline,
                         name,profile_pic,last_message,last_message_at,chat_type,
                         chat_id
                         cover_pic,
@@ -43,6 +44,7 @@ export const getSingleChatQuery = `
       story_id ,
       is_edited ,
       seen_users,
+
       reply_to_message_id ,
       is_deleted ,
       reactions{

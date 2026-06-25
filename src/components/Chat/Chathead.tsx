@@ -59,7 +59,7 @@ const Chathead = memo(
     const { chatSocket: socket, notificationSocket } = useSocket();;
     const dispatch = useAppDispatch();
 
-    const { members } = useGetMembersQuery({ chat_id: chatDetails.chat_id }, {
+    const { members } = useGetMembersQuery({ chat_id: chatDetails?.chat_id }, {
       selectFromResult: ({ data }) => {
 
 
@@ -69,7 +69,7 @@ const Chathead = memo(
           members: data?.data?.getMembers?.items
         }
       },
-      skip: chatDetails?.chat_type !== 'group'
+      skip: chatDetails?.chat_type !== 'group' || !chatDetails?.chat_id
     })
     const { users } = useGetUsersQuery(null,
       {

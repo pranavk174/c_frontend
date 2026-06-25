@@ -2,6 +2,44 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { socketResponse } from "./dummy";
 
+
+type LogLevel = "log" | "info" | "warn" | "error" | "debug";
+
+const isDev = process.env.NODE_ENV === "development";
+
+function print(
+  level: LogLevel,
+  scope: string,
+  ...args: unknown[]
+) {
+  if (!isDev && level !== "error") return;
+
+  const time = new Date().toLocaleTimeString();
+
+  console[level](
+    `%c[${time}] [${scope}]`,
+    "color:#3b82f6;font-weight:bold",
+    ...args
+  );
+}
+
+export const logger = {
+  log: (scope: string, ...args: unknown[]) =>
+    print("log", scope, ...args),
+
+  info: (scope: string, ...args: unknown[]) =>
+    print("info", scope, ...args),
+
+  warn: (scope: string, ...args: unknown[]) =>
+    print("warn", scope, ...args),
+
+  error: (scope: string, ...args: unknown[]) =>
+    print("error", scope, ...args),
+
+  debug: (scope: string, ...args: unknown[]) =>
+    print("debug", scope, ...args),
+};
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -107,3 +145,5 @@ export const uploadImage = async (file: File) => {
     return null;
   }
 };
+
+

@@ -188,8 +188,6 @@ const ChatPage = ({ id }: { id: number }) => {
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
         );
 
-        console.log(data?.data?.getChatById?.data?.items, "messages in select from result===============")
-
         return {
           data: data?.data?.getChatById?.data?.items,
           groupedMessages: flatData,
@@ -508,11 +506,11 @@ const ChatPage = ({ id }: { id: number }) => {
     // inputText,
   ]);
 
-  // useEffect(() => {
-  //   socket.onAny((event, ...args) => {
-  //     console.log("ANY EVENT:", event, args);
-  //   });
-  // }, [socket]);
+  useEffect(() => {
+    socket.onAny((event, ...args) => {
+      console.log("ANY EVENT:", event, args);
+    });
+  }, [socket]);
 
   const cancelUpload = useCallback(async () => {
     controllerRef.current?.abort();
@@ -619,30 +617,125 @@ const ChatPage = ({ id }: { id: number }) => {
   }, [user_id, socket, id]);
 
 
+  // useEffect(() => {
+  //   if (!user_id || !messages?.length || throttleRef.current) return;
+
+  //   const unseenMessages = messages
+  //     .filter(
+  //       (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
+  //     )
+  //     .map((d: Message) => d.id);
+
+  //   if (!unseenMessages.length) return;
+  //   console.log(unseenMessages, "un seend is useEffect are....", messages);
+  //   throttleRef.current = true;
+  //   socket.emit(
+  //     MESSAGE_SEEN,
+  //     {
+  //       chat_id: id,
+  //       message_ids: unseenMessages,
+  //       reciever_id: chatDetails?.user_id,
+  //     },
+  //     (response: socketResponse) => {
+  //       // agar backend fail
+
+  //       if (response.success) {
+  //         // rollback
+  //         dispatch(
+  //           chatApi.util.updateQueryData(
+  //             "getSingleChat",
+  //             { chat_ids: [id], cursor, limit: 20 },
+  //             (draft) => {
+  //               draft?.data?.getChatById?.data?.items?.forEach(
+  //                 (chat: Message) => {
+  //                   if (
+  //                     chat.sender_id !== user_id &&
+  //                     !chat.seen_users.includes(user_id) &&
+  //                     unseenMessages.includes(chat.id)
+  //                   ) {
+  //                     console.log("ye condition true hai");
+  //                     chat.seen_users = [...chat.seen_users, user_id];
+  //                   }
+  //                   console.log("ye condition false hai......");
+  //                 },
+  //               );
+  //             },
+  //           ),
+  //         );
+
+  //         dispatch(
+  //           chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
+  //             const item = draft.data.getAllChats.data.items.find(
+  //               (c: Chat) => c.chat_id === id,
+  //             );
+
+  //             if (item) {
+  //               item.unread_count -= unseenMessages;
+  //             }
+  //           }),
+  //         );
+
+  //         // dispatch(NotificationApi.util.updateQueryData("getNotifications", {}, (draft) => {
+
+  //         // }))
+
+  //         // patchResult?.undo();
+
+  //         console.log(response, "callback response in seen message", response);
+  //       }
+  //       console.log(response, "callback response outside");
+  //     },
+  //   );
+
+  //   const timer = setTimeout(() => {
+  //     throttleRef.current = false;
+  //   }, 1000);
+
+  //   return () => clearTimeout(timer);
+  // }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
+
+
+  const pendingSeenRef = useRef<Set<number>>(new Set());
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    if (!user_id || !messages?.length || throttleRef.current) return;
+    if (!user_id || !messages?.length) return;
 
-    const unseenMessages = messages
-      .filter(
-        (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
-      )
-      .map((d: Message) => d.id);
+    // Queue me saare unseen messages add karo
+    messages.forEach((msg: Message) => {
+      if (
+        msg.sender_id !== user_id &&
+        !msg.seen_users.includes(user_id)
+      ) {
+        pendingSeenRef.current.add(msg.id);
+      }
+    });
 
-    if (!unseenMessages.length) return;
-    console.log(unseenMessages, "un seend is useEffect are....", messages);
-    throttleRef.current = true;
-    socket.emit(
-      MESSAGE_SEEN,
-      {
-        chat_id: id,
-        message_ids: unseenMessages,
-        reciever_id: chatDetails?.user_id,
-      },
-      (response: socketResponse) => {
-        // agar backend fail
+    // Har naye message pe timer reset hoga
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
 
-        if (response.success) {
-          // rollback
+    timerRef.current = setTimeout(() => {
+      const message_ids = [...pendingSeenRef.current];
+
+      pendingSeenRef.current.clear();
+      timerRef.current = null;
+
+      if (!message_ids.length) return;
+
+      console.log("Sending Seen Batch:", message_ids);
+
+      socket.emit(
+        MESSAGE_SEEN,
+        {
+          chat_id: id,
+          message_ids,
+          reciever_id: chatDetails?.user_id,
+        },
+        (response: socketResponse) => {
+          if (!response.success) return;
+
           dispatch(
             chatApi.util.updateQueryData(
               "getSingleChat",
@@ -651,51 +744,42 @@ const ChatPage = ({ id }: { id: number }) => {
                 draft?.data?.getChatById?.data?.items?.forEach(
                   (chat: Message) => {
                     if (
+                      message_ids.includes(chat.id) &&
                       chat.sender_id !== user_id &&
-                      !chat.seen_users.includes(user_id) &&
-                      unseenMessages.includes(chat.id)
+                      !chat.seen_users.includes(user_id)
                     ) {
-                      console.log("ye condition true hai");
-                      chat.seen_users = [...chat.seen_users, user_id];
+                      chat.seen_users.push(user_id);
                     }
-                    console.log("ye condition false hai......");
-                  },
+                  }
                 );
-              },
-            ),
+              }
+            )
           );
 
           dispatch(
             chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
               const item = draft.data.getAllChats.data.items.find(
-                (c: Chat) => c.chat_id === id,
+                (c: Chat) => c.chat_id === id
               );
 
               if (item) {
-                item.unread_count -= unseenMessages;
+                item.unread_count = Math.max(
+                  0,
+                  item.unread_count - message_ids.length
+                );
               }
-            }),
+            })
           );
-
-          // dispatch(NotificationApi.util.updateQueryData("getNotifications", {}, (draft) => {
-
-          // }))
-
-          // patchResult?.undo();
-
-          console.log(response, "callback response in seen message", response);
         }
-        console.log(response, "callback response outside");
-      },
-    );
+      );
+    }, 300); // 300ms tak koi naya message nahi aaya to batch bhej do
 
-    const timer = setTimeout(() => {
-      throttleRef.current = false;
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
   }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
-
   if (isLoading) {
     return (
       <div className="h-screen flex flex-col justify-center items-center">
@@ -714,7 +798,7 @@ const ChatPage = ({ id }: { id: number }) => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full chat-bg relative">
+    <div className="flex flex-col  w-full chat-bg relative">
       {/* Header */}
 
       <Chathead

@@ -11,6 +11,7 @@ import { chatApi } from "@/redux/Apis/Chat";
 import { MESSAGE_SEEN } from "./events";
 import { AppDispatch } from "@/redux/store";
 import { Socket } from "socket.io-client";
+import { } from "./utils";
 export interface GetChatByIdResponse {
   data: {
     getChatById: {
@@ -38,28 +39,28 @@ export const addMessage =
     replyMessage: Message | null,
     url: string | null = null,
   ) =>
-  (draft: Draft<GetChatByIdResponse>) => {
-    const items = draft?.data?.getChatById?.data?.items;
+    (draft: Draft<GetChatByIdResponse>) => {
+      const items = draft?.data?.getChatById?.data?.items;
 
-    if (!items) return;
+      if (!items) return;
 
-    items.push({
-      id: (items[items.length - 1]?.id || 0) + 1,
-      sender_id: user_id ?? 2,
-      created_at: Date.now().toString(),
-      seen_at: null,
-      story_id: null,
-      seen_users: [],
-      content: inputText,
-      preview: url,
-      reply_to_message_id: replyMessage?.id ?? null,
-      is_forwarded: false,
-      is_edited: false,
-      is_deleted: false,
-      reactions: [],
-      isLocal: true,
-    });
-  };
+      items.push({
+        id: (items[items.length - 1]?.id || 0) + 1,
+        sender_id: user_id ?? 2,
+        created_at: Date.now().toString(),
+        seen_at: null,
+        story_id: null,
+        seen_users: [],
+        content: inputText,
+        preview: url,
+        reply_to_message_id: replyMessage?.id ?? null,
+        is_forwarded: false,
+        is_edited: false,
+        is_deleted: false,
+        reactions: [],
+        isLocal: true,
+      });
+    };
 
 export const updateAllChatcache =
   (id: number, inputText: string) => (draft: Draft<GetAllChatResponse>) => {

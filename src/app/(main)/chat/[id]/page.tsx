@@ -4,10 +4,8 @@ const page = async ({ params }: { params: { id: number } }) => {
   const { id } = await params;
 
 
-  return (
-    <div>
-      <ChatPage id={Number(id)} />
-    </div>
+  return (<ChatPage id={Number(id)} />
+
   );
 };
 

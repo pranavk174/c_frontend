@@ -1,6 +1,7 @@
 import { Middleware, isRejectedWithValue } from "@reduxjs/toolkit";
 import { showGlobalToast } from "../toastservices";
 
+
 export const errorMiddleware: Middleware = () => (next) => (action) => {
   // const { showToast } = useToast()
   if (isRejectedWithValue(action)) {
@@ -24,6 +25,8 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
     // showToast(message, "error");
     showGlobalToast(`error in ${endpointName} API`, "error");
   }
+
+
 
   return next(action);
 };

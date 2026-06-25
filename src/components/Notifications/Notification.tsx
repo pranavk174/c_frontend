@@ -1,4 +1,5 @@
 import { Notification } from "@/lib/dummy";
+
 import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
 import { div } from "framer-motion/client";
 import Image from "next/image";
@@ -83,7 +84,7 @@ export default function NotificationUI({ notifications }: { notifications: Notif
                                 <Image
                                     height={100}
                                     width={100}
-                                    src={item.profile_pic}
+                                    src={item?.profile_pic.length > 0 ? item.profile_pic : "https://i.pravatar.cc/100?img=55"}
                                     alt="profile"
                                     className="w-14 h-14 rounded-full object-cover"
                                 />

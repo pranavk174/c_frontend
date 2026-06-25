@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Camera } from "lucide-react";
 import { useRef, useState } from "react";
 
-import { uploadImage } from "@/lib/utils";
+import { , uploadImage } from "@/lib/utils";
 import { useCreateUserMutation } from "@/redux/Apis/Users";
 import { useRouter } from "next/navigation";
 

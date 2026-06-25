@@ -6,6 +6,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+
 export default function Wrapper({ children }: { children: React.ReactNode }) {
   //   const [isOnline, setIsOnline] = useState(true);
   const onLineRef = useRef(false);
@@ -23,16 +24,16 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // const registerNewServiceWorker = async () => {
-  //   await navigator.serviceWorker
-  //     .register("/sw.js", { scope: "/" })
-  //     .then((registration) => {
-  //       console.log("New Service Worker Registered:", registration);
-  //     })
-  //     .catch((error) => {
-  //       console.log("Service Worker Registration Failed:", error);
-  //     });
-  // };
+  const registerNewServiceWorker = async () => {
+    await navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then((registration) => {
+        console.log("New Service Worker Registered:", registration);
+      })
+      .catch((error) => {
+        console.log("Service Worker Registration Failed:", error);
+      });
+  };
 
   useEffect(() => {
     if (!navigator.onLine) {
@@ -47,7 +48,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     window.addEventListener("offline", handleOffline);
     if ("serviceWorker" in navigator) {
       // Clean up old service workers
-      cleanOldServiceWorker();
+      // cleanOldServiceWorker();
       // Register the new service worker
       // registerNewServiceWorker();
       // Ensure the service worker is ready
