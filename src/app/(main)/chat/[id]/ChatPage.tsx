@@ -696,7 +696,6 @@ const ChatPage = ({ id }: { id: number }) => {
 
 
   const pendingSeenRef = useRef<Set<number>>(new Set());
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user_id || !messages?.length) return;

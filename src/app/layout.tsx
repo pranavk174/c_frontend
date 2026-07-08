@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Wrapper from "@/redux/Wrapper";
 import { ToastProvider } from "@/components/Utility/Toast";
+import { cookies } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,23 +12,23 @@ export const metadata: Metadata = {
   description: "A clone of WhatsApp Web built with Next.js and Tailwind CSS",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = (await cookies()).get("theme")?.value;
+  const isDark = theme === "dark";
+
+
   return (
-    <html lang="en" className={`${inter.className} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-[#e0e0e0] text-[#111b21] dark:bg-[#111b21] dark:text-[#e9edef] overflow-hidden">
+    <html
+      lang="en"
+      className={`${inter.className} h-full antialiased ${isDark ? "dark" : "light"}`}
+    >
+      <body className="min-h-full flex flex-col bg-wa-bg text-wa-bg-dark dark:bg-wa-bg-dark dark:text-wa-divider overflow-hidden">
         <Wrapper>
-
-          <ToastProvider>
-
-
-
-            {children}
-          </ToastProvider>
-
+          <ToastProvider>{children}</ToastProvider>
         </Wrapper>
       </body>
     </html>

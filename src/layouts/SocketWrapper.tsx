@@ -221,7 +221,7 @@ export const SocketProvider = ({ children }: Props) => {
         showToast(data, "error");
       },
 
-      [NEW_NOTIFICATION]: (data: any) => {
+      [NEW_NOTIFICATION]: (data: Notification) => {
         console.log(data, "data recieved in notication")
         dispatch(NotificationApi.util.updateQueryData(
           'getNotifications', null, (draft) => {

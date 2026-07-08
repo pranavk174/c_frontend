@@ -58,23 +58,23 @@ const MediaOptions = ({
         ref={imageRef}
         type="file"
         onChange={(e) => {
-          .debug(e.target.files?.[0], "file detailll....");
+
           if (e.target.files?.[0] && e.target.files?.[0].size > 10485760) {
-        showToast("File Size Cant be Greater then 10MB", "error");
+            showToast("File Size Cant be Greater then 10MB", "error");
 
-      return;
+            return;
           }
-      setFile(e.target.files?.[0] || null);
+          setFile(e.target.files?.[0] || null);
 
-      if (e.target.files?.[0]) {
-        setShow({
-          type: "preview",
-          open: true,
-        });
+          if (e.target.files?.[0]) {
+            setShow({
+              type: "preview",
+              open: true,
+            });
           }
         }}
-      accept="image/*"
-      hidden
+        accept="image/*"
+        hidden
       />
 
       <input

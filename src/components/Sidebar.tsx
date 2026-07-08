@@ -96,7 +96,6 @@ export default function Sidebar() {
   const handler = useMemo(
     () => ({
       [NEW_MESSAGE_ALERT]: (data: Chat) => {
-        console.log("data oin new chat", data);
 
         dispatch(
           chatApi.util.updateQueryData("getAllChats", {}, (draft) => {

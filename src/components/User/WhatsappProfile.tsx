@@ -15,7 +15,7 @@ import { CHAT_JOINED } from "@/lib/events";
 
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
-import { , uploadImage } from "@/lib/utils";
+import { uploadImage } from "@/lib/utils";
 
 interface whatsappProfileProps {
   profile: profileProps;
