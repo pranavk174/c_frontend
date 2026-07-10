@@ -1,7 +1,20 @@
 import { profileProps } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
-import { blockUserMutation, createUserMutation, loginMutation, logoutMutaion, refreshTokenGenerateMutation, unBlockUserMutation, updateUserMutation, veridyOtpMutation } from "@/graphql/Modules/Users/User.mutation";
-import { getAllUsersQuery, getUserQuery } from "@/graphql/Modules/Users/User.queries";
+import {
+  blockUserMutation,
+  createUserMutation,
+  loginMutation,
+  logoutMutaion,
+  refreshTokenGenerateMutation,
+  unBlockUserMutation,
+  updatePreference,
+  updateUserMutation,
+  veridyOtpMutation,
+} from "@/graphql/Modules/Users/User.mutation";
+import {
+  getAllUsersQuery,
+  getUserQuery,
+} from "@/graphql/Modules/Users/User.queries";
 
 export const authApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -42,19 +55,17 @@ export const authApi = BaseApi.injectEndpoints({
       }),
     }),
     createUser: builder.mutation({
-
       query: ({ formData }) => ({
-
         url: "",
-        method: 'POST',
+        method: "POST",
         body: {
-          query: createUserMutation
-          , variables: {
-            input: formData
-          }
-        }
+          query: createUserMutation,
+          variables: {
+            input: formData,
+          },
+        },
       }),
-      invalidatesTags: ['User']
+      invalidatesTags: ["User"],
     }),
     refreshToken: builder.mutation({
       query: () => ({
@@ -67,16 +78,14 @@ export const authApi = BaseApi.injectEndpoints({
     }),
     logout: builder.mutation({
       query: () => ({
-        url: '',
+        url: "",
         method: "POST",
 
         body: {
-          query: logoutMutaion
-        }
-
-
-      })
-      , invalidatesTags: ['User']
+          query: logoutMutaion,
+        },
+      }),
+      invalidatesTags: ["User"],
     }),
 
     getUser: builder.query({
@@ -84,8 +93,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
-            getUserQuery,
+          query: getUserQuery,
         },
       }),
       providesTags: ["User"],
@@ -95,14 +103,13 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
-            getAllUsersQuery,
+          query: getAllUsersQuery,
         },
       }),
       providesTags: ["User"],
     }),
     updateUser: builder.mutation({
-      query: ({ name, profile_pic, bio, cover_pic }: profileProps) => ({
+      query: ({ name, profile_pic, bio, cover_pic, theme }: profileProps) => ({
         url: "",
         method: "POST",
         body: {
@@ -113,19 +120,31 @@ export const authApi = BaseApi.injectEndpoints({
               profile_pic,
               bio,
               cover_pic,
+              theme,
             },
           },
         },
       }),
       invalidatesTags: ["User"],
     }),
+    updatePreference: builder.mutation({
+      query: ({ theme }) => ({
+        url: "",
+        method: "POST",
+        body: {
+          query: updatePreference,
+          variables: {
+            input: { theme },
+          },
+        },
+      }),
+    }),
     blockUser: builder.mutation({
       query: ({ user_id: blocked_user_id, reason }) => ({
         url: "",
         method: "POST",
         body: {
-          query:
-            blockUserMutation,
+          query: blockUserMutation,
           variables: {
             input: {
               blocked_user_id,
@@ -141,8 +160,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
-            unBlockUserMutation,
+          query: unBlockUserMutation,
           variables: {
             input: {
               blocked_user_id,
@@ -166,7 +184,7 @@ export const {
   useRefreshTokenMutation,
   useUnBlockUserMutation,
   useUpdateUserMutation,
-
+  useUpdatePreferenceMutation,
   useVerifyOtpMutation,
   usePrefetch,
 } = authApi;

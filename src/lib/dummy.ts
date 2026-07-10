@@ -116,17 +116,30 @@ export interface socketResponse {
 }
 
 export interface profileProps {
-  id?: number
+  id?: number;
   profile_pic?: string;
   cover_pic?: string;
   name?: string;
   bio?: string;
   mobile?: string;
   email?: string;
-  role?: string | unknown
+  role?: string | unknown;
+
+  theme?: "dark" | "light";
   blocked?: boolean;
   chat_id?: number;
   user_id?: number;
+}
+
+export interface groupProps {
+  profile_pic?: string;
+  cover_pic?: string;
+  name?: string;
+  bio?: string;
+  role?: string | unknown;
+  members?: number[];
+  groupName?: string;
+  id?: number;
 }
 
 export interface StoryItem {
@@ -229,4 +242,18 @@ export interface MessageboxProps {
   icons: emoji[];
   setReplyMessage: Dispatch<SetStateAction<Message | null>>;
   emojis: emoji[];
+}
+
+export interface User {
+  id: number;
+  name: string;
+  chat_id: number | null;
+  username: string;
+  profile_pic?: string;
+}
+
+export interface NewChatProps {
+  users: User[];
+  setModal: Dispatch<SetStateAction<valueProps>>;
+  // onSelectUser: (user: User) => void;
 }

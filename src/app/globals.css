@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
+
 @theme inline {
   --color-wa-primary: #00a884;
   --color-wa-primary-dark: #008069;
@@ -23,6 +26,8 @@
   --color-wa-icon-dark: #aebac1;
   /* --color-wa-sidebar-menu: #323632; */
 }
+
+
 
 @layer utilities {
   .chat-bg {

@@ -20,12 +20,10 @@ export default async function RootLayout({
   const theme = (await cookies()).get("theme")?.value;
   const isDark = theme === "dark";
 
+  // console.log(document.cookie, "cookie dataaaa");
 
   return (
-    <html
-      lang="en"
-      className={`${inter.className} h-full antialiased ${isDark ? "dark" : "light"}`}
-    >
+    <html lang="en" className={`${inter.className} h-full antialiased ${isDark ? "dark" : ""}`}>
       <body className="min-h-full flex flex-col bg-wa-bg text-wa-bg-dark dark:bg-wa-bg-dark dark:text-wa-divider overflow-hidden">
         <Wrapper>
           <ToastProvider>{children}</ToastProvider>

@@ -11,11 +11,11 @@ import {
   deletMessageMutation,
   editMessageMutation,
   newChatMutation,
+  newGroupMutation,
   replyMessageMutation,
   sendMessageMutation,
   setWallPaperMutation,
 } from "@/graphql/Modules/Chat/Chat.mutation";
-import { current } from "@reduxjs/toolkit";
 
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -45,12 +45,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // console.log(result, "result.......");
         return result
           ? [
-            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
+              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -102,12 +102,11 @@ export const chatApi = BaseApi.injectEndpoints({
           query: getMemberQuery,
           variables: {
             input: {
-              chat_ids: [chat_id]
-            }
-          }
-        }
-
-      })
+              chat_ids: [chat_id],
+            },
+          },
+        },
+      }),
     }),
     getEmojis: builder.query({
       query: () => ({
@@ -155,6 +154,18 @@ export const chatApi = BaseApi.injectEndpoints({
         },
       }),
       invalidatesTags: ["chats"],
+    }),
+    createNewGroup: builder.mutation({
+      query: ({ groupName, profile_pic, members, cover_pic }) => ({
+        url: "",
+        method: "Post",
+        body: {
+          query: newGroupMutation,
+          variables: {
+            input: { groupName, profile_pic, member_ids: members, cover_pic },
+          },
+        },
+      }),
     }),
 
     sendMessage: builder.mutation({
@@ -262,6 +273,7 @@ export const {
   useLazyGetAllChatsQuery,
   useLazyGetEmojisQuery,
   useLazyGetSingleChatQuery,
+  useCreateNewGroupMutation,
   usePrefetch,
   useReactMessageMutation,
   useReplyToMessageMutation,

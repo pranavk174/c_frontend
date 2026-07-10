@@ -1,11 +1,7 @@
 import React from "react";
 import StoryList from "@/components/story/Stories";
 const page = () => {
-  return (
-    <div>
-      <StoryList />
-    </div>
-  );
+  return <StoryList />;
 };
 
 export default page;

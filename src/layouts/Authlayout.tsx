@@ -7,14 +7,11 @@ const Authlayout = async ({ children }: { children: React.ReactNode }) => {
   const theme = (await cookies()).get("theme")?.value;
   console.log(token, "token.....", theme);
 
-
-
-
   if (!token) {
     redirect("/login");
   }
 
-  return <div className={theme === "dark" ? "dark" : "light"}>{children}</div>;
+  return <div>{children}</div>;
 };
 
 export default Authlayout;

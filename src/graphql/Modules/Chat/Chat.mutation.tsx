@@ -85,3 +85,15 @@ export const setWallPaperMutation = `
           
           
           `;
+
+export const newGroupMutation = `
+           mutation createNewGroup($input: newGroupInput!){
+           createNewGroup(input: $input){
+           
+             message,error,success
+          
+           }
+           
+           }
+          
+          `;

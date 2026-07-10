@@ -6,8 +6,10 @@ import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Camera, Pencil, Check, X, Ban } from "lucide-react";
 
 import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
+import SoundToggle from "../Utility/Togglebuton";
 import {
   useUnBlockUserMutation,
+  useUpdatePreferenceMutation,
   useUpdateUserMutation,
 } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
@@ -16,6 +18,8 @@ import { CHAT_JOINED } from "@/lib/events";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import { uploadImage } from "@/lib/utils";
+import Uploader from "../Utility/Uploader";
+import { useSearchParams } from "next/navigation";
 
 interface whatsappProfileProps {
   profile: profileProps;
@@ -36,15 +40,20 @@ const WhatsappProfile = ({
   const [editField, setEditField] = useState<
     "name" | "bio" | "profile_pic" | "cover_pic" | null
   >(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState(profile);
-  const [file, setFile] = useState<string | null>(null);
-  const { chatSocket: socket, notificationSocket } = useSocket();;
+
+  const { chatSocket: socket, notificationSocket } = useSocket();
   const [updateUser] = useUpdateUserMutation();
   const [unBlockUser] = useUnBlockUserMutation();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
+  const pathname = useSearchParams();
+  const chat_type = pathname.get("chat_type");
+
   // useEffect(() => {
   //   setFormData(profile);
   // }, [profile]);
@@ -70,42 +79,7 @@ const WhatsappProfile = ({
   // };
 
   console.log(profile, "profile dataaaaa....");
-
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const object = URL.createObjectURL(e.target.files?.[0]);
-
-      setFile(object);
-      const url = await uploadImage(e.target.files?.[0]);
-
-      console.log(url, "url dataaa");
-      setFormData({
-        ...formData,
-        [e.target.name]: url,
-      });
-
-      console.log(formData, "formdataaa in handle change");
-    } else {
-      setFormData({
-        ...formData,
-        [e.target.name]: e.target.value,
-      });
-    }
-  };
-
-  const handleClick = () => {
-    if (!fileInputRef.current) return;
-    fileInputRef.current?.click();
-    setEditField("profile_pic");
-  };
-
-  const handleCoverClick = () => {
-    if (!fileInputRef.current) return;
-    coverInputRef.current?.click();
-    setEditField("cover_pic");
-  };
-
-  const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSave = async () => {
     try {
       console.log(formData, "formdataaaaaa.");
       await updateUser(formData).unwrap();
@@ -116,7 +90,14 @@ const WhatsappProfile = ({
     // onSave?.(formData);
   };
 
-  console.log(formData?.cover_pic, "cover oiccc")
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleUnblock = async () => {
     try {
@@ -144,75 +125,27 @@ const WhatsappProfile = ({
           <div className="h-[60px] relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
             Profile
             <button
-              onClick={() => setOpen({
-                type: "null", open: false
-              })}
+              onClick={() =>
+                setOpen({
+                  type: "null",
+                  open: false,
+                })
+              }
               className="text-gray-400 px-2 rounded-md cursor-pointer bg-gray-700"
             >
               X
             </button>
           </div>
 
-          <Image priority
-            alt="cover_pic"
-            fill
-            className="object-cover"
-            unoptimized
-            src={
-              formData?.cover_pic ||
-              "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
-            }
+          <Uploader
+            setEditField={setEditField}
+            editField={editField}
+            isUser={isUser}
+            cover_pic={formData?.cover_pic}
+            profile_pic={formData?.profile_pic}
+            setFormData={setFormData}
+            formData={formData}
           />
-          <div className="relative w-44 h-44 mx-auto -bottom-[30%] overflow-hidden">
-            <Image
-              priority
-              src={
-                file ||
-                formData?.profile_pic ||
-                "http://res.cloudinary.com/dwbxff6lk/image/upload/v1779544061/uploads/se83nguzt4k0buc0eocr.jpg"
-              }
-              alt="profile"
-              fill
-              unoptimized
-              // height={200}
-              // width={200}
-              className="object-cover rounded-full"
-            />
-
-            <input
-              name="profile_pic"
-              onChange={handleChange}
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-            />
-
-            <button
-              onClick={handleClick}
-              className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-wa-primary flex items-center justify-center ${isUser ? "visible" : "invisible"} `}
-            >
-              <Camera className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          {isUser && (
-            <div>
-              <button
-                onClick={handleCoverClick}
-                className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20"
-              >
-                <Camera className="w-5 h-5 text-white" />
-              </button>
-
-              <input
-                name="cover_pic"
-                onChange={handleChange}
-                type="file"
-                ref={coverInputRef}
-                className="hidden"
-              />
-            </div>
-          )}
         </div>
         <div className="h-40" />
       </div>
@@ -223,7 +156,7 @@ const WhatsappProfile = ({
         {/* NAME */}
 
         <div className="px-6 py-5 border-b border-white/5">
-          <div className="text-[#00a884] text-sm mb-3">Your name</div>
+          <div className="text-wa-primary text-sm mb-3">Your name</div>
 
           <div className="flex items-center gap-3">
             <input
@@ -232,14 +165,14 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-[#00a884] pb-1" : ""
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-wa-primary pb-1" : ""
                 }`}
             />
 
             {editField === "name" ? (
               <div className="flex items-center gap-2">
                 <button disabled={loading} onClick={handleSave}>
-                  <Check className="w-5 h-5 text-[#00a884]" />
+                  <Check className="w-5 h-5 text-wa-primary" />
                 </button>
 
                 <button onClick={() => setEditField(null)}>
@@ -262,7 +195,7 @@ const WhatsappProfile = ({
         </div>
 
         <div className="px-6 py-5 border-b border-white/5">
-          <div className="text-[#00a884] text-sm mb-3">Email</div>
+          <div className="text-wa-primary text-sm mb-3">Email</div>
 
           <div className="flex items-center gap-3">
             <input
@@ -280,7 +213,7 @@ const WhatsappProfile = ({
 
         {formData?.bio && formData?.bio?.length > 0 && (
           <div className="px-6 py-5 border-b border-white/5">
-            <div className="text-[#00a884] text-sm mb-3">bio</div>
+            <div className="text-wa-primary text-sm mb-3">bio</div>
 
             <div className="flex items-center gap-3">
               <input
@@ -289,14 +222,14 @@ const WhatsappProfile = ({
                 disabled={editField !== "bio"}
                 value={formData?.bio || ""}
                 onChange={handleChange}
-                className={`w-full bg-transparent outline-none break-words  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-[#00a884] pb-1" : ""
+                className={`w-full bg-transparent outline-none wrap-break-word  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-wa-primary pb-1" : ""
                   }`}
               />
 
               {editField === "bio" ? (
                 <div className="flex items-center gap-2">
                   <button disabled={loading} onClick={handleSave}>
-                    <Check className="w-5 h-5 text-[#00a884]" />
+                    <Check className="w-5 h-5 text-wa-primary" />
                   </button>
 
                   <button onClick={() => setEditField(null)}>
@@ -321,9 +254,28 @@ const WhatsappProfile = ({
 
           <div className=" text-[clamp(16px,4vw,16px)]">{formData?.mobile}</div>
         </div>
+
+        <div
+          className={`px-6 py-5 ${isUser || chat_type !== "group" ? "" : "hidden invisisble"
+            }`}
+        >
+          <div className="text-wa-primary text-sm mb-3">Theme</div>
+
+          <div className={` transform-content rotate-180 text-[clamp(16px,4vw,16px)]`}>
+            <SoundToggle
+              left={"Light"}
+              name={"theme"}
+              value={isDark}
+              right={"Dark"}
+              handleToggle={handleChange}
+            />
+          </div>
+        </div>
       </div>
 
-      <div className="w-full mt-4 flex justify-center-safe">
+      <div
+        className={`w-full ${chat_type === "group" ? "hidden invisible" : ""} mt-4 flex justify-center-safe`}
+      >
         <button
           onClick={handleSave}
           className={`bg-green-400 max-w-[150px] w-full mx-auto py-2 rounded-md text-center  ${editField ? "block" : "invisible hidden"} `}

@@ -6,8 +6,7 @@ export const refreshTokenGenerateMutation = `
 }
           
           
-          `
-
+          `;
 
 export const loginMutation = `
                         
@@ -18,7 +17,7 @@ export const loginMutation = `
         }
     }
                         
-                        `
+                        `;
 
 export const veridyOtpMutation = `
                         
@@ -42,7 +41,7 @@ export const veridyOtpMutation = `
                                                 }
                                             }
                         
-                        `
+                        `;
 export const createUserMutation = `
           
           
@@ -57,7 +56,7 @@ export const createUserMutation = `
           
           }
           
-          `
+          `;
 
 export const logoutMutaion = `
           
@@ -65,7 +64,7 @@ export const logoutMutaion = `
           logout{
           message,success,error}}
           
-          `
+          `;
 
 export const blockUserMutation = `
               mutation blockUser($input:blockUserInput!){
@@ -76,7 +75,7 @@ export const blockUserMutation = `
     
               }
               
-              `
+              `;
 
 export const unBlockUserMutation = `
               
@@ -93,7 +92,7 @@ export const unBlockUserMutation = `
               }
               
     
-              `
+              `;
 
 export const updateUserMutation = `
               
@@ -102,4 +101,13 @@ export const updateUserMutation = `
               message, status,success,error}
               }
               
-              `
+              `;
+
+export const updatePreference = `
+              
+              mutation updatePreference($input: personalizationInput!){
+              updatePreference(input:$input){
+              message, status,success,error}
+              }
+              
+              `;

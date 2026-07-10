@@ -40,16 +40,20 @@ export default function VerifyOtp({ email }: { email: string }) {
         }
 
         if (verified.data.verifyOtp.data.is_verified) {
-          router.push(`/login/verifyotp/${encodeURIComponent(email)}/create-profile`);
+          router.push(
+            `/login/verifyotp/${encodeURIComponent(email)}/create-profile`,
+          );
           return;
         }
 
-
+        if (document.cookie.includes("theme")) {
+          const value = document.cookie.includes("dark") ? "dark" : "light";
+          document.documentElement.classList.remove("dark", "light");
+          document.documentElement.classList.add(value);
+        }
 
         // dispatch(addUser(verified.data.verifyOtp.data));
         router.replace("/");
-
-
       } catch (error) {
         // console.log(error?.data.errors[0].message, "errorrrr")
         // alert(error?.data.errors[0].message)

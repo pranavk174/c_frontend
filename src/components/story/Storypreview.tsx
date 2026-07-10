@@ -25,13 +25,21 @@ import { chatApi } from "@/redux/Apis/Chat";
 
 import { useToast } from "../Utility/Toast";
 import { useSocket } from "@/layouts/SocketWrapper";
-import { SEEN_NOTIFICATION, STORY_LIKE, STORY_REPLY, STORY_SEEN } from "@/lib/events";
-import { , socketCallback } from "@/lib/utils";
+import {
+  SEEN_NOTIFICATION,
+  STORY_LIKE,
+  STORY_REPLY,
+  STORY_SEEN,
+} from "@/lib/events";
+import { socketCallback } from "@/lib/utils";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { div } from "framer-motion/client";
 import Loader from "../Utility/Loader";
 import SmallLoader from "../Utility/SpinLoader";
-import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import {
+  NotificationApi,
+  useGetNotificationsQuery,
+} from "@/redux/Apis/Notification";
 import { Notification } from "@/lib/dummy";
 // interface StoryItem {
 //   id: number;
@@ -60,7 +68,7 @@ const StoryViewer = ({
   const [seenStory] = useSeenStoryMutation();
   const [isPaused, setIsPaused] = useState(false);
   // Keep onClose in a ref so the effect never needs it as a dependency
-  const { chatSocket: socket, notificationSocket } = useSocket();;
+  const { chatSocket: socket, notificationSocket } = useSocket();
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -68,17 +76,15 @@ const StoryViewer = ({
   const { showToast } = useToast();
   const [replyMessage, setReplyMessage] = useState<string>("");
 
-
   const { notifications } = useGetNotificationsQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
-
       return {
         notifications: data?.data?.getNotification?.data?.items,
         isLoading,
-        isSuccess
-      }
-    }
-  })
+        isSuccess,
+      };
+    },
+  });
 
   const currentStory = stories.stories[currentIndex];
   const dispatch = useAppDispatch();
@@ -251,8 +257,6 @@ const StoryViewer = ({
     }
   }, [currentStory, seenStory, socket, stories.user_id, user_id, dispatch]);
 
-
-
   // useEffect(() => {
 
   //   if (progress !== 100) return
@@ -264,7 +268,7 @@ const StoryViewer = ({
   //         if (not.reference_id && not.reference_id === currentStory.id && not.notification_type === 'story_like') {
 
   //           return not.notification_id
-  //           // 
+  //           //
   //         }
 
   //       }).reduce((acc, idx) => {
@@ -277,19 +281,14 @@ const StoryViewer = ({
 
   //       if (ids.length > 0) {
 
-
   //         const patchResult = dispatch(NotificationApi.util.updateQueryData(
   //           "getNotifications", null, (draft) => {
-
-
 
   //             draft.data.getNotification.data.items = draft.data?.getNotification?.data?.items.filter((d: Notification) => ids.includes(d.notification_id))
   //           }
   //         ))
 
-
   //         socket.emit(SEEN_NOTIFICATION, ids, (res: socketResponse) => {
-
 
   //           if (!res.success) {
   //             patchResult.undo()
@@ -326,7 +325,7 @@ const StoryViewer = ({
       ?.filter(
         (not: Notification) =>
           not.reference_id === currentStory.id &&
-          not.notification_type === "story_like"
+          not.notification_type === "story_like",
       )
       .map((not) => not.notification_id);
 
@@ -339,10 +338,10 @@ const StoryViewer = ({
         (draft) => {
           draft.data.getNotification.data.items =
             draft.data.getNotification.data.items.filter(
-              (n: Notification) => !ids.includes(n.notification_id)
+              (n: Notification) => !ids.includes(n.notification_id),
             );
-        }
-      )
+        },
+      ),
     );
 
     socket.emit(SEEN_NOTIFICATION, ids, (res: socketResponse) => {
@@ -354,67 +353,45 @@ const StoryViewer = ({
     });
   }, [progress, dispatch, notifications, socket, currentStory.id]);
 
-
-
   const handleLikeStory = async (like: boolean) => {
-
     try {
-
-
-
       const patchResult = dispatch(
-        storyApi.util.updateQueryData(
-          "getStories",
-          null,
-          (draft) => {
-
-            draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
-
+        storyApi.util.updateQueryData("getStories", null, (draft) => {
+          draft.data.getAllStories.data.stories.forEach(
+            (story: UserStories) => {
               story.stories.forEach((st: StoryContent) => {
-
                 if (st.id === currentStory.id) {
                   st.liked = like;
                 }
-
               });
-
-            });
-
-          }
-        )
+            },
+          );
+        }),
       );
 
       const response: socketResponse = await new Promise((resolve) => {
-
         socket.emit(
           STORY_LIKE,
           { id: currentStory.id, like },
           (response: socketResponse) => {
             resolve(response);
-          }
+          },
         );
-
       });
 
       if (!response.success) {
         patchResult.undo();
       }
 
-      console.log(response, "res ponseeeeee result in like story.....")
-
+      console.log(response, "res ponseeeeee result in like story.....");
     } catch (error) {
-
       console.log(error);
-
     }
 
     setIsPaused(false);
-
-
-
   };
 
-  console.log(isPaused, "is Pauseddddd")
+  console.log(isPaused, "is Pauseddddd");
 
   // Previous Story
   const handlePrev = () => {
@@ -520,18 +497,14 @@ const StoryViewer = ({
             transform: `${isPaused ? "translateY(0px)" : "translateY(920px)"}`,
           }}
         >
-
-          <div className={`flex w-full justify-center items-center font-bold gap-2 ${isPaused ? 'hidden' : ''} `}>
+          <div
+            className={`flex w-full justify-center items-center font-bold gap-2 ${isPaused ? "hidden" : ""} `}
+          >
             <Eye className="h-5 w-5 " /> {currentStory.interactions.length}
           </div>
           <div
             className={`absolute w-full px-2 overflow-y-hidden cursor-pointer  bottom-0  h-2/3`}
           >
-
-
-
-
-
             <div className="py-7  px-5 flex justify-between items-center bg-gray-800">
               <h4 className="text-[clamp(16px,15vw,16px)] font-bold capitalize">
                 Viewed by {"  "}
@@ -630,7 +603,6 @@ const StoryViewer = ({
                   <Send className="w-5 h-5" />
                 </button>
               ) : (
-
                 <button
                   onClick={() => handleLikeStory(!currentStory.liked)}
                   className="cursor-pointer hover:scale-110 pt-2 transition-transform duration-200 "
@@ -639,7 +611,6 @@ const StoryViewer = ({
                     className={`h-7 w-7 font-thin  ${currentStory.liked ? "fill-wa-primary" : ""} animation text-wa-primary `}
                   />
                 </button>
-
               )}
             </div>
           </form>

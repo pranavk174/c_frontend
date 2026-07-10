@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,7 @@ import {
   CircleDashed,
   Bell,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { modalValue, valueProps } from "@/lib/dummy";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import {
   useGetUserQuery,
   useGetUsersQuery,
   useLogoutMutation,
+  useUpdatePreferenceMutation,
 } from "@/redux/Apis/Users";
 import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
@@ -36,6 +38,7 @@ import { NEW_MESSAGE_ALERT } from "@/lib/events";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
+import SoundToggle from "./Utility/Togglebuton";
 export default function Sidebar() {
   const [logout] = useLogoutMutation();
   const pathname = usePathname();
@@ -46,9 +49,44 @@ export default function Sidebar() {
     "chats",
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const { chatSocket: socket, notificationSocket } = useSocket();;
+  const { chatSocket: socket, notificationSocket } = useSocket();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
+  const [updatePreference] = useUpdatePreferenceMutation();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleUpdate = async (theme: "dark" | "light") => {
+    try {
+      await updatePreference({ theme }).unwrap();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const debouncedUpdateTheme = (theme: "dark" | "light") => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      handleUpdate(theme);
+    }, 500);
+  };
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, type, checked } = e.target;
+
+    if (type === "checkbox" && name === "theme") {
+      const value = checked ? "dark" : "light";
+
+      document.cookie = `theme=${value}; path=/; SameSite=Lax`;
+      document.documentElement.classList.remove("dark", "light");
+      document.documentElement.classList.add(value);
+      setIsDark(value === "dark");
+      debouncedUpdateTheme(value);
+    }
+  };
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
       // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
@@ -96,7 +134,6 @@ export default function Sidebar() {
   const handler = useMemo(
     () => ({
       [NEW_MESSAGE_ALERT]: (data: Chat) => {
-
         dispatch(
           chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
             const chat = draft.data.getAllChats.data.items.find(
@@ -112,8 +149,6 @@ export default function Sidebar() {
               });
               // chat.unread_count += data.unread_count;
             }
-
-
           }),
         );
       },
@@ -140,7 +175,9 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
+      // document.documentElement.classList.remove("dark", "light");
       await logout(null).unwrap();
+      document.documentElement.classList.remove("dark", "light");
     } catch (error) {
       // showToast(error.message, "error")
     }
@@ -153,7 +190,7 @@ export default function Sidebar() {
       {/* Sidebar Header */}
 
       {/* {expanded ? ( */}
-      <header className=" border-r p-2 bg-wa-sidebar-menu border-wa-divider-dark  flex flex-col gap-3 items-center   ">
+      <header className=" border-r p-2 bg-wa-sidebar-menu dark:bg-wa-sidebar-menu-dark border-wa-divider dark:border-wa-divider-dark  flex flex-col gap-3 items-center   ">
         <div className=" flex justify-center items-center   cursor-pointer">
           <button
             onClick={() =>
@@ -177,54 +214,78 @@ export default function Sidebar() {
             />
           </button>
         </div>
-        <div className="flex flex-col  items-center  text-wa-icon dark:text-wa-icon-dark gap-3">
-          <button
-            onClick={() =>
-              setOpen({
-                open: true,
-                type: "notification",
-              })
-            }
-            className={`hover:text-green-400 ${notifications?.length > 0 ? "" : "hidden"} cursor-pointer relative`}
-          >
-            <Bell className="size-6" />
-            <span className="size-3 text-white text-[10px] flex items-center justify-center p-1 absolute top-0 right-0 rounded-[50%]   bg-green-500">
-              {notifications?.length}
-            </span>
-          </button>
+        <div className="flex flex-col justify-between h-full  items-center  text-wa-icon dark:text-wa-icon-dark ">
+          <div className="flex flex-col gap-3 justify-between items-center">
+            <button
+              onClick={() =>
+                setOpen({
+                  open: true,
+                  type: "notification",
+                })
+              }
+              className={`hover:text-green-400 ${notifications?.length > 0 ? "" : "hidden"} cursor-pointer relative`}
+            >
+              <Bell className="size-6" />
+              <span className="size-3 text-white text-[10px] flex items-center justify-center p-1 absolute top-0 right-0 rounded-[50%]   bg-green-500">
+                {notifications?.length}
+              </span>
+            </button>
 
-          <Link
-            href="/story"
-            className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
-          >
-            <CircleDashed className="size-6" />
-          </Link>
+            <Link
+              href="/story"
+              className={`p-3 rounded-full  ${pathname.includes("story") && "bg-black/5"} hover:bg-black/5  dark:hover:bg-white/5 transition`}
+            >
+              <CircleDashed className="size-6" />
+            </Link>
 
-          <button
-            onClick={() =>
-              setOpen({
-                type: "new-chat",
-                open: true,
-              })
-            }
-            className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
-          >
-            <MessageSquare className="size-6" />
-          </button>
-          <button
-            onClick={() => setExpanded((p) => !p)}
-            className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
-          >
-            <Menu className="size-6" />
-          </button>
+            <button
+              onClick={() =>
+                setOpen({
+                  type: "new-chat",
+                  open: true,
+                })
+              }
+              className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
+            >
+              <MessageSquare className="size-6" />
+            </button>
+            <button
+              onClick={() => setExpanded((p) => !p)}
+              className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
+            >
+              <Menu className="size-6" />
+            </button>
 
+            <div className={` mt-4 rotate-90 text-[clamp(16px,4vw,16px)]`}>
+              <SoundToggle
+                left={""}
+                name={"theme"}
+                value={isDark}
+
+                right={""}
+                handleToggle={() => {
+                  const value = isDark ? "light" : "dark"
+                  document.cookie = `theme=${value}; path=/; SameSite=Lax`;
+                  document.documentElement.classList.remove("dark", "light");
+                  document.documentElement.classList.add(value);
+                  setIsDark(value === "dark");
+                  debouncedUpdateTheme(value);
+                }}
+              />
+            </div> </div>
           <button
             onClick={handleLogout}
             className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
           >
-            <MoreVertical className="size-6" />
+
+            <LogOut className="size-6" />
           </button>
+
+
+
+
         </div>
+
       </header>
       {/* ) : (
         <button
@@ -237,7 +298,9 @@ export default function Sidebar() {
 
       {/* Search Bar */}
       {/* {current === "chats" && ( */}
-      <div className={`transition-all relative rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? 'z-1 md:z-0' : ''}`}>
+      <div
+        className={`transition-all relative rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? "z-1 md:z-0" : ""}`}
+      >
         <div className="p-2 rounded-lg shrink-0 bg-green-400 dark:bg-wa-panel-dark border-b border-wa-divider dark:border-wa-divider-dark flex items-center space-x-2">
           <div className="flex-1 flex items-center bg-wa-search dark:bg-wa-search-dark rounded-lg px-4 py-2">
             <Search className="w-4 h-4 text-wa-icon dark:text-wa-icon-dark mr-3" />
@@ -280,11 +343,11 @@ export default function Sidebar() {
                       alt={chat?.name}
                       className="w-full h-full object-cover rounded-full"
                     />
-                    {chat.user_id !== null &&
+                    {chat.user_id !== null && (
                       <span
                         className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
                       ></span>
-                    }
+                    )}
                   </div>
                   <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
                     <div className="flex justify-between items-center mb-1">
@@ -304,7 +367,9 @@ export default function Sidebar() {
                     </div>
                     <div className="flex justify-between items-center">
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
-                        {chat?.last_message && chat?.last_message.length > 10 ? `${chat?.last_message.substring(0, 10)}...` : chat.last_message}
+                        {chat?.last_message && chat?.last_message.length > 10
+                          ? `${chat?.last_message.substring(0, 10)}...`
+                          : chat.last_message}
                       </p>
                       {chat?.unread_count > 0 && (
                         <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
@@ -329,7 +394,9 @@ export default function Sidebar() {
           <WhatsappProfile setOpen={setOpen} isUser={true} profile={user} />
         )}
 
-        {users && open.type === "new-chat" && <NewChat setModal={setOpen} users={users} />}
+        {users && open.type === "new-chat" && (
+          <NewChat setModal={setOpen} users={users} />
+        )}
 
         {open.type === "notification" && (
           <WhatsAppNotificationUI notifications={notifications} />

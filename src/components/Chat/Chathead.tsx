@@ -34,21 +34,27 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import { useAppDispatch } from "@/lib/hooks";
 import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
 import { EDIT_MESSAGE } from "@/lib/events";
-import { useGetUsersQuery } from "@/redux/Apis/Users";
+import { useGetUserQuery, useGetUsersQuery } from "@/redux/Apis/Users";
+import { useSearchParams } from "next/navigation";
 
 interface chatHeadProps {
   menu: boolean;
   setShowModal: Dispatch<SetStateAction<valueProps>>;
   chatDetails: Chat;
+  members: {
+    member_id: number;
+    role: "admin" | "member";
+  }[];
   selectedMessages?: number[];
   selected: selectedProp | null;
+  memberIds: number[];
 }
-
-
 
 const Chathead = memo(
   ({
     menu,
+    members = [],
+    memberIds = [],
     setShowModal,
     chatDetails,
     selectedMessages,
@@ -56,53 +62,59 @@ const Chathead = memo(
   }: chatHeadProps) => {
     const [open, setOpen] = useState<valueProps>(modalValue);
     const [popup, setPopup] = useState<boolean>(false);
-    const { chatSocket: socket, notificationSocket } = useSocket();;
+    const { chatSocket: socket, notificationSocket } = useSocket();
     const dispatch = useAppDispatch();
 
-    const { members } = useGetMembersQuery({ chat_id: chatDetails?.chat_id }, {
-      selectFromResult: ({ data }) => {
-
-
-
-
+    const d = new Map(
+      members
+        .toSorted((m, n) => m.member_id - n.member_id)
+        .map((member): [number, { member_id: number; role: string }] => [
+          member.member_id,
+          member,
+        ]),
+    );
+    const { user } = useGetUserQuery(null, {
+      selectFromResult: ({ data, isLoading, isSuccess }) => {
+        // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
         return {
-          members: data?.data?.getMembers?.items
-        }
+          user: data?.data?.getUser?.data,
+          isLoading,
+          isSuccess,
+        };
       },
-      skip: chatDetails?.chat_type !== 'group' || !chatDetails?.chat_id
-    })
-    const { users } = useGetUsersQuery(null,
-      {
-        selectFromResult: ({ data, isSuccess }) => {
+    });
 
+    const { users } = useGetUsersQuery(null, {
+      selectFromResult: ({ data, isSuccess }) => {
+        console.log(members, "membersssss");
 
-          // console.log(members, "membersssss")
+        const newData = data?.data?.getUsers?.data?.items.reduce(
+          (acc: profileProps[], idx: profileProps) => {
+            if (d.has(idx.id)) {
+              acc.push({ ...idx, role: d.get(idx.id).role });
+            }
 
-          // const d = new Map(
-          //   members?.map((member: { member_id: number, role: string }) => [member.member_id, member])
-          // )
-          // const newData = data?.data?.getUsers?.data?.items.reduce((acc: profileProps[], idx: profileProps) => {
+            return acc;
+          },
+          [],
+        );
 
-          //   if (d.has(idx.id)) {
-          //     acc.push({ ...idx, role: d.get(idx.id) })
+        if (d.has(user.id)) {
+          newData.push({ ...user, role: d.get(user?.id).role });
+        }
 
-          //   }
-
-
-
-          //   return acc
-
-          // }, [])
-
-          // 
-          // console.log(, "new Dataaaaa,,,")
-          return {
-            users: data?.data?.getUsers?.data?.items
-          };
-        },
-        skip: chatDetails?.chat_type !== 'group'
-      });
-
+        console.log(
+          newData,
+          "new Dataaaaa,,,",
+          data?.data?.getUsers?.data?.items,
+          d,
+        );
+        return {
+          users: data?.data?.getUsers?.data?.items,
+        };
+      },
+      skip: chatDetails?.chat_type !== "group",
+    });
 
     // const [editMessage, { isLoading }] = useEditMessageMutation();
 
@@ -293,7 +305,7 @@ const Chathead = memo(
           {open.type === "profile" && (
             <WhatsappProfile
               setOpen={setOpen}
-              isUser={false}
+              isUser={d.has(user.id) && d.get(user.id).role === "admin"}
               profile={chatDetails}
             />
           )}

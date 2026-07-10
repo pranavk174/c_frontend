@@ -6,7 +6,6 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-
 export default function Wrapper({ children }: { children: React.ReactNode }) {
   //   const [isOnline, setIsOnline] = useState(true);
   const onLineRef = useRef(false);
@@ -57,6 +56,13 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
+  }, []);
+
+  useEffect(() => {
+    const value = document.cookie.includes("dark") ? "dark" : "light";
+
+    document.cookie = `theme=${value}; path=/; SameSite=Lax`;
+    document.documentElement.classList.toggle("dark", value === "dark");
   }, []);
 
   return (

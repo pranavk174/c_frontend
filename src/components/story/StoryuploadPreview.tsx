@@ -1,7 +1,7 @@
 "use client";
 
 import { modalValue, valueProps } from "@/lib/dummy";
-import { , uploadImage } from "@/lib/utils";
+import { uploadImage } from "@/lib/utils";
 import { useCreateStoryMutation } from "@/redux/Apis/Story";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -110,8 +110,9 @@ export default function WhatsAppStoryPreview({
                 className="h-1 flex-1 rounded-full bg-white/20 overflow-hidden"
               >
                 <div
-                  className={`h-full bg-white transition-all ${i <= currentIndex ? "w-full" : "w-0"
-                    }`}
+                  className={`h-full bg-white transition-all ${
+                    i <= currentIndex ? "w-full" : "w-0"
+                  }`}
                 />
               </div>
             ))}
@@ -138,10 +139,11 @@ export default function WhatsAppStoryPreview({
               <button
                 key={item.preview}
                 onClick={() => setCurrentIndex(index)}
-                className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${currentIndex === index
-                  ? "border-wa-primary"
-                  : "border-transparent"
-                  }`}
+                className={`relative min-w-15 h-22.5 rounded-xl overflow-hidden border-2 ${
+                  currentIndex === index
+                    ? "border-wa-primary"
+                    : "border-transparent"
+                }`}
               >
                 <Image
                   priority

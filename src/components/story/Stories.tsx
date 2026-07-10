@@ -18,21 +18,22 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { STORY_LIKE, STORY_SEEN } from "@/lib/events";
 
-
 const StoryList = () => {
-  const { chatSocket: socket, notificationSocket } = useSocket();;
+  const { chatSocket: socket, notificationSocket } = useSocket();
   const [open, setOpen] = useState<valueProps>(modalValue);
-  const handleClose = useCallback(() => setOpen({
-    type: null,
-    open: false
-  }), []);
+  const handleClose = useCallback(
+    () =>
+      setOpen({
+        type: null,
+        open: false,
+      }),
+    [],
+  );
   const storyRef = useRef<HTMLInputElement | null>(null);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
 
-  console.log(user_id
-    , "user id..."
-  )
+  console.log(user_id, "user id...");
   const [modal, setModal] = useState<"storyupload" | "storypreview" | null>(
     null,
   );
@@ -68,14 +69,14 @@ const StoryList = () => {
       const updatedStories =
         !isExists && user
           ? [
-            {
-              user_id: user.id,
-              name: user.name,
-              profile_pic: user.profile_pic,
-              stories: [],
-            },
-            ...stories,
-          ]
+              {
+                user_id: user.id,
+                name: user.name,
+                profile_pic: user.profile_pic,
+                stories: [],
+              },
+              ...stories,
+            ]
           : updatedArray;
 
       return {
@@ -99,7 +100,7 @@ const StoryList = () => {
     }
   };
 
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const handler = useMemo(
     () => ({
@@ -157,49 +158,39 @@ const StoryList = () => {
         });
       },
       [STORY_LIKE]: (data: any, callback: any) => {
-
         if (!data) {
           return callback({
             message: "Data is mIssing",
             status: 400,
-            success: false
-          })
+            success: false,
+          });
         }
 
-        console.log("liked ddaaaaataa..", data)
+        console.log("liked ddaaaaataa..", data);
 
-        dispatch(storyApi.util.updateQueryData(
-          "getStories", null, (draft) => {
-
-            draft.data.getAllStories.data.stories.forEach((story: UserStories) => {
-              story.stories.forEach((st: StoryContent) => {
-
-
-                if (st.id === data.story_id) {
-                  st?.interactions?.forEach((int) => {
-
-                    if (int.id === data.user_id) {
-                      int.liked = data.liked
-
-                    }
-
-
-                  })
-                }
-
-              })
-            })
-          }
-        ))
-
-      }
+        dispatch(
+          storyApi.util.updateQueryData("getStories", null, (draft) => {
+            draft.data.getAllStories.data.stories.forEach(
+              (story: UserStories) => {
+                story.stories.forEach((st: StoryContent) => {
+                  if (st.id === data.story_id) {
+                    st?.interactions?.forEach((int) => {
+                      if (int.id === data.user_id) {
+                        int.liked = data.liked;
+                      }
+                    });
+                  }
+                });
+              },
+            );
+          }),
+        );
+      },
     }),
     [dispatch],
   );
 
   useSocketEvents(socket, handler);
-
-
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -209,7 +200,7 @@ const StoryList = () => {
 
         setOpen({
           type: "storyupload",
-          open: true
+          open: true,
         });
         setModal("storyupload");
       }
@@ -220,28 +211,30 @@ const StoryList = () => {
   };
 
   return (
-    <div className="w-full h-screen wa-primary-dark px-4 py-4 rounded-2xl">
+    <div className="w-full h-screen bg-[#31363a] dark:bg-wa-primary px-4 py-4 rounded-2xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-white text-xl font-semibold">Updates</h2>
           <p className="text-gray-400 text-sm">
             Status updates from your contacts
-
           </p>
         </div>
 
         <button
           onClick={onClickHandle}
-          className="w-10 h-10 rounded-full bg-[#202c33] hover:bg-wa-search-input-dark transition flex items-center justify-center"
+          className="w-10 h-10 rounded-full bg-[#39444b] dark:bg-[#202c33] hover:bg-wa-search-input-dark transition flex items-center justify-center"
         >
-          <Camera size={20} className="text-wa-primary" />
+          <Camera
+            size={20}
+            className="text-wa-primary dark:text-wa-primary-dark"
+          />
         </button>
       </div>
 
       {/* Stories */}
-      <div className="flex w-full justify-center h-full ">
-        <div className="flex bg-[#0b141a]   flex-col mt-7.5 gap-2 max-w-3xl w-full h-[80vh] mx-auto overflow-y-auto hide-scrollbar rounded-lg p-5 ">
+      <div className="flex w-full justify-center h-full  ">
+        <div className="flex bg-wa-primary dark:bg-[#31363a]  flex-col mt-7.5 gap-2 max-w-3xl w-full h-[80vh] mx-auto overflow-y-auto hide-scrollbar rounded-lg p-5 ">
           {storiesData?.map((story: UserStories, idx: number) => (
             <div
               onClick={(e) => {
@@ -255,7 +248,7 @@ const StoryList = () => {
 
                 setOpen({
                   type: "storypreview",
-                  open: true
+                  open: true,
                 });
                 // setModal("storypreview");
                 setStoryIndex(idx);
@@ -264,7 +257,7 @@ const StoryList = () => {
               className="flex gap-4 bg-gray-700 rounded-lg hover:bg-gray-400 px-2 items-center cursor-pointer group"
             >
               {/* Own Story */}
-              {(story?.user_id === user_id) || idx === 0 ? (
+              {story?.user_id === user_id || idx === 0 ? (
                 <div className="relative">
                   <StoryRing
                     segments={story?.stories?.length}
@@ -323,7 +316,6 @@ const StoryList = () => {
       </Modal> */}
 
       <PremiumModal values={open} onClose={handleClose}>
-
         {user_id && open.type === "storypreview" && (
           <StoryViewer
             user_id={user_id}
