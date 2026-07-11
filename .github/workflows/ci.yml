@@ -30,6 +30,12 @@ jobs:
       - name: Install pnpm
         run: npm i pnpm
 
+      - name: Clean dependencies
+        run: |
+              rm -rf node_modules
+              rm -f pnpm-lock.yaml
+              pnpm store prune
+
       - name: Install Dependecies
         run: pnpm i
       
