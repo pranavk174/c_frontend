@@ -1,8 +1,10 @@
 "use client";
 import {
+  ChatItem,
   chatListProps,
   emoji,
   Message,
+  MessageItem,
   reaction,
   socketResponse,
 } from "@/lib/dummy";
@@ -37,14 +39,13 @@ const VirtualChatlistGrouped = memo(
     chat_id,
     setSelectedMessages,
     setCursor,
-
     isFetching,
     data,
     nextCursor,
     hasMore,
     chatDetails,
     selectedMessages,
-    // messages,
+    messages,
     timerRef,
 
     emojis,
@@ -270,7 +271,7 @@ const VirtualChatlistGrouped = memo(
     }, [timerRef]);
 
     const messageMap = useMemo(() => {
-      return new Map(data.map((m: Message) => [m.id, m]));
+      return new Map(data.map((m: ChatItem) => [m.id, m]));
     }, [data]);
 
     return (
@@ -324,17 +325,33 @@ const VirtualChatlistGrouped = memo(
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const msg = data[virtualItem.index];
 
-            const icons = emojis?.filter((emoji: emoji) =>
-              msg?.reactions?.some((em) => em.react_id === emoji.react_id),
-            );
 
-            const repliedMessage =
-              msg.reply_to_message_id !== null
-                ? (messageMap?.get(msg.reply_to_message_id) ?? null)
-                : null;
-            // console.log(msg, "msggggggg");
 
-            const isSelected = selectedMessages.includes(msg?.id);
+            if (msg.kind === "header") {
+              return (
+                <div
+                  key={virtualItem.index}
+                  style={{
+                    position: "absolute",
+                    top: 80,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                  data-index={virtualItem.index}
+                  ref={(el) => {
+                    if (el) rowVirtualizer.measureElement(el);
+                  }}
+                >
+                  <div className="flex justify-center">
+                    <p className="text-xs p-1 bg-wa-header-dark rounded-md">
+                      {msg.date}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
 
             // if (msg.type === "header") {
             //   return (
@@ -344,36 +361,45 @@ const VirtualChatlistGrouped = memo(
             //   );
             // }
 
-            return (
-              <div
-                key={virtualItem.index}
-                style={{
-                  position: "absolute",
-                  top: 80,
-                  left: 0,
-                  width: "100%",
-                  // height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-                data-index={virtualItem.index}
-                ref={(el) => {
-                  if (el) rowVirtualizer.measureElement(el);
-                }}
-              >
-                {msg.type === "header" && (
-                  <div className="flex justify-center ">
-                    <p className="text-xs p-1 bg-wa-header-dark rounded-md">
-                      {msg.date}
-                    </p>
-                  </div>
-                )}
-                {msg.type === "message" && (
+
+            if (msg.kind === 'message') {
+
+              const icons = emojis?.filter((emoji: emoji) =>
+                msg?.reactions?.some((em) => em.react_id === emoji.react_id),
+              );
+
+              const repliedMessage =
+                msg.reply_to_message_id !== null
+                  ? (messages?.find((md) => md.id === msg.reply_to_message_id) ?? null)
+                  : null;
+              // console.log(msg, "msggggggg");
+
+              const isSelected = selectedMessages.includes(msg?.id);
+
+              return (
+                <div
+                  key={virtualItem.index}
+                  style={{
+                    position: "absolute",
+                    top: 80,
+                    left: 0,
+                    width: "100%",
+                    // height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                  data-index={virtualItem.index}
+                  ref={(el) => {
+                    if (el) rowVirtualizer.measureElement(el);
+                  }}
+                >
+
+
                   <MessageBox
                     startPressTimer={startPressTimer}
                     cancelPressTimer={cancelPressTimer}
                     msg={msg}
                     // startUpload={startUpload}
-                    mappedMessages={messageMap}
+                    // mappedMessages={messageMap}
                     setActive={setActive}
                     show={show}
                     selectionMode={selectionMode}
@@ -395,132 +421,13 @@ const VirtualChatlistGrouped = memo(
                     setReplyMessage={setReplyMessage}
                     emojis={emojis}
                   />
-                  // <motion.div
-                  //   // key={msg?.id}
 
-                  //   onMouseDown={() => startPressTimer(msg?.id)}
-                  //   onMouseUp={cancelPressTimer}
-                  //   onMouseLeave={cancelPressTimer}
-                  //   onTouchStart={() => startPressTimer(msg?.id)}
-                  //   onTouchEnd={cancelPressTimer}
-                  //   onMouseEnter={() => setActive(msg?.id)}
-                  //   onClick={() => {
-                  //     if (selectionMode) {
-                  //       toggleSelection(msg?.id);
-                  //     }
-                  //   }}
-                  //   className={cn(
-                  //     "group relative flex items-center  px-2 py-0.5  justify-end  transition-all duration-200",
-                  //     // msg.type === "header" ? "justify-end" : "justify-center",
 
-                  //     msg?.sender_id == user_id ? "" : "flex-row-reverse",
+                </div>
+              );
+            }
 
-                  //     isSelected && "bg-[#ffffff0f] dark:bg-[#ffffff08]",
-                  //   )}
-                  // >
-                  //   {/* Selection Checkbox */}
-                  //   {selectionMode && (
-                  //     <div
-                  //       className={cn(
-                  //         "absolute left-2 z-20 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
 
-                  //         isSelected
-                  //           ? "bg-green-500 border-green-500 scale-100"
-                  //           : "border-gray-400 scale-90",
-                  //       )}
-                  //     >
-                  //       {isSelected && (
-                  //         <span className="text-white text-[10px]">✓</span>
-                  //       )}
-                  //     </div>
-                  //   )}
-
-                  //   {/* Message Actions */}
-                  //   <div
-                  //     className={cn(
-                  //       "flex items-center gap-2 mx-2 transition-opacity duration-200",
-                  //       active === msg?.id ? "opacity-100" : "opacity-0",
-                  //     )}
-                  //   >
-                  //     <button
-                  //       className="text-gray-500 hover:text-white transition p-1 rounded-full hover:bg-[#ffffff14]"
-                  //       onClick={(e) => {
-                  //         e.stopPropagation();
-                  //         setShow(msg?.id);
-                  //       }}
-                  //     >
-                  //       <svg
-                  //         className="size-3"
-                  //         aria-hidden="true"
-                  //         xmlns="http://www.w3.org/2000/svg"
-                  //         fill="none"
-                  //         viewBox="0 0 14 8"
-                  //       >
-                  //         <path
-                  //           stroke="currentColor"
-                  //           strokeLinecap="round"
-                  //           strokeLinejoin="round"
-                  //           strokeWidth="2"
-                  //           d="m1 1 5.326 5.7a.909.909 0 0 0 1.348 0L13 1"
-                  //         />
-                  //       </svg>
-                  //     </button>
-
-                  //     {/* Emoji Picker */}
-                  //     <ol
-                  //       className={cn(
-                  //         "absolute top-0 z-50 flex gap-1 bg-white dark:bg-[#202c33] shadow-xl rounded-full px-2 py-1 border dark:border-[#2f3b43] transition-all",
-
-                  //         show === msg?.id
-                  //           ? "opacity-100 scale-100"
-                  //           : "opacity-0 scale-95 pointer-events-none",
-                  //       )}
-                  //     >
-                  //       {emojis?.map((em: emoji) => (
-                  //         <li
-                  //           key={em.react_id}
-                  //           onClick={(e) => {
-                  //             e.stopPropagation();
-
-                  //             console.log(msg?.id, "messgae id ", em.react_id);
-                  //             handleLike(msg?.id, em.react_id);
-                  //           }}
-                  //           className="cursor-pointer hover:scale-125 transition-transform"
-                  //         >
-                  //           {em.emoji}
-                  //         </li>
-                  //       ))}
-                  //     </ol>
-                  //   </div>
-
-                  //   {/* Message */}
-                  //   <div
-                  //     className={cn(
-                  //       "transition-all duration-200  max-w-[70%]  ",
-
-                  //       selectionMode && "ml-8",
-                  //     )}
-                  //   >
-                  //     {msg && (
-                  //       <Messages
-                  //         msg={msg}
-                  //         pausedRef={pausedRef}
-                  //         progress={progress}
-                  //         uploadId={uploadId}
-                  //         uploadChunks={uploadChunks}
-                  //         chatDetails={chatDetails}
-                  //         cancelUpload={cancelUpload}
-                  //         user_id={user_id}
-                  //         data={data}
-                  //         emojis={icons}
-                  //         setReplyMessage={setReplyMessage}
-                  //       />
-                  //     )}
-                  //   </div>
-                  // </motion.div>
-                )}
-              </div>
-            );
           })}
         </div>
       </div>

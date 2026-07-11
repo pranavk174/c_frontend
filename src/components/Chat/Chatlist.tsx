@@ -1,5 +1,5 @@
 "use client";
-import { Chat, Message, reaction, socketResponse } from "@/lib/dummy";
+import { Chat, Message, MessageItem, reaction, socketResponse } from "@/lib/dummy";
 import { MESSAGE_REACTION, MESSAGE_SEEN, REFETCH_CHATS } from "@/lib/events";
 import { useAppDispatch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
@@ -44,8 +44,8 @@ interface chatListProps {
   show: string | number | null;
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
-  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
-  data: Message[];
+  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
+  data: MessageItem[];
   active: string | number | null;
   isFetching: boolean;
   selectedMessages: number[];
@@ -296,7 +296,7 @@ const Chatlist = memo(
             </div>
           )}
 
-          {data.map((msg: Message) => {
+          {data.map((msg: MessageItem) => {
             const icons = emojis?.filter((emoji: emoji) =>
               msg.reactions?.some((em) => em.react_id === emoji.react_id),
             );
@@ -408,6 +408,8 @@ const Chatlist = memo(
                     selectionMode && "ml-8",
                   )}
                 >
+
+
                   <Messages
                     msg={msg}
                     pausedRef={pausedRef}
@@ -417,7 +419,7 @@ const Chatlist = memo(
                     chatDetails={chatDetails}
                     cancelUpload={cancelUpload}
                     user_id={user_id}
-                    data={data}
+                    // data={data}
                     emojis={icons}
                     setReplyMessage={setReplyMessage}
                   />

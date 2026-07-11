@@ -1,6 +1,16 @@
 import { Moon, Sun } from "lucide-react";
+import { ChangeEvent } from "react";
 
-const SoundToggle = ({ left, right, handleToggle, name, value }) => {
+
+interface toggleProps {
+  left: string
+  right: string
+  handleToggle: () => void;
+  name: string
+  value: boolean
+}
+
+const SoundToggle = ({ left, right, handleToggle, name, value }: toggleProps) => {
   return (
     <label className="inline-flex items-center cursor-pointer">
       {/* Low volume icon */}

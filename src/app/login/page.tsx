@@ -6,13 +6,10 @@ import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/Users";
 import { getDeviceInfo } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import SoundToggle from "@/components/Utility/Togglebuton";
+import DarkthemeToggle from "@/components/Utility/DarkthemeToggle";
 export default function LoginPage() {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
   const [email, setEmail] = useState("");
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.classList.contains("dark");
-  });
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const router = useRouter();
 
@@ -37,24 +34,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-wa-bg dark:bg-wa-bg-dark flex items-center justify-center p-4">
       {/* WhatsApp Green Top Bar Background */}
       <div className="absolute top-0 left-0 w-full h-[222px] bg-wa-primary dark:bg-wa-primary-dark hidden md:block z-0">
-        <div className=" text-[clamp(16px,4vw,16px)]">
-          <SoundToggle
-            left={"Light"}
-            name={"theme"}
-            value={isDark}
-            right={"Dark"}
-            handleToggle={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const { checked, files } = e.target;
-
-              const value = checked ? "dark" : "light";
-
-              document.cookie = `theme=${value}; path=/; SameSite=Lax`;
-              document.documentElement.classList.remove("dark", "light");
-              document.documentElement.classList.add(value);
-              setIsDark(value === "dark");
-            }}
-          />
-        </div>
+        <DarkthemeToggle />
       </div>
 
       <div className="bg-wa-panel dark:bg-wa-panel-dark w-full max-w-md rounded-lg shadow-lg overflow-hidden relative z-10 p-8">

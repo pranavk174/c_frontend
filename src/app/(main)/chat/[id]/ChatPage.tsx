@@ -10,9 +10,8 @@ import {
 } from "react";
 
 import dynamic from "next/dynamic";
-const VirtualChatlist = dynamic(
-  () => import("@/components/Chat/VirtualChatList"),
-);
+
+
 import { useSelector } from "react-redux";
 // import { chatApi } from "../../../../redux/Apis/User";
 import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
@@ -21,8 +20,11 @@ import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
 import {
   Chat,
+  ChatItem,
+  memberProps,
   Message,
   message_reactions,
+  MessageItem,
   seen_user,
   socketResponse,
   valueProps,
@@ -89,7 +91,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
 
-  const [replyMessage, setReplyMessage] = useState<Message | null>(null);
+  const [replyMessage, setReplyMessage] = useState<MessageItem | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
   const [showModal, setShowModal] = useState<valueProps>({
     open: false,
@@ -140,7 +142,7 @@ const ChatPage = ({ id }: { id: number }) => {
       selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
         // const res = new Map();
 
-        const result =
+        const result: Record<string, Message[]> =
           data?.data?.getChatById?.data?.items.reduce(
             (acc: Record<string, Message[]>, idx: Message) => {
               const date = new Date(Number(idx.created_at));
@@ -175,14 +177,18 @@ const ChatPage = ({ id }: { id: number }) => {
           ) ?? [];
 
         // console.log("result daataaa.", result);
-        const flatData = Object.entries(result)?.flatMap(
-          ([date, messagess]) => [
-            { type: "header", date, id: crypto.randomUUID() },
-            ...messagess?.map((msg: Message) => ({
-              type: "message",
+        const flatData: ChatItem[] = Object.entries(result).flatMap(
+          ([date, messages]) => [
+            {
+              kind: "header",
+              id: crypto.randomUUID(),
+              date,
+            },
+            ...messages.map((msg) => ({
               ...msg,
+              kind: "message" as const,
             })),
-          ],
+          ]
         );
 
         // console.log(flatData, "result daataaa.", result);
@@ -228,7 +234,7 @@ const ChatPage = ({ id }: { id: number }) => {
         return {
           members: data?.data?.getMembers?.data?.items,
           memberIds: data?.data?.getMembers?.data?.items.map(
-            (d: any) => d.member_id,
+            (d: memberProps) => d.member_id,
           ),
           isLoading,
           error,
@@ -476,37 +482,38 @@ const ChatPage = ({ id }: { id: number }) => {
     if (!file || currentChunk > 0 || !user_id) return;
 
     const url = URL.createObjectURL(file);
-
-    const pathResult = dispatch(
-      chatApi.util.updateQueryData(
-        "getSingleChat",
-        { chat_ids: [id] },
-        addMessage(inputRef.current.value, user_id, replyMessage, url),
-      ),
-    );
-
-    // console.log(messages, "messageeeeeeee", inputText)
-
-    try {
-      controllerRef.current = new AbortController();
-      const upload = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
-        {
-          method: "POST",
-          headers: {
-            "Content-type": "application/json",
-          },
-        },
+    if (inputRef.current) {
+      const pathResult = dispatch(
+        chatApi.util.updateQueryData(
+          "getSingleChat",
+          { chat_ids: [id] },
+          addMessage(inputRef.current.value, user_id, replyMessage, url),
+        ),
       );
 
-      const data = await upload.json();
-      console.log(data, "data....");
-      const uid = data.uploadId;
-      setUploadId(uid);
+      // console.log(messages, "messageeeeeeee", inputText)
 
-      uploadChunks(uid);
-    } catch (error) {
-      pathResult.undo();
+      try {
+        controllerRef.current = new AbortController();
+        const upload = await fetch(
+          `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
+          {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+          },
+        );
+
+        const data = await upload.json();
+        console.log(data, "data....");
+        const uid = data.uploadId;
+        setUploadId(uid);
+
+        uploadChunks(uid);
+      } catch (error) {
+        pathResult.undo();
+      }
     }
   }, [
     currentChunk,
@@ -843,6 +850,7 @@ const ChatPage = ({ id }: { id: number }) => {
           setShow={setShow}
           setReplyMessage={setReplyMessage}
           uploadId={uploadId}
+          messages={messages}
           setFile={setFile}
           show={show}
           menu={menu}
@@ -863,6 +871,7 @@ const ChatPage = ({ id }: { id: number }) => {
         // inputText={inputRef.current}
         inputRef={inputRef}
         file={file}
+
         handleSendMessage={handleSendMessage}
         // setMessages={setMessages}
         scrollToBottom={scrollToBottom}

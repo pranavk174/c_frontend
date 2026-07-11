@@ -39,6 +39,7 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
 import SoundToggle from "./Utility/Togglebuton";
+import DarkthemeToggle from "./Utility/DarkthemeToggle";
 export default function Sidebar() {
   const [logout] = useLogoutMutation();
   const pathname = usePathname();
@@ -52,41 +53,8 @@ export default function Sidebar() {
   const { chatSocket: socket, notificationSocket } = useSocket();
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.classList.contains("dark");
-  });
-  const [updatePreference] = useUpdatePreferenceMutation();
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleUpdate = async (theme: "dark" | "light") => {
-    try {
-      await updatePreference({ theme }).unwrap();
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const debouncedUpdateTheme = (theme: "dark" | "light") => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
 
-    debounceRef.current = setTimeout(() => {
-      handleUpdate(theme);
-    }, 500);
-  };
-  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, type, checked } = e.target;
 
-    if (type === "checkbox" && name === "theme") {
-      const value = checked ? "dark" : "light";
-
-      document.cookie = `theme=${value}; path=/; SameSite=Lax`;
-      document.documentElement.classList.remove("dark", "light");
-      document.documentElement.classList.add(value);
-      setIsDark(value === "dark");
-      debouncedUpdateTheme(value);
-    }
-  };
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
       // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
@@ -98,7 +66,7 @@ export default function Sidebar() {
     },
   });
 
-  const { data, isLoading, isSuccess } = useGetAllChatsQuery(
+  const { data } = useGetAllChatsQuery(
     {},
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
@@ -175,7 +143,6 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      // document.documentElement.classList.remove("dark", "light");
       await logout(null).unwrap();
       document.documentElement.classList.remove("dark", "light");
     } catch (error) {
@@ -256,23 +223,8 @@ export default function Sidebar() {
               <Menu className="size-6" />
             </button>
 
-            <div className={` mt-4 rotate-90 text-[clamp(16px,4vw,16px)]`}>
-              <SoundToggle
-                left={""}
-                name={"theme"}
-                value={isDark}
-
-                right={""}
-                handleToggle={() => {
-                  const value = isDark ? "light" : "dark"
-                  document.cookie = `theme=${value}; path=/; SameSite=Lax`;
-                  document.documentElement.classList.remove("dark", "light");
-                  document.documentElement.classList.add(value);
-                  setIsDark(value === "dark");
-                  debouncedUpdateTheme(value);
-                }}
-              />
-            </div> </div>
+            <DarkthemeToggle />
+          </div>
           <button
             onClick={handleLogout}
             className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"

@@ -11,9 +11,11 @@ import {
   useState,
 } from "react";
 import {
+  socketCallback,
   socketResponse,
   StoryContent,
   StoryItem,
+  storySeen,
   UserStories,
 } from "@/lib/dummy";
 import {
@@ -31,7 +33,7 @@ import {
   STORY_REPLY,
   STORY_SEEN,
 } from "@/lib/events";
-import { socketCallback } from "@/lib/utils";
+
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { div } from "framer-motion/client";
 import Loader from "../Utility/Loader";
@@ -162,7 +164,13 @@ const StoryViewer = ({
 
   const handler = useMemo(
     () => ({
-      [STORY_SEEN]: (data: any, callback: any) => {
+      [STORY_SEEN]: (data: storySeen, callback: (
+        {
+          message,
+          status,
+          success,
+        }: socketCallback
+      ) => void) => {
         if (!data) {
           return callback({
             message: "no data recieved",
@@ -327,7 +335,7 @@ const StoryViewer = ({
           not.reference_id === currentStory.id &&
           not.notification_type === "story_like",
       )
-      .map((not) => not.notification_id);
+      .map((not: Notification) => not.notification_id);
 
     if (!ids?.length) return;
 

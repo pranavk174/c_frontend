@@ -1,29 +1,66 @@
-import { Middleware, isRejectedWithValue } from "@reduxjs/toolkit";
+import { Action, Middleware, isRejectedWithValue } from "@reduxjs/toolkit";
+
 import { showGlobalToast } from "../toastservices";
 
+interface actionProps {
+
+  payload: {
+    status?: number | string;
+    message?: string;
+    data?: {
+      message?: string;
+      offline?: boolean;
+    };
+  }
+
+}
+
+interface metaProps {
+
+  meta: {
+    arg: unknown;
+    requestId: string;
+    requestStatus: "rejected";
+    aborted: boolean;
+    condition: boolean;
+  } & ({
+    rejectedWithValue: true;
+  } | ({
+    rejectedWithValue: false;
+  } & {}))
+}
 
 export const errorMiddleware: Middleware = () => (next) => (action) => {
   // const { showToast } = useToast()
   if (isRejectedWithValue(action)) {
     console.log(action, "action meta daata...");
-    const endpointName = (action.meta as any)?.arg?.endpointName;
+    const payload = action.payload as {
+      status?: number | string;
+      message?: string;
+      data?: {
+        message?: string;
+        offline?: boolean;
+      };
+    };
+
+    // const endpointName = (action.meta)?.arg?.endpointName;
 
     const message =
-      (action.payload as any)?.message ||
-      (action.payload as any)?.data?.message ||
+      payload.message ??
+      payload.data?.message ??
       "Something went wrong";
 
     if (
-      (action.payload as any).status === "FETCH_ERROR" ||
-      (action.data as any).offline === true
+      payload.status === "FETCH_ERROR" ||
+      payload.data?.offline
     ) {
       window.location.href = "/offline.html";
       return;
     }
 
-    console.log("API:", endpointName);
+    // console.log("API:", endpointName);
     // showToast(message, "error");
-    showGlobalToast(`error in ${endpointName} API`, "error");
+    // showGlobalToast(`error in ${endpointName} API`, "error");
   }
 
 

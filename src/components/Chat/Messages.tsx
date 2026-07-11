@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Chat, Message } from "@/lib/dummy";
+import { Chat, ChatItem, Message, MessageItem } from "@/lib/dummy";
 import {
   motion,
   useMotionValue,
@@ -18,11 +18,11 @@ type emoji = {
 
 interface messageProps {
   emojis: emoji[];
-  msg: Message;
+  msg: MessageItem;
   user_id: number | null;
   // data: Message[];
-  mappedMessages: Map<number, Message>;
-  setReplyMessage: React.Dispatch<React.SetStateAction<Message | null>>;
+  // mappedMessages: Map<number, Message>;
+  setReplyMessage: React.Dispatch<React.SetStateAction<MessageItem | null>>;
   repliedMessage?: Message | null | undefined;
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
@@ -57,6 +57,9 @@ const Messages = ({
   // console.log("messages  triggereddddddddd");
 
   const router = useRouter();
+
+  // 
+
   const handleDragEnd = () => {
     if (x.get() > 90 && !triggered.current) {
       triggered.current = true;
@@ -77,7 +80,11 @@ const Messages = ({
 
   // console.log("replied message", repliedMessage);
 
+
+
   const repliedStory = msg.story_id ? msg.story_item : null;
+
+  console.log(repliedMessage, "replite message/...")
 
   return (
     <div
@@ -127,6 +134,7 @@ const Messages = ({
                 <p className="text-[11px] font-semibold text-green-700 dark:text-green-300">
                   Reply
                 </p>
+
 
                 <p className="text-xs opacity-80 truncate max-w-55">
                   {repliedMessage.content}

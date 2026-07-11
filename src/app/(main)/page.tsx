@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function EmptyStatePage() {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center px-4">
+    <div className="flex flex-col w-full items-center justify-center h-full text-center px-4">
       {/* Empty State Graphic */}
       {/* <Image  priority
         height={200}

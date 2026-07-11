@@ -14,11 +14,14 @@ export const baseQuery = fetchBaseQuery({
 
 export interface refreshToken {
   data: {
+
     generateRefreshToken: {
       status?: number;
       success?: boolean;
       message?: string;
+      error?: string
     };
+
   };
 }
 
@@ -66,8 +69,7 @@ const baseQueryWithReauth: BaseQueryFn<
         message,status,success,error
     }
 }
-          
-          
+    
           `,
         },
       },
@@ -75,17 +77,20 @@ const baseQueryWithReauth: BaseQueryFn<
       extraOptions,
     );
 
-    // refresh success
-    if (refreshResult?.data?.data?.generateRefreshToken?.status !== 401) {
-      result = await baseQuery(args, api, extraOptions);
-    } else {
-      // logout user
 
-      localStorage.removeItem("user");
+    if ("data" in refreshResult) {
+      const refreshData = refreshResult.data as GraphQLResponse<refreshToken>;
 
-      // optional redirect
-      window.location.href = "/login";
+      if (
+        refreshData.data?.data?.generateRefreshToken?.status !== 401
+      ) {
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
+
   } else if (!data) {
     console.log(data, "error dataaaaa");
     // throw new Error("Internal Server Error");

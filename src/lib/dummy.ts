@@ -45,8 +45,8 @@ export interface chatListProps {
   show: string | number | null;
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
-  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
-  data: Message[];
+  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
+  data: ChatItem[];
   // active: string | number | null;
   isFetching: boolean;
   selectedMessages: number[];
@@ -56,7 +56,7 @@ export interface chatListProps {
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
   // setMessages?: Dispatch<SetStateAction<Message[]>>;
-  // messages: Message[];
+  messages: Message[];
   pausedRef: React.RefObject<boolean>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   progress: number;
@@ -95,6 +95,20 @@ export interface Message {
   reactions: reaction[];
   isLocal: boolean;
 }
+
+type HeaderItem = {
+  kind: "header";
+  id: string;
+  date: string;
+};
+
+export type MessageItem = Message & {
+  kind: "message";
+};
+
+export type ChatItem = MessageItem | HeaderItem;
+
+
 
 export interface seen_user {
   message_id: number;
@@ -219,7 +233,7 @@ export interface Notification {
 export interface MessageboxProps {
   startPressTimer: (id: number) => void;
   cancelPressTimer: () => void;
-  msg: Message;
+  msg: MessageItem;
   repliedMessage: Message | null;
   setActive: Dispatch<SetStateAction<string | number | null>>;
   show: string | number | null;
@@ -234,13 +248,13 @@ export interface MessageboxProps {
   pausedRef: RefObject<boolean>;
   progress: number;
   uploadId: string;
-  mappedMessages: Map<number, Message>;
+  // mappedMessages: Map<number, MessageItem>;
   cancelUpload: () => Promise<"success" | undefined>;
   uploadChunks: (id: string) => Promise<void>;
   chatDetails: Chat;
   // data: Message[];
   icons: emoji[];
-  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
+  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
   emojis: emoji[];
 }
 
@@ -256,4 +270,27 @@ export interface NewChatProps {
   users: User[];
   setModal: Dispatch<SetStateAction<valueProps>>;
   // onSelectUser: (user: User) => void;
+}
+
+
+export interface memberProps {
+  member_id: number;
+  role: 'admin' | 'member'
+}
+
+export interface storySeen {
+
+  story_id: number;
+  user_id: number
+  profile_pic?: string
+  name: string
+  seen_at: string
+
+
+}
+
+export interface socketCallback {
+  message: string;
+  status: number;
+  success: boolean;
 }

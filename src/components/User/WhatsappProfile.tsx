@@ -262,13 +262,7 @@ const WhatsappProfile = ({
           <div className="text-wa-primary text-sm mb-3">Theme</div>
 
           <div className={` transform-content rotate-180 text-[clamp(16px,4vw,16px)]`}>
-            <SoundToggle
-              left={"Light"}
-              name={"theme"}
-              value={isDark}
-              right={"Dark"}
-              handleToggle={handleChange}
-            />
+
           </div>
         </div>
       </div>

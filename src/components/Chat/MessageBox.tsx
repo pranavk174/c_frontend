@@ -20,7 +20,7 @@ const MessageBox = memo(
     pausedRef,
     progress,
     uploadId,
-    mappedMessages,
+    // mappedMessages,
     uploadChunks,
     chatDetails,
     cancelUpload,
@@ -32,6 +32,9 @@ const MessageBox = memo(
   }: MessageboxProps) => {
     // console.log("message box triggereddddd");
 
+
+
+    // if (msg.kind === 'header') return
 
     return (
       <motion.div
@@ -139,7 +142,7 @@ const MessageBox = memo(
           {msg && (
             <Messages
               msg={msg}
-              mappedMessages={mappedMessages}
+              // mappedMessages={mappedMessages}
               pausedRef={pausedRef}
               progress={progress}
               uploadId={uploadId}

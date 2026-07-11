@@ -65,7 +65,7 @@ const Chathead = memo(
     const { chatSocket: socket, notificationSocket } = useSocket();
     const dispatch = useAppDispatch();
 
-    const d = new Map(
+    const d = new Map<number, { member_id: number; role: string; }>(
       members
         .toSorted((m, n) => m.member_id - n.member_id)
         .map((member): [number, { member_id: number; role: string }] => [
@@ -88,10 +88,17 @@ const Chathead = memo(
       selectFromResult: ({ data, isSuccess }) => {
         console.log(members, "membersssss");
 
+
         const newData = data?.data?.getUsers?.data?.items.reduce(
           (acc: profileProps[], idx: profileProps) => {
-            if (d.has(idx.id)) {
-              acc.push({ ...idx, role: d.get(idx.id).role });
+            if (idx.id === undefined) return acc;
+            const member = d.get(idx.id);
+
+            if (member) {
+              acc.push({
+                ...idx,
+                role: member.role,
+              });
             }
 
             return acc;
@@ -99,8 +106,9 @@ const Chathead = memo(
           [],
         );
 
-        if (d.has(user.id)) {
-          newData.push({ ...user, role: d.get(user?.id).role });
+        if (user?.id === undefined && d.has(user?.id)) {
+          const member = d.get(user?.id);
+          newData.push({ ...user, role: member?.role });
         }
 
         console.log(
@@ -305,7 +313,7 @@ const Chathead = memo(
           {open.type === "profile" && (
             <WhatsappProfile
               setOpen={setOpen}
-              isUser={d.has(user.id) && d.get(user.id).role === "admin"}
+              isUser={d.has(user.id) && d.get(user.id) !== undefined && d.get(user?.id)?.role === "admin"}
               profile={chatDetails}
             />
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Chat, Message } from "@/lib/dummy";
+import { Chat, Message, MessageItem } from "@/lib/dummy";
 
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import React, {
@@ -16,7 +16,7 @@ import MediaOptions from "./MediaOptions";
 interface inputBoxProps {
   chatDetails: Chat;
   replyMessage: Message | null;
-  setReplyMessage: Dispatch<SetStateAction<Message | null>>;
+  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
   // setMessages: Dispatch<SetStateAction<Message[]>>
   scrollToBottom: () => void;
   messages?: Message[];
