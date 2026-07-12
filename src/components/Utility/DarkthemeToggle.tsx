@@ -36,7 +36,7 @@ const DarkthemeToggle = () => {
                 right={""}
                 handleToggle={() => {
                     const value = isDark ? "light" : "dark"
-                    document.cookie = `theme=${value}; path=/; SameSite=Lax`;
+                    document.cookie = `theme=${value}; path=/;`;
                     document.documentElement.classList.remove("dark", "light");
                     document.documentElement.classList.add(value);
                     setIsDark(value === "dark");

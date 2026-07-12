@@ -47,6 +47,7 @@ export default function VerifyOtp({ email }: { email: string }) {
         }
 
         if (document.cookie.includes("theme")) {
+
           const value = document.cookie.includes("dark") ? "dark" : "light";
           document.documentElement.classList.remove("dark", "light");
           document.documentElement.classList.add(value);
