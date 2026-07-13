@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
 const api = axios.create({
@@ -64,11 +64,14 @@ export const boilerPlate = async (
 
     return res;
   } catch (error) {
-    // console.dir(error.response?.data, { depth: null });
+    const err = error as AxiosError;
+
+    console.dir(err.response?.data, { depth: null });
     return NextResponse.json(
       {
         success: false,
         message: "Something went wrong",
+        error: (err.response?.data, { depth: null }),
       },
       {
         status: 500,
@@ -97,11 +100,14 @@ export const getBoilerplate = async (
 
     return res;
   } catch (error) {
-    console.log(error, "error in api");
+    const err = error as AxiosError;
+
+    console.dir(err.response?.data, { depth: null });
     return NextResponse.json(
       {
         success: false,
         message: "Something went wrong",
+        error: (err.response?.data, { depth: null }),
       },
       {
         status: 500,
