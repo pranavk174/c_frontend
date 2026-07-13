@@ -67,6 +67,9 @@ export const boilerPlate = async (
     const err = error as AxiosError;
 
     console.log(err.response?.data, { depth: null });
+    console.log(err);
+    console.log(error);
+    console.log(err.response);
     return NextResponse.json(
       {
         success: false,
@@ -103,6 +106,9 @@ export const getBoilerplate = async (
     const err = error as AxiosError;
 
     console.log(err.response?.data, { depth: null });
+    console.log(err);
+    console.log(error);
+    console.log(err.response);
     return NextResponse.json(
       {
         success: false,
