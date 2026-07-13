@@ -1,8 +1,8 @@
 import { verifyOtpMutation } from "@/graphql/Modules/Users/User.mutation";
 import { NextRequest, NextResponse } from "next/server";
 import { backendRequests } from "../../utils";
+import { AxiosError } from "axios";
 
-debugger;
 export const POST = async (req: NextRequest) => {
   const { email, otp, device_id, ip_address, location, device_name } =
     await req.json();
@@ -42,8 +42,12 @@ export const POST = async (req: NextRequest) => {
 
     //   return res;
     return res;
-  } catch (err) {
-    // console.dir(err.response?.data, { depth: null });
+  } catch (error) {
+    const err = error as AxiosError;
+    console.log(err.response?.data, { depth: null });
+    console.log(err);
+    console.log(error);
+    console.log(err.response);
     return NextResponse.json(
       {
         success: false,
