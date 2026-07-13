@@ -64,7 +64,7 @@ export const boilerPlate = async (
 
     return res;
   } catch (error) {
-    console.dir(error.response?.data, { depth: null });
+    // console.dir(error.response?.data, { depth: null });
     return NextResponse.json(
       {
         success: false,
