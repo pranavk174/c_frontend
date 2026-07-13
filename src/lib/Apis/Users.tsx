@@ -9,7 +9,7 @@ import {
   unBlockUserMutation,
   updatePreference,
   updateUserMutation,
-  veridyOtpMutation,
+  verifyOtpMutation,
 } from "@/graphql/Modules/Users/User.mutation";
 import {
   getAllUsersQuery,
@@ -40,7 +40,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: veridyOtpMutation,
+          query: verifyOtpMutation,
           variables: {
             input: {
               email,
