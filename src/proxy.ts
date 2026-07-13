@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 const middleware = (req: NextRequest) => {
   const token = req.cookies.get("accessToken")?.value;
   const isLoginPage = req.nextUrl.pathname.startsWith("/login");
+  const isbackend = req.nextUrl.pathname.startsWith("/api");
+
+  if (isbackend) {
+    return NextResponse.next();
+  }
 
   if (!isLoginPage && !token) {
     return NextResponse.redirect(new URL("/login", req.url));

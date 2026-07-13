@@ -21,24 +21,20 @@ export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllChats: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getAllchatsQuery,
-        },
-        providesTags: ["chats"],
+        url: "/chat/get-all-chats",
+        method: "GET",
       }),
       providesTags: ["chats"],
     }),
+
     getSingleChat: builder.query({
       query: ({ chat_ids, limit = 20, cursor = null }) => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getSingleChatQuery,
-          variables: {
-            input: { chat_ids, limit, cursor },
-          },
+        url: "/chat/single-chat",
+        method: "GET",
+        params: {
+          chat_ids,
+          limit,
+          cursor,
         },
       }),
       providesTags: (result) => {
@@ -96,26 +92,16 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     getMembers: builder.query({
       query: ({ chat_id }) => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getMemberQuery,
-          variables: {
-            input: {
-              chat_ids: [chat_id],
-            },
-          },
-        },
+        url: `/chat/group/get-members/${chat_id}`,
+        method: "GET",
       }),
     }),
     getEmojis: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getEmojiQuery,
-        },
+        url: "/chat/get-emojis",
+        method: "GET",
       }),
+      providesTags: ["emoji"],
     }),
     reactMessage: builder.mutation({
       query: ({ message_ids, react_id, chat_ids }) => ({
@@ -144,27 +130,22 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     newChat: builder.mutation({
       query: ({ member_id }) => ({
-        url: "",
+        url: "/chat/get-single-chat",
         method: "POST",
-        body: {
-          query: newChatMutation,
-          variables: {
-            member_id,
-          },
-        },
+        body: JSON.stringify({ member_id }),
       }),
       invalidatesTags: ["chats"],
     }),
     createNewGroup: builder.mutation({
       query: ({ groupName, profile_pic, members, cover_pic }) => ({
-        url: "",
+        url: "/chat/group/group-crud",
         method: "Post",
-        body: {
-          query: newGroupMutation,
-          variables: {
-            input: { groupName, profile_pic, member_ids: members, cover_pic },
-          },
-        },
+        body: JSON.stringify({
+          groupName,
+          profile_pic,
+          member_ids: members,
+          cover_pic,
+        }),
       }),
     }),
 
@@ -238,25 +219,18 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     setWallPaper: builder.mutation({
       query: ({ url }) => ({
-        url: "",
+        url: "/chat/wallpaper",
         method: "POST",
-        body: {
-          query: setWallPaperMutation,
-          variables: {
-            url,
-          },
-        },
+        body: JSON.stringify({
+          url,
+        }),
       }),
       invalidatesTags: ["wallpaper"],
     }),
-
     getWallpaper: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getWallpaperQuery,
-        },
+        url: "/chat/wallpaper",
+        method: "GET",
       }),
     }),
   }),

@@ -2,19 +2,15 @@ import { getAllNotifictaionQuery } from "@/graphql/Modules/Notifications/notific
 import { BaseApi } from "./BaseApi";
 
 export const NotificationApi = BaseApi.injectEndpoints({
-    endpoints: (builder) => ({
+  endpoints: (builder) => ({
+    getNotifications: builder.query({
+      query: () => ({
+        url: "/notification",
+        method: "GET",
+      }),
+    }),
+  }),
+});
 
-        getNotifications: builder.query({
-            query: () => ({
-                url: "",
-                method: 'POST',
-                body: {
-                    query:
-                        getAllNotifictaionQuery
-                }
-            })
-        })
-    })
-})
-
-export const { useGetNotificationsQuery, useLazyGetNotificationsQuery } = NotificationApi
+export const { useGetNotificationsQuery, useLazyGetNotificationsQuery } =
+  NotificationApi;

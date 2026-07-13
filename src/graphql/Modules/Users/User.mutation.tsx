@@ -19,29 +19,29 @@ export const loginMutation = `
                         
                         `;
 
-export const veridyOtpMutation = `
-                        
-                        mutation verifyOtp ($input:verifyOtpInput!){
-                                            verifyOtp(input:$input){
-                                            message,success,status data{
-                                          
-                                            ... on verifyOtpData {
-                                            email,
-                                            is_verified
-                                            
+export const verifyOtpMutation = `
+                    
+                    mutation verifyOtp ($input:verifyOtpInput!){
+                                        verifyOtp(input:$input){
+                                        message,success,status data{
+                                      
+                                        ... on verifyOtpData {
+                                        email,
+                                        is_verified
+                                        
+                                        }
+                                        ... on User {
+                                        
+                                        id
+                                        user_name
+                                        email
+                                        }
+                                        
+                                        }
                                             }
-                                            ... on User {
-                                            
-                                            id
-                                            user_name
-                                            email
-                                            }
-                                            
-                                            }
-                                                }
-                                            }
-                        
-                        `;
+                                        }
+                    
+                    `;
 export const createUserMutation = `
           
           

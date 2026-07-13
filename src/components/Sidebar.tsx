@@ -40,6 +40,7 @@ import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
 import SoundToggle from "./Utility/Togglebuton";
 import DarkthemeToggle from "./Utility/DarkthemeToggle";
+import { useRouter } from "next/navigation";
 export default function Sidebar() {
   const [logout] = useLogoutMutation();
   const pathname = usePathname();
@@ -54,7 +55,7 @@ export default function Sidebar() {
   const dispatch = useAppDispatch();
   const { showToast } = useToast();
 
-
+  const route = useRouter();
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
       // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
@@ -145,6 +146,7 @@ export default function Sidebar() {
     try {
       await logout(null).unwrap();
       document.documentElement.classList.remove("dark", "light");
+      route.replace("/login");
     } catch (error) {
       // showToast(error.message, "error")
     }
@@ -229,15 +231,9 @@ export default function Sidebar() {
             onClick={handleLogout}
             className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
           >
-
             <LogOut className="size-6" />
           </button>
-
-
-
-
         </div>
-
       </header>
       {/* ) : (
         <button

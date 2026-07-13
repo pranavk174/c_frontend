@@ -4,7 +4,7 @@ import { persistStore, persistReducer } from "redux-persist";
 import onlineUsersSlice from "./slices/onLineUsers";
 
 import userSlice from "./slices/User";
-import { UserApi } from "./Apis/User";
+
 import { BaseApi } from "./Apis/BaseApi";
 import { errorMiddleware } from "./middlewares/erroreMiddleware";
 
@@ -29,8 +29,9 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }).concat(BaseApi.middleware)
-      .concat(errorMiddleware)
+    })
+      .concat(BaseApi.middleware)
+      .concat(errorMiddleware),
 });
 
 export const persistor = persistStore(store);

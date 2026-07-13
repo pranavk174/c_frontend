@@ -11,7 +11,7 @@ export default function VerifyOtp({ email }: { email: string }) {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const [otp, setOtp] = useState("");
-  console.log(email, "email....");
+
   const dispatch = useDispatch();
   const [verifyOtp, { isLoading, isSuccess: isverifySuccess }] =
     useVerifyOtpMutation();
@@ -47,7 +47,6 @@ export default function VerifyOtp({ email }: { email: string }) {
         }
 
         if (document.cookie.includes("theme")) {
-
           const value = document.cookie.includes("dark") ? "dark" : "light";
           document.documentElement.classList.remove("dark", "light");
           document.documentElement.classList.add(value);

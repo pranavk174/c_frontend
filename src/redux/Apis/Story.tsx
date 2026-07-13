@@ -23,11 +23,8 @@ export const storyApi = BaseApi.injectEndpoints({
     }),
     getStories: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getStoriesQuery,
-        },
+        url: "/story",
+        method: "GET",
       }),
       providesTags: ["story"],
     }),

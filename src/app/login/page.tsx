@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
-import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/Users";
-import { getDeviceInfo } from "@/lib/utils";
+import { useLoginMutation } from "@/redux/Apis/Users";
+
 import { useRouter } from "next/navigation";
-import SoundToggle from "@/components/Utility/Togglebuton";
+
 import DarkthemeToggle from "@/components/Utility/DarkthemeToggle";
 export default function LoginPage() {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");

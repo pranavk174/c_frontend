@@ -9,7 +9,7 @@ import {
   unBlockUserMutation,
   updatePreference,
   updateUserMutation,
-  veridyOtpMutation,
+  verifyOtpMutation,
 } from "@/graphql/Modules/Users/User.mutation";
 import {
   getAllUsersQuery,
@@ -20,13 +20,13 @@ export const authApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: ({ email }) => ({
-        url: "",
+        url: "/auth/send-otp",
         method: "POST",
-        body: {
-          query: loginMutation,
-          variables: { email },
-        },
+        body: JSON.stringify({
+          email,
+        }),
       }),
+      invalidatesTags: ["User"],
     }),
     verifyOtp: builder.mutation({
       query: ({
@@ -37,136 +37,102 @@ export const authApi = BaseApi.injectEndpoints({
         location,
         device_name,
       }) => ({
-        url: "",
+        url: "/auth/verify-otp",
         method: "POST",
-        body: {
-          query: veridyOtpMutation,
-          variables: {
-            input: {
-              email,
-              otp,
-              device_id,
-              ip_address,
-              location,
-              device_name,
-            },
-          },
-        },
+        body: JSON.stringify({
+          email,
+          otp,
+          device_id,
+          ip_address,
+          location,
+          device_name,
+        }),
       }),
+      invalidatesTags: ["User"],
     }),
     createUser: builder.mutation({
       query: ({ formData }) => ({
-        url: "",
+        url: "/auth/create-user",
         method: "POST",
-        body: {
-          query: createUserMutation,
-          variables: {
-            input: formData,
-          },
-        },
+        body: JSON.stringify({
+          formData,
+        }),
       }),
       invalidatesTags: ["User"],
     }),
     refreshToken: builder.mutation({
       query: () => ({
-        url: "",
+        url: "/auth/refresh-token",
         method: "POST",
-        body: {
-          query: refreshTokenGenerateMutation,
-        },
       }),
+      invalidatesTags: ["User"],
     }),
     logout: builder.mutation({
       query: () => ({
-        url: "",
+        url: "/auth/logout",
         method: "POST",
-
-        body: {
-          query: logoutMutaion,
-        },
       }),
       invalidatesTags: ["User"],
     }),
 
     getUser: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getUserQuery,
-        },
+        url: "/user/single-user",
+        method: "GET",
       }),
       providesTags: ["User"],
     }),
     getUsers: builder.query({
       query: () => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: getAllUsersQuery,
-        },
+        url: "/user/all-users",
+        method: "GET",
       }),
       providesTags: ["User"],
     }),
     updateUser: builder.mutation({
       query: ({ name, profile_pic, bio, cover_pic, theme }: profileProps) => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: updateUserMutation,
-          variables: {
-            input: {
-              name,
-              profile_pic,
-              bio,
-              cover_pic,
-              theme,
-            },
-          },
-        },
+        url: "/user/single-user",
+        method: "PUT",
+        body: JSON.stringify({
+          name,
+          profile_pic,
+          bio,
+          cover_pic,
+          theme,
+        }),
       }),
       invalidatesTags: ["User"],
     }),
     updatePreference: builder.mutation({
       query: ({ theme }) => ({
-        url: "",
-        method: "POST",
-        body: {
+        url: "/user/single-user",
+        method: "PATCH",
+        body: JSON.stringify({
           query: updatePreference,
           variables: {
             input: { theme },
           },
-        },
+        }),
       }),
     }),
     blockUser: builder.mutation({
       query: ({ user_id: blocked_user_id, reason }) => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: blockUserMutation,
-          variables: {
-            input: {
-              blocked_user_id,
-              reason,
-            },
-          },
-        },
+        url: "/user/block-user",
+        method: "PUT",
+        body: JSON.stringify({
+          blocked_user_id,
+          reason,
+        }),
       }),
       invalidatesTags: ["chats"],
     }),
     unBlockUser: builder.mutation({
       query: ({ user_id: blocked_user_id }) => ({
-        url: "",
-        method: "POST",
-        body: {
-          query: unBlockUserMutation,
-          variables: {
-            input: {
-              blocked_user_id,
-            },
-          },
-        },
+        url: "/user/unblock-user",
+        method: "PUT",
+        body: JSON.stringify({
+          blocked_user_id,
+        }),
       }),
       invalidatesTags: ["chats"],
     }),

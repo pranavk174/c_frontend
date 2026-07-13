@@ -7,21 +7,14 @@ import {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 
-export const baseQuery = fetchBaseQuery({
-  baseUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/graphql`,
-  credentials: "include",
-});
-
 export interface refreshToken {
   data: {
-
     generateRefreshToken: {
       status?: number;
       success?: boolean;
       message?: string;
-      error?: string
+      error?: string;
     };
-
   };
 }
 
@@ -41,6 +34,11 @@ export interface GraphQLResponse<T> {
   errors?: GraphQLError[];
 }
 
+const baseQuery = fetchBaseQuery({
+  baseUrl: "/api",
+  credentials: "include",
+});
+
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -48,71 +46,36 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  const data = result.data as GraphQLResponse<unknown>;
-
-  // console.log(data, result, "result dataaa");
-  // access token expired
-  if (
-    data &&
-    data.errors &&
-    data?.errors?.[0]?.message === "Invalid access token"
-  ) {
-    // refresh token call
+  console.log(result, "result dataaaaaaa");
+  // Access token expired
+  if (result.error?.status === 401) {
     const refreshResult = await baseQuery(
       {
-        url: "",
+        url: "/auth/refresh-token",
         method: "POST",
-        body: {
-          query: `
-          mutation generateRefreshToken{
-    generateRefreshToken{
-        message,status,success,error
-    }
-}
-    
-          `,
-        },
       },
       api,
       extraOptions,
     );
 
+    if (refreshResult.data) {
+      // Retry original request
 
-    if ("data" in refreshResult) {
-      const refreshData = refreshResult.data as GraphQLResponse<refreshToken>;
-
-      if (
-        refreshData.data?.data?.generateRefreshToken?.status !== 401
-      ) {
-        result = await baseQuery(args, api, extraOptions);
-      } else {
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
+      result = await baseQuery(args, api, extraOptions);
+    } else {
+      localStorage.removeItem("user");
+      window.location.href = "/login";
     }
-
-  } else if (!data) {
-    console.log(data, "error dataaaaa");
-    // throw new Error("Internal Server Error");
-  } else if (data.errors?.length) {
-    console.log("error in base api", data.errors[0]);
-
-    return {
-      error: {
-        status: 500,
-        data: data.errors[0],
-      },
-    };
   }
-
-  // console.log(data, "data isn base api...")
 
   return result;
 };
 
+export default baseQueryWithReauth;
+
 export const BaseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["chats", "User", "story", "wallpaper"],
+  tagTypes: ["chats", "User", "story", "wallpaper", "emoji"],
   endpoints: () => ({}),
 });
