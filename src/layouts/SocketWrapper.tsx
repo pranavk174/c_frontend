@@ -180,21 +180,25 @@ type Props = {
 
 export const SocketProvider = ({ children }: Props) => {
   const chatSocket = useMemo(() => {
-    return io(`${process.env.NEXT_PUBLIC_BASE_URL}/chat`, {
+
+    // BAAD (frontend ke through proxy):
+    return io(window.location.origin + "/chat", {
       withCredentials: true,
-      // autoConnect: true,
+      path: "/socket.io",
       reconnection: true,
       reconnectionAttempts: 5,
-    });
+    })
   }, []);
 
   const notificationSocket = useMemo(() => {
-    return io(`${process.env.NEXT_PUBLIC_BASE_URL}/notification`, {
+
+    // BAAD (frontend ke through proxy):
+    return io(window.location.origin + "/notifcation", {
       withCredentials: true,
-      // autoConnect: true,
+      path: "/socket.io",
       reconnection: true,
       reconnectionAttempts: 5,
-    });
+    })
   }, []);
 
   // useEffect(() => {
