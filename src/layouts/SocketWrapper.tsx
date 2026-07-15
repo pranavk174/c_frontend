@@ -11,10 +11,12 @@ import {
 } from "@/lib/events";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
-
 // import { useRefreshTokenMutation } from "@/redux/Apis/Users";
 // import { useSocketEvents } from "@/lib/hooks";
-import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import {
+  NotificationApi,
+  useGetNotificationsQuery,
+} from "@/redux/Apis/Notification";
 import { addOnlineUsers } from "@/redux/slices/onLineUsers";
 // import {
 //   createContext,
@@ -132,8 +134,6 @@ import { addOnlineUsers } from "@/redux/slices/onLineUsers";
 //     };
 //   }, [socket, refreshToken]);
 
-
-
 //   useSocketEvents(socket, handler);
 
 //   // console.log(socket, "socket data//////");
@@ -144,9 +144,6 @@ import { addOnlineUsers } from "@/redux/slices/onLineUsers";
 // };
 
 // export { SocketProvider, useSocket };
-
-
-
 
 import {
   createContext,
@@ -180,22 +177,16 @@ type Props = {
 
 export const SocketProvider = ({ children }: Props) => {
   const chatSocket = useMemo(() => {
-
-    // BAAD (frontend ke through proxy):
-    return io(window.location.origin + "/chat", {
+    return io(`/chat`, {
       withCredentials: true,
-      path: "/socket.io",
       reconnection: true,
       reconnectionAttempts: 5,
     })
   }, []);
 
   const notificationSocket = useMemo(() => {
-
-    // BAAD (frontend ke through proxy):
-    return io(window.location.origin + "/notifcation", {
+    return io(`/notification`, {
       withCredentials: true,
-      path: "/socket.io",
       reconnection: true,
       reconnectionAttempts: 5,
     })
@@ -204,7 +195,6 @@ export const SocketProvider = ({ children }: Props) => {
   // useEffect(() => {
   //   return () => {
   //     chatSocket.disconnect();
-
 
   //   };
   // }, [chatSocket]);
@@ -216,7 +206,6 @@ export const SocketProvider = ({ children }: Props) => {
   //   };
   // }, [notificationSocket]);
 
-
   const { showToast } = useToast();
   const dispatch = useAppDispatch();
   const handlerNotification = useMemo(
@@ -226,24 +215,35 @@ export const SocketProvider = ({ children }: Props) => {
       },
 
       [NEW_NOTIFICATION]: (data: Notification) => {
-        console.log(data, "data recieved in notication")
-        dispatch(NotificationApi.util.updateQueryData(
-          'getNotifications', null, (draft) => {
-
-            draft.data.getNotification.data.items = [...draft.data.getNotification.data.items, data]
-          }
-        ))
-      }
-      , [SEEN_NOTIFICATION]: (data: any) => {
-        dispatch(NotificationApi.util.updateQueryData(
-          'getNotifications', null, (draft) => {
-
-            console.log(data, "notifcation responseeeeeeeee seen wala...")
-            draft.data.getNotification.data.items = draft.data.getNotification.data.items.filter((seen: Notification) => data.includes(seen.notification_id))
-          }
-        ))
-
-      }
+        console.log(data, "data recieved in notication");
+        dispatch(
+          NotificationApi.util.updateQueryData(
+            "getNotifications",
+            null,
+            (draft) => {
+              draft.data.getNotification.data.items = [
+                ...draft.data.getNotification.data.items,
+                data,
+              ];
+            },
+          ),
+        );
+      },
+      [SEEN_NOTIFICATION]: (data: any) => {
+        dispatch(
+          NotificationApi.util.updateQueryData(
+            "getNotifications",
+            null,
+            (draft) => {
+              console.log(data, "notifcation responseeeeeeeee seen wala...");
+              draft.data.getNotification.data.items =
+                draft.data.getNotification.data.items.filter(
+                  (seen: Notification) => data.includes(seen.notification_id),
+                );
+            },
+          ),
+        );
+      },
     }),
     [showToast, dispatch],
   );
@@ -260,18 +260,16 @@ export const SocketProvider = ({ children }: Props) => {
         //   message: "recved on line user...", data
         // })
       },
-
     }),
     [showToast, dispatch],
   );
-  console.log("triggered wrappper...")
-
+  console.log("triggered wrappper...");
 
   useEffect(() => {
     chatSocket.onAnyOutgoing((event, ...args) => {
       console.log("ANY outgoing Event in Backend EVENT:", event, args);
     });
-  }, [chatSocket])
+  }, [chatSocket]);
 
   useSocketEvents(chatSocket, handler);
   useSocketEvents(notificationSocket, handlerNotification);
