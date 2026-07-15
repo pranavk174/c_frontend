@@ -4,6 +4,16 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   reactStrictMode: false,
+  async rewrites() {
+    const backendUrl =
+      process.env.BASE_URL || "https://c-backend-express.onrender.com";
+    return [
+      {
+        source: "/socket.io/:path*",
+        destination: `${backendUrl}/socket.io/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
