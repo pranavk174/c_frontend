@@ -8,8 +8,8 @@ import {
   reaction,
   socketResponse,
 } from "@/lib/dummy";
-import { MESSAGE_REACTION } from "@/lib/events";
-import { useAppDispatch } from "@/lib/hooks";
+import { MESSAGE_REACTION, START_TYPING, STOP_TYPING } from "@/lib/events";
+import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 // import { useReactMessageMutation } from "@/redux/Apis/User";
 import { chatApi, useGetWallpaperQuery } from "@/redux/Apis/Chat";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -26,7 +26,6 @@ import React, {
 import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
 import MessageBox from "./MessageBox";
-
 
 const VirtualChatlistGrouped = memo(
   ({
@@ -55,8 +54,9 @@ const VirtualChatlistGrouped = memo(
     setReplyMessage,
     show,
   }: chatListProps) => {
-    const { chatSocket: socket, notificationSocket } = useSocket();;
+    const { chatSocket: socket, notificationSocket } = useSocket();
     const parentRef = React.useRef<HTMLDivElement | null>(null);
+    const [typing, setTyping] = useState<boolean>(false);
     const topSentinelRef = useRef<HTMLDivElement | null>(null);
     const [active, setActive] = useState<number | string | null>(null);
     const rowVirtualizer = useVirtualizer({
@@ -150,7 +150,8 @@ const VirtualChatlistGrouped = memo(
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
-    // console.log(data, "dataaaaa ")
+  
+    console.log(typing, " typing ======== dataaaaa ");
 
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {
@@ -325,8 +326,6 @@ const VirtualChatlistGrouped = memo(
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const msg = data[virtualItem.index];
 
-
-
             if (msg.kind === "header") {
               return (
                 <div
@@ -352,7 +351,6 @@ const VirtualChatlistGrouped = memo(
               );
             }
 
-
             // if (msg.type === "header") {
             //   return (
             //     <div key={msg.id}>
@@ -361,16 +359,16 @@ const VirtualChatlistGrouped = memo(
             //   );
             // }
 
-
-            if (msg.kind === 'message') {
-
+            if (msg.kind === "message") {
               const icons = emojis?.filter((emoji: emoji) =>
                 msg?.reactions?.some((em) => em.react_id === emoji.react_id),
               );
 
               const repliedMessage =
                 msg.reply_to_message_id !== null
-                  ? (messages?.find((md) => md.id === msg.reply_to_message_id) ?? null)
+                  ? (messages?.find(
+                      (md) => md.id === msg.reply_to_message_id,
+                    ) ?? null)
                   : null;
               // console.log(msg, "msggggggg");
 
@@ -392,8 +390,6 @@ const VirtualChatlistGrouped = memo(
                     if (el) rowVirtualizer.measureElement(el);
                   }}
                 >
-
-
                   <MessageBox
                     startPressTimer={startPressTimer}
                     cancelPressTimer={cancelPressTimer}
@@ -421,14 +417,11 @@ const VirtualChatlistGrouped = memo(
                     setReplyMessage={setReplyMessage}
                     emojis={emojis}
                   />
-
-
                 </div>
               );
             }
-
-
           })}
+        
         </div>
       </div>
     );

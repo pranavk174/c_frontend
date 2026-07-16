@@ -3,7 +3,7 @@ export const getUserQuery = `
               query getUser{
               
               getUser{
-              message , error,success, data {
+              message , error,success,status, data {
               ... on User {
               
               name
@@ -28,7 +28,7 @@ export const getAllUsersQuery = `
               query getUsers{
               
               getUsers{
-              message , error,success, data {
+              message , error,success,status, data {
               ... on Users {
               
            items{

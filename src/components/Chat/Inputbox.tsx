@@ -9,9 +9,13 @@ import React, {
   memo,
   RefObject,
   SetStateAction,
+  useCallback,
+  useRef,
   useState,
 } from "react";
 import MediaOptions from "./MediaOptions";
+import { STOP_TYPING, START_TYPING } from "@/lib/events";
+import { useSocket } from "@/layouts/SocketWrapper";
 
 interface inputBoxProps {
   chatDetails: Chat;
@@ -28,16 +32,18 @@ interface inputBoxProps {
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   progress: number;
   uploadId: string;
+  reciever_ids: number[];
   file: File | null;
   // inputText: string;
   setInputText: Dispatch<SetStateAction<string>>;
-  inputRef: RefObject<HTMLInputElement | null>
+  inputRef: RefObject<HTMLInputElement | null>;
   handleSendMessage: (e: FormEvent<Element>) => Promise<void>;
 }
 
 const Inputbox = memo(
   ({
     startUpload,
+    reciever_ids,
     handleSendMessage,
     cancelUpload,
     file,
@@ -58,6 +64,29 @@ const Inputbox = memo(
   }: inputBoxProps) => {
     // const [inputText, setInputText] = useState("");
     const [open, setOpen] = useState(false);
+    const { chatSocket: socket, notificationSocket } = useSocket();
+
+    const typingRef = useRef(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const handleTyping = () => {
+      // Pehli baar typing start
+      if (!typingRef.current) {
+        typingRef.current = true;
+        socket.emit(START_TYPING, { chat_id, reciever_ids });
+      }
+
+      // Har key press par timer reset
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        typingRef.current = false;
+        socket.emit(STOP_TYPING, { chat_id, reciever_ids });
+      }, 1500);
+    };
+
 
     return (
       <footer className=" py-1 h-fit relative  bg-wa-header dark:bg-wa-header-dark flex items-center px-4 shrink-0 z-10">
@@ -138,6 +167,7 @@ const Inputbox = memo(
             <input
               type="text"
               ref={inputRef}
+              onInput={handleTyping}
               placeholder="Type a message"
               className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />

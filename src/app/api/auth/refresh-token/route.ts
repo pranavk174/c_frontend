@@ -19,6 +19,8 @@ export const POST = async (req: NextRequest) => {
         res.headers.append("Set-Cookie", cookie);
       });
     }
+
+    return res;
   } catch (error) {
     return NextResponse.json(
       {

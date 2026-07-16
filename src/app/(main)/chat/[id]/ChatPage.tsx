@@ -11,7 +11,6 @@ import {
 
 import dynamic from "next/dynamic";
 
-
 import { useSelector } from "react-redux";
 // import { chatApi } from "../../../../redux/Apis/User";
 import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
@@ -47,6 +46,8 @@ import {
   REFETCH_CHATS,
   REPLY_MESSAGE,
   SEND_MESSAGE,
+  START_TYPING,
+  STOP_TYPING,
 } from "@/lib/events";
 
 // import VirtualChatlist from "@/components/Chat/VirtualChatList";
@@ -104,7 +105,7 @@ const ChatPage = ({ id }: { id: number }) => {
   const { chatSocket: socket, notificationSocket } = useSocket();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const [typing, setTyping] = useState<boolean>(false);
   const [menu, setMenu] = useState(false);
   const [inputText, setInputText] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -188,7 +189,7 @@ const ChatPage = ({ id }: { id: number }) => {
               ...msg,
               kind: "message" as const,
             })),
-          ]
+          ],
         );
 
         // console.log(flatData, "result daataaa.", result);
@@ -563,6 +564,12 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const handler = useMemo(
     () => ({
+      [START_TYPING]: (data: boolean) => {
+        setTyping(true);
+      },
+      [STOP_TYPING]: (data: boolean) => {
+        setTyping(false);
+      },
       [REFETCH_CHATS]: (data: Message[]) => {
         // console.log(data, "chats dataaaa.... new wala...");
         if (!data) {
@@ -632,83 +639,6 @@ const ChatPage = ({ id }: { id: number }) => {
       }
     };
   }, [user_id, socket, id]);
-
-  // useEffect(() => {
-  //   if (!user_id || !messages?.length || throttleRef.current) return;
-
-  //   const unseenMessages = messages
-  //     .filter(
-  //       (d: Message) => d.seen_users?.length === 0 && d?.sender_id !== user_id,
-  //     )
-  //     .map((d: Message) => d.id);
-
-  //   if (!unseenMessages.length) return;
-  //   console.log(unseenMessages, "un seend is useEffect are....", messages);
-  //   throttleRef.current = true;
-  //   socket.emit(
-  //     MESSAGE_SEEN,
-  //     {
-  //       chat_id: id,
-  //       message_ids: unseenMessages,
-  //       reciever_id: chatDetails?.user_id,
-  //     },
-  //     (response: socketResponse) => {
-  //       // agar backend fail
-
-  //       if (response.success) {
-  //         // rollback
-  //         dispatch(
-  //           chatApi.util.updateQueryData(
-  //             "getSingleChat",
-  //             { chat_ids: [id], cursor, limit: 20 },
-  //             (draft) => {
-  //               draft?.data?.getChatById?.data?.items?.forEach(
-  //                 (chat: Message) => {
-  //                   if (
-  //                     chat.sender_id !== user_id &&
-  //                     !chat.seen_users.includes(user_id) &&
-  //                     unseenMessages.includes(chat.id)
-  //                   ) {
-  //                     console.log("ye condition true hai");
-  //                     chat.seen_users = [...chat.seen_users, user_id];
-  //                   }
-  //                   console.log("ye condition false hai......");
-  //                 },
-  //               );
-  //             },
-  //           ),
-  //         );
-
-  //         dispatch(
-  //           chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-  //             const item = draft.data.getAllChats.data.items.find(
-  //               (c: Chat) => c.chat_id === id,
-  //             );
-
-  //             if (item) {
-  //               item.unread_count -= unseenMessages;
-  //             }
-  //           }),
-  //         );
-
-  //         // dispatch(NotificationApi.util.updateQueryData("getNotifications", {}, (draft) => {
-
-  //         // }))
-
-  //         // patchResult?.undo();
-
-  //         console.log(response, "callback response in seen message", response);
-  //       }
-  //       console.log(response, "callback response outside");
-  //     },
-  //   );
-
-  //   const timer = setTimeout(() => {
-  //     throttleRef.current = false;
-  //   }, 1000);
-
-  //   return () => clearTimeout(timer);
-  // }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
 
   const pendingSeenRef = useRef<Set<number>>(new Set());
 
@@ -858,6 +788,28 @@ const ChatPage = ({ id }: { id: number }) => {
         />
       </Suspense>
 
+      {typing && (
+        <div className="flex  items-center gap-1.5 px-6 py-2">
+          <div
+            className="flex items-center gap-1 px-3 py-2 rounded-2xl"
+            style={
+              {
+                // background: "rgba(255,255,255,0.07)",
+                // border: "1px solid rgba(255,255,255,0.08)",
+              }
+            }
+          >
+            <span className="text-xs text-slate-400  mr-1">Typing</span>
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="typing-dot w-1.5 h-1.5  rounded-full bg-violet-400 inline-block"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* <VirtualChatlist /> */}
 
       {/* Input */}
@@ -871,7 +823,9 @@ const ChatPage = ({ id }: { id: number }) => {
         // inputText={inputRef.current}
         inputRef={inputRef}
         file={file}
-
+        reciever_ids={
+          chat_type === "group" ? memberIds : [chatDetails?.user_id]
+        }
         handleSendMessage={handleSendMessage}
         // setMessages={setMessages}
         scrollToBottom={scrollToBottom}

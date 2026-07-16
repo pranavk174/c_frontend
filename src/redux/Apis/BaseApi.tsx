@@ -1,4 +1,3 @@
-import { useToast } from "@/components/Utility/Toast";
 import {
   createApi,
   fetchBaseQuery,
@@ -29,9 +28,11 @@ export interface GraphQLError {
   path: string[];
 }
 
-export interface GraphQLResponse<T> {
-  data: refreshToken | T | null;
+interface errors {
   errors?: GraphQLError[];
+}
+export interface GraphQLResponse<T> {
+  data: refreshToken | errors | T | null;
 }
 
 const baseQuery = fetchBaseQuery({
@@ -39,6 +40,8 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
+type BaseQueryResult = ReturnType<typeof baseQuery>;
+let refreshPromise: Promise<Awaited<BaseQueryResult>> | null = null;
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -46,21 +49,29 @@ const baseQueryWithReauth: BaseQueryFn<
 > = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  console.log(result, "result dataaaaaaa");
+  const data = result?.data as errors | null;
+  console.log(data?.errors?.[0].message, "result dataaaaaaa");
+
   // Access token expired
-  if (result.error?.status === 401) {
-    const refreshResult = await baseQuery(
-      {
-        url: "/auth/refresh-token",
-        method: "POST",
-      },
-      api,
-      extraOptions,
-    );
+  if (data?.errors && data.errors[0].message === "jwt expired") {
+    if (!refreshPromise) {
+      refreshPromise = Promise.resolve(
+        baseQuery(
+          {
+            url: "/auth/refresh-token",
+            method: "POST",
+          },
+          api,
+          extraOptions,
+        ),
+      ).finally(() => {
+        refreshPromise = null;
+      });
+    }
+
+    const refreshResult = await refreshPromise;
 
     if (refreshResult.data) {
-      // Retry original request
-
       result = await baseQuery(args, api, extraOptions);
     } else {
       localStorage.removeItem("user");
