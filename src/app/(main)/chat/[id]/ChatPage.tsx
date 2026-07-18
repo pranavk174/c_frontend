@@ -65,6 +65,7 @@ import {
   refetchChat,
   seenMessage,
   updateAllChatcache,
+  updateMessage,
 } from "@/lib/cacaheupdateutils";
 import Loader from "@/components/Utility/Loader";
 import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
@@ -331,12 +332,26 @@ const ChatPage = ({ id }: { id: number }) => {
             if (!response.success) {
               // rollback
               patchResult?.undo();
-
               chatPatchResult?.undo();
-
               console.log(response, "callback response");
             }
-            console.log(response, "callback response outside");
+
+            if (response.data) {
+              dispatch(
+                chatApi.util.updateQueryData(
+                  "getSingleChat",
+                  { chat_ids: [id] },
+                  updateMessage(response?.data?.message?.id),
+                ),
+              );
+            } else {
+              console.log(
+                response,
+                "callback response outside",
+                "data" in response,
+              );
+            }
+            console.log(response?.data?.message?.id, "mesage id ...");
           });
           console.log("messege repliy sent...");
 
@@ -350,6 +365,15 @@ const ChatPage = ({ id }: { id: number }) => {
               patchResult?.undo();
               chatPatchResult?.undo();
               console.log(response, "callback response");
+            }
+            if (response.data) {
+              dispatch(
+                chatApi.util.updateQueryData(
+                  "getSingleChat",
+                  { chat_ids: [id] },
+                  updateMessage(response?.data?.message?.id),
+                ),
+              );
             }
             console.log(response, "callback response outside");
           });
@@ -438,7 +462,7 @@ const ChatPage = ({ id }: { id: number }) => {
             file_size: result.data.bytes.toString(),
           };
 
-          handleSendMessage(media);
+          await handleSendMessage(media);
 
           console.log(result);
           // alert("upload completed");

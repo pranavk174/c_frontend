@@ -199,7 +199,7 @@ const MediaOptions = ({
             setInputText={setInputText}
             onSend={(data) => {
               startUpload();
-              setInputText(data.caption);
+              // setInputText(data.caption);
               // console.log(data, "dataaa detailllllllll");
               setShow({
                 type: null,

@@ -108,8 +108,6 @@ export type MessageItem = Message & {
 
 export type ChatItem = MessageItem | HeaderItem;
 
-
-
 export interface seen_user {
   message_id: number;
   seen_user: number;
@@ -127,6 +125,10 @@ export interface socketResponse {
   success: boolean;
   status: number;
   error: string;
+  data?: {
+    message?: Message;
+    notification?: Notification;
+  };
 }
 
 export interface profileProps {
@@ -272,21 +274,17 @@ export interface NewChatProps {
   // onSelectUser: (user: User) => void;
 }
 
-
 export interface memberProps {
   member_id: number;
-  role: 'admin' | 'member'
+  role: "admin" | "member";
 }
 
 export interface storySeen {
-
   story_id: number;
-  user_id: number
-  profile_pic?: string
-  name: string
-  seen_at: string
-
-
+  user_id: number;
+  profile_pic?: string;
+  name: string;
+  seen_at: string;
 }
 
 export interface socketCallback {

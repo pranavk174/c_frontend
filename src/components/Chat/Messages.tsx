@@ -58,7 +58,7 @@ const Messages = ({
 
   const router = useRouter();
 
-  // 
+  //
 
   const handleDragEnd = () => {
     if (x.get() > 90 && !triggered.current) {
@@ -80,11 +80,9 @@ const Messages = ({
 
   // console.log("replied message", repliedMessage);
 
-
-
   const repliedStory = msg.story_id ? msg.story_item : null;
 
-  console.log(repliedMessage, "replite message/...")
+  // console.log(repliedMessage, "replite message/...")
 
   return (
     <div
@@ -134,7 +132,6 @@ const Messages = ({
                 <p className="text-[11px] font-semibold text-green-700 dark:text-green-300">
                   Reply
                 </p>
-
 
                 <p className="text-xs opacity-80 truncate max-w-55">
                   {repliedMessage.content}
