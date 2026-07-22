@@ -55,26 +55,32 @@ const baseQueryWithReauth: BaseQueryFn<
   // Access token expired
 
   if (data?.errors?.[0].message === "invalid signature") {
-    refreshPromise = Promise.resolve(
-      baseQuery(
-        {
-          url: "/auth/logout",
-          method: "POST",
-        },
-        api,
-        extraOptions,
-      ),
-    ).finally(() => {
-      refreshPromise = null;
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-      return;
-    });
+    if (!refreshPromise) {
+      refreshPromise = Promise.resolve(
+        baseQuery(
+          {
+            url: "/auth/logout",
+            method: "POST",
+          },
+          api,
+          extraOptions,
+        ),
+      ).finally(() => {
+        refreshPromise = null;
+        localStorage.removeItem("persist:root");
+        localStorage.removeItem("device_id");
+        localStorage.removeItem("user");
+        localStorage.removeItem("persist:root");
+
+        window.location.href = "/login";
+        return;
+      });
+    }
   }
 
   if (
     result?.error?.status === 401 &&
-    data?.errors?.[0].message !== "invalid signature"
+    data?.errors?.[0].message === "jwt expired"
   ) {
     if (!refreshPromise) {
       refreshPromise = Promise.resolve(

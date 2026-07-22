@@ -150,7 +150,6 @@ const VirtualChatlistGrouped = memo(
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
-  
     // console.log(typing, " typing ======== dataaaaa ");
 
     const handleLike = useCallback(
@@ -343,7 +342,7 @@ const VirtualChatlistGrouped = memo(
                   }}
                 >
                   <div className="flex justify-center">
-                    <p className="text-xs p-1 bg-wa-header-dark rounded-md">
+                    <p className="text-xs p-1 bg-wa-header  dark:bg-wa-header-dark rounded-md">
                       {msg.date}
                     </p>
                   </div>
@@ -421,7 +420,6 @@ const VirtualChatlistGrouped = memo(
               );
             }
           })}
-        
         </div>
       </div>
     );

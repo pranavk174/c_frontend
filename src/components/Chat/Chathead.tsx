@@ -21,7 +21,7 @@ import {
   Ban,
   Wallpaper,
 } from "lucide-react";
-import { Dispatch, memo, SetStateAction, useState } from "react";
+import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
 import Modal from "../HOComponents/Modal";
 import WhatsappProfile from "../User/WhatsappProfile";
 import Image from "next/image";
@@ -65,7 +65,7 @@ const Chathead = memo(
     const { chatSocket: socket, notificationSocket } = useSocket();
     const dispatch = useAppDispatch();
 
-    const d = new Map<number, { member_id: number; role: string; }>(
+    const d = new Map<number, { member_id: number; role: string }>(
       members
         .toSorted((m, n) => m.member_id - n.member_id)
         .map((member): [number, { member_id: number; role: string }] => [
@@ -87,7 +87,6 @@ const Chathead = memo(
     const { users } = useGetUsersQuery(null, {
       selectFromResult: ({ data, isSuccess }) => {
         console.log(members, "membersssss");
-
 
         const newData = data?.data?.getUsers?.data?.items.reduce(
           (acc: profileProps[], idx: profileProps) => {
@@ -313,7 +312,11 @@ const Chathead = memo(
           {open.type === "profile" && (
             <WhatsappProfile
               setOpen={setOpen}
-              isUser={d.has(user.id) && d.get(user.id) !== undefined && d.get(user?.id)?.role === "admin"}
+              isUser={
+                d.has(user.id) &&
+                d.get(user.id) !== undefined &&
+                d.get(user?.id)?.role === "admin"
+              }
               profile={chatDetails}
             />
           )}
@@ -332,7 +335,7 @@ const Chathead = memo(
                   open: false,
                 });
               }}
-              onCancel={() => { }}
+              onCancel={() => {}}
             />
           )}
 

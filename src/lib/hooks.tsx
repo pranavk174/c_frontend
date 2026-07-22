@@ -14,6 +14,7 @@ const useSocketEvents = (socket: Socket, handlers: EventHandlers) => {
     return () => {
       Object.entries(handlers).forEach(([event, handler]) => {
         socket.off(event, handler);
+        socket.close();
       });
     };
   }, [socket, handlers]);
