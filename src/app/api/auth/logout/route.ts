@@ -21,10 +21,14 @@ export const POST = async (req: NextRequest) => {
         res.headers.append("Set-Cookie", cookie);
       });
     }
+    res.cookies.delete("accessToken");
+    res.cookies.delete("refreshToken");
+
+    console.log(res, "reponse in logout..");
 
     return res;
   } catch (error) {
-    return NextResponse.json(
+    const res = NextResponse.json(
       {
         success: false,
         message: "Something went wrong",
@@ -33,5 +37,10 @@ export const POST = async (req: NextRequest) => {
         status: 500,
       },
     );
+
+    res.cookies.delete("accessToken");
+    res.cookies.delete("refreshToken");
+
+    return res;
   }
 };

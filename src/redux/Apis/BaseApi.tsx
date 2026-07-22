@@ -53,7 +53,29 @@ const baseQueryWithReauth: BaseQueryFn<
   console.log(data?.errors?.[0].message, "result dataaaaaaa");
 
   // Access token expired
-  if (data?.errors && data.errors[0].message === "jwt expired") {
+
+  if (data?.errors?.[0].message === "invalid signature") {
+    refreshPromise = Promise.resolve(
+      baseQuery(
+        {
+          url: "/auth/logout",
+          method: "POST",
+        },
+        api,
+        extraOptions,
+      ),
+    ).finally(() => {
+      refreshPromise = null;
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+      return;
+    });
+  }
+
+  if (
+    result?.error?.status === 401 &&
+    data?.errors?.[0].message !== "invalid signature"
+  ) {
     if (!refreshPromise) {
       refreshPromise = Promise.resolve(
         baseQuery(

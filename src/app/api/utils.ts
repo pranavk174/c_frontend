@@ -77,7 +77,7 @@ export const boilerPlate = async (
         error: (err.response?.data, { depth: null }),
       },
       {
-        status: 500,
+        status: err.response?.request.res.statusCode,
       },
     );
   }
@@ -105,18 +105,20 @@ export const getBoilerplate = async (
   } catch (error) {
     const err = error as AxiosError;
 
-    console.log(err.response?.data, { depth: null });
-    console.log(err);
-    console.log(error);
-    console.log(err.response);
+    // console.log(err.response?.data, { depth: null });
+    // console.log(err);
+    console.log(err.response?.request.res.statusMessage);
+    console.log(err.response?.request.res, { depth: null }, "===============");
     return NextResponse.json(
       {
         success: false,
-        message: "Something went wrong",
-        error: (err.response?.data, { depth: null }),
+
+        message:
+          err.response?.request.res.statusMessage ?? "Something went wrong",
+        error: err.response?.data,
       },
       {
-        status: 500,
+        status: err.response?.request.res.statusCode,
       },
     );
   }
