@@ -26,6 +26,10 @@ export interface GraphQLError {
   message: string;
   locations: GraphQLErrorLocation[];
   path: string[];
+    extensions?: {
+    status: number;
+    code: string
+  };
 }
 
 interface errors {
@@ -79,7 +83,7 @@ const baseQueryWithReauth: BaseQueryFn<
   }
 
   if (
-    result?.error?.status === 401 &&
+    data?.errors?.[0]?.extensions?.status === 401 &&
     data?.errors?.[0].message === "jwt expired"
   ) {
     if (!refreshPromise) {
