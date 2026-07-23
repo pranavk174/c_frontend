@@ -16,6 +16,8 @@ import React, {
 import MediaOptions from "./MediaOptions";
 import { STOP_TYPING, START_TYPING } from "@/lib/events";
 import { useSocket } from "@/layouts/SocketWrapper";
+import { logger } from "@/lib/utils";
+
 
 interface inputBoxProps {
   chatDetails: Chat;
@@ -124,7 +126,7 @@ const Inputbox = memo(
           onSubmit={(e) => {
             e.preventDefault();
 
-            // console.log(inputRef.current.value, "input ref dataaaa")
+            // logger.log(inputRef.current.value, "input ref dataaaa")
             if (!inputRef.current) return;
             handleSendMessage(e);
           }}

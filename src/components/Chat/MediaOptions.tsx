@@ -32,6 +32,8 @@ interface mediaOptionsProps {
   setInputText: Dispatch<SetStateAction<string>>;
 }
 import { useToast } from "../Utility/Toast";
+import { logger } from "@/lib/utils";
+
 
 const MediaOptions = ({
   setInputText,
@@ -132,7 +134,7 @@ const MediaOptions = ({
             <button
               className="flex flex-col items-center gap-2"
               onClick={() => {
-                console.log("Open Camera");
+                logger.log("Open Camera");
                 setOpen(false);
               }}
             >
@@ -162,7 +164,7 @@ const MediaOptions = ({
             <button
               className="flex flex-col items-center gap-2"
               onClick={() => {
-                console.log("Share Location");
+                logger.log("Share Location");
                 setOpen(false);
               }}
             >
@@ -177,7 +179,7 @@ const MediaOptions = ({
             <button
               className="flex flex-col items-center gap-2"
               onClick={() => {
-                console.log("Share Contact");
+                logger.log("Share Contact");
                 setOpen(false);
               }}
             >
@@ -200,7 +202,7 @@ const MediaOptions = ({
             onSend={(data) => {
               startUpload();
               // setInputText(data.caption);
-              // console.log(data, "dataaa detailllllllll");
+              // logger.log(data, "dataaa detailllllllll");
               setShow({
                 type: null,
                 open: false,

@@ -7,6 +7,8 @@ import { useRef, useState } from "react";
 import { uploadImage } from "@/lib/utils";
 import { useCreateUserMutation } from "@/redux/Apis/Users";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/utils";
+
 
 interface UserProfileProps {
   profile?: {
@@ -71,7 +73,7 @@ export default function UserProfile({ profile, email }: UserProfileProps) {
       await createUser({ formData }).unwrap();
       router.replace("/");
     } catch (err) {
-      console.log(err);
+      logger.log(err);
     }
   };
 

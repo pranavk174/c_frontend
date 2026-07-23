@@ -97,3 +97,15 @@ export const newGroupMutation = `
            }
           
           `;
+
+
+export const forwardMessageMutation = `
+          
+          mutation forwardMessage($input:ChatInput!){
+forwardMessage(input:$input){
+message,error,success
+}
+}
+          
+          
+          `

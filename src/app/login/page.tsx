@@ -7,6 +7,8 @@ import { useLoginMutation } from "@/redux/Apis/Users";
 import { useRouter } from "next/navigation";
 
 import DarkthemeToggle from "@/components/Utility/DarkthemeToggle";
+import { logger } from "@/lib/utils";
+
 export default function LoginPage() {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
   const [email, setEmail] = useState("");
@@ -25,7 +27,7 @@ export default function LoginPage() {
         router.push(`/login/verifyotp/${encodeURIComponent(email)}`);
         // }
       } catch (error) {
-        console.log(error, "error dataaa");
+        logger.log(error, "error dataaa");
       }
     }
   };

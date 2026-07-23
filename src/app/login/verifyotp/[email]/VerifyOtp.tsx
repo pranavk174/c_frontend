@@ -7,6 +7,8 @@ import { getDeviceInfo } from "@/lib/utils";
 import { addUser } from "@/redux/slices/User";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
+import { logger } from "@/lib/utils";
+
 export default function VerifyOtp({ email }: { email: string }) {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
@@ -24,7 +26,7 @@ export default function VerifyOtp({ email }: { email: string }) {
 
         const { device_id, ip_address, location, device_name } = data;
 
-        console.log(data, "dataaaaa");
+        logger.log(data, "dataaaaa");
 
         const verified = await verifyOtp({
           otp,
@@ -55,7 +57,7 @@ export default function VerifyOtp({ email }: { email: string }) {
         // dispatch(addUser(verified.data.verifyOtp.data));
         router.replace("/");
       } catch (error) {
-        // console.log(error?.data.errors[0].message, "errorrrr")
+        // logger.log(error?.data.errors[0].message, "errorrrr")
         // alert(error?.data.errors[0].message)
       }
 
@@ -68,7 +70,7 @@ export default function VerifyOtp({ email }: { email: string }) {
     try {
       await login({ email }).unwrap();
     } catch (error) {
-      console.log(error, "errorrrrrrr");
+      logger.log(error, "errorrrrrrr");
     }
   };
 

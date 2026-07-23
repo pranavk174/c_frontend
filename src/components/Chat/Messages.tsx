@@ -10,6 +10,8 @@ import {
 import { Reply, CheckCheck, Check, Smile } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/utils";
+
 
 type emoji = {
   react_id: number;
@@ -54,7 +56,7 @@ const Messages = ({
   const x = useMotionValue(0);
   const triggered = useRef(false);
 
-  // console.log("messages  triggereddddddddd");
+  // logger.log("messages  triggereddddddddd");
 
   const router = useRouter();
 
@@ -78,11 +80,11 @@ const Messages = ({
     });
   };
 
-  // console.log("replied message", repliedMessage);
+  // logger.log("replied message", repliedMessage);
 
   const repliedStory = msg.story_id ? msg.story_item : null;
 
-  // console.log(repliedMessage, "replite message/...")
+  // logger.log(repliedMessage, "replite message/...")
 
   return (
     <div

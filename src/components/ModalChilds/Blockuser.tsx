@@ -6,6 +6,8 @@ import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
 import { useBlockUserMutation } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_LEAVED } from "@/lib/events";
+import { logger } from "@/lib/utils";
+
 
 type BlockUserProps = {
   userId?: number | string;
@@ -46,7 +48,7 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
         CHAT_LEAVED,
         { chat_id: chatId, user_id: userId },
         (response: socketResponse) => {
-          console.log("user left ", response);
+          logger.log("user left ", response);
         },
       );
       setOpen({
@@ -54,7 +56,7 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
         open: false
       });
     } catch (error) {
-      console.log(error, "error in bloackkk.....");
+      logger.log(error, "error in bloackkk.....");
     }
 
     // onSubmit?.({

@@ -15,7 +15,7 @@ export const seenStoryMutation = `
           
           
           `
-//   export const deletStoryMutation =
+
 
 export const replySToryMutation = `
           

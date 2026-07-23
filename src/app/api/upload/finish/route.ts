@@ -3,6 +3,8 @@ import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
+import { logger } from "@/lib/utils";
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -116,7 +118,7 @@ export const POST = async (req: NextRequest) => {
       data: cloudinaryResult,
     });
   } catch (error: unknown) {
-    console.log(error, "UPLOAD_ERROR");
+    logger.log(error, "UPLOAD_ERROR");
 
     // cleanup final file if exists
     if (finalPath && fsSync.existsSync(finalPath)) {

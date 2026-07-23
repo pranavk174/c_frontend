@@ -2,16 +2,26 @@ import { NewChatProps, User } from "@/lib/dummy";
 import React, { useRef, useState } from "react";
 import Image from "next/image";
 import Checkbox from "../Utility/Checkbox";
+import { logger } from "@/lib/utils";
+
+
+interface onClickProps {
+  selected?: boolean
+  user?: boolean;
+}
+
 const UserCard = ({
   user,
   selectedUser,
   type,
   onClick,
+  handleCreate
 }: {
   user: User;
   selectedUser?: boolean;
   type: string;
-  onClick?: (selected: boolean) => void;
+  onClick?: (selected?: boolean) => void;
+  handleCreate?: (member_id: number, chat_id: number | null) => void
 }) => {
   const [selected, setSelected] = useState<boolean>(() => {
     if (selectedUser) {
@@ -21,17 +31,25 @@ const UserCard = ({
     }
   });
 
-  //   console.log(selected, "selected ", user.id);
+
+
+
+  //   logger.log(selected, "selected ", user.id);
   return (
     <div
+      role="button"
       key={user.id}
       onClick={() => {
-        const newSelected = !selected;
-
-        setSelected(newSelected);
-        onClick?.(newSelected);
+        if (type === "chat") {
+          handleCreate?.(user.id, user.chat_id)
+        }
+        else {
+          const newSelected = !selected;
+          setSelected(newSelected);
+          onClick?.(newSelected);
+        }
       }}
-      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] transition-colors border-b border-[#182229]"
+      className="w-full flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-[#202c33] transition-colors border-b border-[#182229]"
     >
       {/* Avatar */}
       {user.profile_pic ? (

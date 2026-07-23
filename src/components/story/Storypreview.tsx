@@ -43,6 +43,8 @@ import {
   useGetNotificationsQuery,
 } from "@/redux/Apis/Notification";
 import { Notification } from "@/lib/dummy";
+import { logger } from "@/lib/utils";
+
 // interface StoryItem {
 //   id: number;
 //   url: string;
@@ -122,7 +124,7 @@ const StoryViewer = ({
       );
     } catch (error) {
       showToast("error in reply story", "error");
-      console.log(error, "errorrrr");
+      logger.log(error, "errorrrr");
       return false;
     }
   };
@@ -132,7 +134,7 @@ const StoryViewer = ({
     null,
   );
 
-  // console.log(isPending, "loading stateee");
+  // logger.log(isPending, "loading stateee");
   // Story Progress
   useEffect(() => {
     if (isPaused) return;
@@ -181,10 +183,10 @@ const StoryViewer = ({
 
         dispatch(
           storyApi.util.updateQueryData("getStories", null, (draft) => {
-            console.log(data, "story seen successssss");
+            logger.log(data, "story seen successssss");
             draft.data.getAllStories.data.stories.forEach(
               (story: UserStories) => {
-                console.log(data, "story seen inner  successssss");
+                logger.log(data, "story seen inner  successssss");
                 story.stories.forEach((st) => {
                   if (st.id === data.story_id) {
                     if (!st.interactions) {
@@ -195,7 +197,7 @@ const StoryViewer = ({
                       (i) => i.id === data.user_id,
                     );
 
-                    console.log("ye condition true hai", alreadyExists);
+                    logger.log("ye condition true hai", alreadyExists);
 
                     if (!alreadyExists) {
                       st.interactions.push({
@@ -209,7 +211,7 @@ const StoryViewer = ({
                       });
                     }
                   } else {
-                    console.log("condition false....");
+                    logger.log("condition false....");
                   }
                 });
               },
@@ -229,7 +231,7 @@ const StoryViewer = ({
 
   useSocketEvents(socket, handler);
 
-  // console.log(stories.stories, "storiesss dataaaaa.............");
+  // logger.log(stories.stories, "storiesss dataaaaa.............");
 
   useEffect(() => {
     try {
@@ -247,7 +249,7 @@ const StoryViewer = ({
                         if (st.id === currentStory.id && !st.seen) {
                           st.seen = true;
                         } else {
-                          console.log("condition false....");
+                          logger.log("condition false....");
                         }
                       });
                     },
@@ -255,13 +257,13 @@ const StoryViewer = ({
                 }),
               );
 
-            console.log("responseform story seend");
+            logger.log("responseform story seend");
           },
         );
         // seenStory({ id: currentStory.id }).unwrap();
       }
     } catch (error) {
-      console.log(error, "error in story seend");
+      logger.log(error, "error in story seend");
     }
   }, [currentStory, seenStory, socket, stories.user_id, user_id, dispatch]);
 
@@ -307,12 +309,12 @@ const StoryViewer = ({
   //         })
   //       }
 
-  //       console.log(ids, "user ids notiofication.....")
+  //       logger.log(ids, "user ids notiofication.....")
 
   //     }
 
   //   } catch (error) {
-  //     console.log(error, "errrorrr ")
+  //     logger.log(error, "errrorrr ")
   //     showToast("error in notification seen", "error")
   //   }
 
@@ -391,15 +393,15 @@ const StoryViewer = ({
         patchResult.undo();
       }
 
-      console.log(response, "res ponseeeeee result in like story.....");
+      logger.log(response, "res ponseeeeee result in like story.....");
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
 
     setIsPaused(false);
   };
 
-  console.log(isPaused, "is Pauseddddd");
+  logger.log(isPaused, "is Pauseddddd");
 
   // Previous Story
   const handlePrev = () => {
@@ -419,7 +421,7 @@ const StoryViewer = ({
     }
   };
 
-  // console.log(stories, "storiessssss");
+  // logger.log(stories, "storiessssss");
 
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden select-none">

@@ -3,6 +3,8 @@
 import { selectedProp } from "@/lib/dummy";
 import { useEditMessageMutation } from "@/redux/Apis/Chat";
 import { useState } from "react";
+import { logger } from "@/lib/utils";
+
 
 interface EditMessageProps {
   initialMessage: selectedProp;
@@ -29,7 +31,7 @@ export default function EditMessage({
       //   }).unwrap();
       onSave(message);
     } catch (error) {
-      console.log(error, "errror");
+      logger.log(error, "errror");
     }
   };
 

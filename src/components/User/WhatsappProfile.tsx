@@ -20,6 +20,8 @@ import { useSelector } from "react-redux";
 import { uploadImage } from "@/lib/utils";
 import Uploader from "../Utility/Uploader";
 import { useSearchParams } from "next/navigation";
+import { logger } from "@/lib/utils";
+
 
 interface whatsappProfileProps {
   profile: profileProps;
@@ -70,7 +72,7 @@ const WhatsappProfile = ({
 
   //     const result = await data.json();
 
-  //     console.log(result, "res ponse upload....");
+  //     logger.log(result, "res ponse upload....");
 
   //     return result.fileUrl;
   //   } catch (error) {
@@ -78,14 +80,14 @@ const WhatsappProfile = ({
   //   }
   // };
 
-  console.log(profile, "profile dataaaaa....");
+  logger.log(profile, "profile dataaaaa....");
   const handleSave = async () => {
     try {
-      console.log(formData, "formdataaaaaa.");
+      logger.log(formData, "formdataaaaaa.");
       await updateUser(formData).unwrap();
       setEditField(null);
     } catch (error) {
-      console.log("got error in updation user.");
+      logger.log("got error in updation user.");
     }
     // onSave?.(formData);
   };
@@ -106,11 +108,11 @@ const WhatsappProfile = ({
         CHAT_JOINED,
         { chat_id: formData?.chat_id, user_id },
         (response: socketResponse) => {
-          console.log("user joined ", response);
+          logger.log("user joined ", response);
         },
       );
     } catch (error) {
-      console.log(error, "error in unblocking...");
+      logger.log(error, "error in unblocking...");
     }
   };
 

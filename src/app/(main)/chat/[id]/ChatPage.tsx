@@ -70,6 +70,9 @@ import {
 import Loader from "@/components/Utility/Loader";
 import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
 
+import { logger } from "@/lib/utils";
+
+
 interface mediaProps {
   file_name: string;
   url: string;
@@ -87,7 +90,7 @@ const ChatPage = ({ id }: { id: number }) => {
   const controllerRef = useRef<AbortController | null>(null);
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
-  console.log(pathname.get("chat_type"), "pathname.,.........");
+
   const CHUNK_SIZE = 1024 * 1024;
   const pausedRef = useRef(false);
 
@@ -101,7 +104,7 @@ const ChatPage = ({ id }: { id: number }) => {
   });
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-  const throttleRef = useRef(false);
+
 
   const { chatSocket: socket, notificationSocket } = useSocket();
 
@@ -118,7 +121,7 @@ const ChatPage = ({ id }: { id: number }) => {
     {},
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
-        // console.log(typeof id, "type of ...", id)
+        // logger.log(typeof id, "type of ...", id)
         return {
           data: data?.data?.getAllChats?.data?.items?.filter(
             (item: Chat) => item.chat_id === id,
@@ -178,7 +181,7 @@ const ChatPage = ({ id }: { id: number }) => {
             {} as Record<string, Message[]>,
           ) ?? [];
 
-        // console.log("result daataaa.", result);
+        // logger.log("result daataaa.", result);
         const flatData: ChatItem[] = Object.entries(result).flatMap(
           ([date, messages]) => [
             {
@@ -193,7 +196,7 @@ const ChatPage = ({ id }: { id: number }) => {
           ],
         );
 
-        // console.log(flatData, "result daataaa.", result);
+        // logger.log(flatData, "result daataaa.", result);
 
         const mappedMessages = new Map(
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
@@ -247,7 +250,7 @@ const ChatPage = ({ id }: { id: number }) => {
   );
   // const chat = messages;
 
-  // console.log(messages, "messagessss");
+  // logger.log(messages, "messagessss");
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messagesEndRef]);
@@ -257,7 +260,7 @@ const ChatPage = ({ id }: { id: number }) => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !isFetching) {
-          // console.log(entries, "entriesssssssss");
+          // logger.log(entries, "entriesssssssss");
           setCursor(() => nextCursor);
         }
       },
@@ -269,7 +272,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
     if (bottomRef.current) observer.observe(bottomRef.current);
 
-    console.log("= data =================", messages);
+    logger.log("= data =================", messages);
     return () => observer.disconnect();
   }, [messages, nextCursor, hasMore, isFetching]);
 
@@ -291,13 +294,13 @@ const ChatPage = ({ id }: { id: number }) => {
       if (!content && "preventDefault" in e) return;
 
       if ("preventDefault" in e) {
-        console.log("gotr issueeee");
+        logger.log("gotr issueeee");
         e.preventDefault();
       } else if ((!e.url && !inputRef.current && !input.value) || !socket) {
         return;
       }
 
-      console.log(chatDetails, "input text rfwaaaal");
+      logger.log(chatDetails, "input text rfwaaaal");
       const newMessage = {
         chat_ids: [id],
         content: input.value,
@@ -333,7 +336,7 @@ const ChatPage = ({ id }: { id: number }) => {
               // rollback
               patchResult?.undo();
               chatPatchResult?.undo();
-              console.log(response, "callback response");
+              logger.log(response, "callback response");
             }
 
             if (response.data) {
@@ -345,15 +348,15 @@ const ChatPage = ({ id }: { id: number }) => {
                 ),
               );
             } else {
-              console.log(
+              logger.log(
                 response,
                 "callback response outside",
                 "data" in response,
               );
             }
-            console.log(response?.data?.message?.id, "mesage id ...");
+            logger.log(response?.data?.message?.id, "mesage id ...");
           });
-          console.log("messege repliy sent...");
+          logger.log("messege repliy sent...");
 
           // await replyToMessage(newMessage).unwrap();
           setReplyMessage(null);
@@ -364,7 +367,7 @@ const ChatPage = ({ id }: { id: number }) => {
               // rollback
               patchResult?.undo();
               chatPatchResult?.undo();
-              console.log(response, "callback response");
+              logger.log(response, "callback response");
             }
             if (response.data) {
               dispatch(
@@ -375,9 +378,9 @@ const ChatPage = ({ id }: { id: number }) => {
                 ),
               );
             }
-            console.log(response, "callback response outside");
+            logger.log(response, "callback response outside");
           });
-          console.log("messege sent...");
+          logger.log("messege sent...");
           // await sendMessage(newMessage);
         }
 
@@ -385,7 +388,7 @@ const ChatPage = ({ id }: { id: number }) => {
       } catch (error) {
         // showToast("error some thin went wrong", "error")
 
-        console.log(error, "error in sending message");
+        logger.log(error, "error in sending message");
       }
 
       // setMessages([...messages, newMessage]);
@@ -422,7 +425,7 @@ const ChatPage = ({ id }: { id: number }) => {
           }
 
           const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-          //  console.log();
+          //  logger.log();
           const form = new FormData();
           form.append("uploadId", id);
           form.append("chunk", chunk);
@@ -464,14 +467,14 @@ const ChatPage = ({ id }: { id: number }) => {
 
           await handleSendMessage(media);
 
-          console.log(result);
+          logger.log(result);
           // alert("upload completed");
         } else {
           alert("error in uploading");
         }
       } catch (error) {
         // alert("error in uploading");
-        console.log(error, "error in uploaddd.");
+        logger.log(error, "error in uploaddd.");
         showToast("error in uploading", "error");
         // setMessages((prev) =>
         //   prev.filter((p) => p.id !== prev[prev.length - 1].id),
@@ -516,7 +519,7 @@ const ChatPage = ({ id }: { id: number }) => {
         ),
       );
 
-      // console.log(messages, "messageeeeeeee", inputText)
+      // logger.log(messages, "messageeeeeeee", inputText)
 
       try {
         controllerRef.current = new AbortController();
@@ -531,7 +534,7 @@ const ChatPage = ({ id }: { id: number }) => {
         );
 
         const data = await upload.json();
-        console.log(data, "data....");
+        logger.log(data, "data....");
         const uid = data.uploadId;
         setUploadId(uid);
 
@@ -554,7 +557,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
   useEffect(() => {
     socket.onAny((event, ...args) => {
-      console.log("ANY EVENT:", event, args);
+      logger.log("ANY EVENT:", event, args);
     });
   }, [socket]);
 
@@ -582,7 +585,7 @@ const ChatPage = ({ id }: { id: number }) => {
         return "success";
       }
     } catch (error) {
-      //  console.log(error, "errorrrrr");
+      //  logger.log(error, "errorrrrr");
     }
   }, [uploadId]);
 
@@ -595,7 +598,7 @@ const ChatPage = ({ id }: { id: number }) => {
         setTyping(false);
       },
       [REFETCH_CHATS]: (data: Message[]) => {
-        // console.log(data, "chats dataaaa.... new wala...");
+        // logger.log(data, "chats dataaaa.... new wala...");
         if (!data) {
           return;
         }
@@ -617,7 +620,7 @@ const ChatPage = ({ id }: { id: number }) => {
       },
 
       [EDIT_MESSAGE]: (data: Message) => {
-        console.log(data, "data from edit message ");
+        logger.log(data, "data from edit message ");
         editMessage(dispatch, id, data);
       },
     }),
@@ -646,7 +649,7 @@ const ChatPage = ({ id }: { id: number }) => {
           user_id,
         },
         (response: socketResponse) => {
-          console.log(response, "chat join response....");
+          logger.log(response, "chat join response....");
         },
       );
     }
@@ -657,7 +660,7 @@ const ChatPage = ({ id }: { id: number }) => {
           CHAT_LEAVED,
           { chat_id: id, user_id, socketId: socket.id },
           (response: socketResponse) => {
-            console.log(response, "chat leave response....");
+            logger.log(response, "chat leave response....");
           },
         );
       }
@@ -689,7 +692,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
       if (!message_ids.length) return;
 
-      console.log("Sending Seen Batch:", message_ids);
+      logger.log("Sending Seen Batch:", message_ids);
 
       socket.emit(
         MESSAGE_SEEN,

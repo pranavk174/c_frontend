@@ -1,6 +1,8 @@
 import { logoutMutaion } from "@/graphql/Modules/Users/User.mutation";
 import { NextRequest, NextResponse } from "next/server";
 import { backendRequest } from "../../utils";
+import { logger } from "@/lib/utils";
+
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -24,7 +26,7 @@ export const POST = async (req: NextRequest) => {
     res.cookies.delete("accessToken");
     res.cookies.delete("refreshToken");
 
-    console.log(res, "reponse in logout..");
+    logger.log(res, "reponse in logout..");
 
     return res;
   } catch (error) {

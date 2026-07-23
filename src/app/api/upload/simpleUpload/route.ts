@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { logger } from "@/lib/utils";
+
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -61,7 +63,7 @@ export const POST = async (req: NextRequest) => {
 
     } catch (error) {
 
-        console.log(error);
+        logger.log(error);
 
         return NextResponse.json(
             {

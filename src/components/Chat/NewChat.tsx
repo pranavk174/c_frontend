@@ -10,6 +10,8 @@ import Tabs from "../Utility/Tabs";
 import Checkbox from "../Utility/Checkbox";
 import NewChatTab from "./NewChatTab";
 import NewGroupTab from "./NewGroupTab";
+import { logger } from "@/lib/utils";
+
 
 interface User {
   id: number;
@@ -56,7 +58,7 @@ export default function NewChat({
         tabs={tabsButton}
         defaultTab="chat"
         onChange={(tabId) => {
-          console.log("Active tab:", tabId);
+          logger.log("Active tab:", tabId);
           setActive(Number(tabId));
         }}
       />

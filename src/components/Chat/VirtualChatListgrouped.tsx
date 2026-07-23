@@ -26,6 +26,8 @@ import React, {
 import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
 import MessageBox from "./MessageBox";
+import { logger } from "@/lib/utils";
+
 
 const VirtualChatlistGrouped = memo(
   ({
@@ -150,11 +152,11 @@ const VirtualChatlistGrouped = memo(
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
-    // console.log(typing, " typing ======== dataaaaa ");
+    // logger.log(typing, " typing ======== dataaaaa ");
 
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {
-        console.log(user_id);
+        logger.log(user_id);
 
         const pathResult = dispatch(
           chatApi.util.updateQueryData(
@@ -183,7 +185,7 @@ const VirtualChatlistGrouped = memo(
           ),
         );
 
-        console.log(chat_id, "chat_iddddddddd");
+        logger.log(chat_id, "chat_iddddddddd");
         try {
           socket.emit(
             MESSAGE_REACTION,
@@ -199,9 +201,9 @@ const VirtualChatlistGrouped = memo(
                 // rollback
                 pathResult.undo();
 
-                console.log(response, "callback response");
+                logger.log(response, "callback response");
               }
-              console.log(response, "callback response outside");
+              logger.log(response, "callback response outside");
             },
           );
 
@@ -221,7 +223,7 @@ const VirtualChatlistGrouped = memo(
       (ids: number) => {
         // debugger;
         setSelectedMessages((prev) => {
-          console.log(
+          logger.log(
             typeof prev[0],
             "type of fddddd",
             prev,
@@ -235,7 +237,7 @@ const VirtualChatlistGrouped = memo(
             //   setSelectionMode(false);
             // }
 
-            //   console.log(filtered, "filteredddddd");
+            //   logger.log(filtered, "filteredddddd");
             return filtered;
           }
 
@@ -246,7 +248,7 @@ const VirtualChatlistGrouped = memo(
     );
 
     const handleLongPress = useCallback(() => {
-      // console.log("Long Press Triggered");
+      // logger.log("Long Press Triggered");
       //   setSelected((p) => [...p, id]);
       setMenu(true);
       setSelectionMode(true);
@@ -366,10 +368,10 @@ const VirtualChatlistGrouped = memo(
               const repliedMessage =
                 msg.reply_to_message_id !== null
                   ? (messages?.find(
-                      (md) => md.id === msg.reply_to_message_id,
-                    ) ?? null)
+                    (md) => md.id === msg.reply_to_message_id,
+                  ) ?? null)
                   : null;
-              // console.log(msg, "msggggggg");
+              // logger.log(msg, "msggggggg");
 
               const isSelected = selectedMessages.includes(msg?.id);
 

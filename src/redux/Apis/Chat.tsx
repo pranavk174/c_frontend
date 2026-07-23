@@ -1,27 +1,22 @@
 import { Message } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
+import { logger } from "@/lib/utils";
+
+
 import {
-  getAllchatsQuery,
-  getEmojiQuery,
-  getMemberQuery,
-  getSingleChatQuery,
-  getWallpaperQuery,
-} from "@/graphql/Modules/Chat/Chat.queries";
-import {
-  deletMessageMutation,
+
   editMessageMutation,
-  newChatMutation,
-  newGroupMutation,
+
   replyMessageMutation,
   sendMessageMutation,
-  setWallPaperMutation,
+
 } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllChats: builder.query({
       query: () => ({
-        url: "/chat/get-all-chats",
+        url: "/chat/all-chats",
         method: "GET",
       }),
       providesTags: ["chats"],
@@ -38,15 +33,15 @@ export const chatApi = BaseApi.injectEndpoints({
         },
       }),
       providesTags: (result) => {
-        // console.log(result, "result.......");
+        // logger.log(result, "result.......");
         return result
           ? [
-              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -130,9 +125,9 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     newChat: builder.mutation({
       query: ({ member_id }) => ({
-        url: "/chat/get-single-chat",
+        url: "/chat/single-chat",
         method: "POST",
-        body: JSON.stringify({ member_id }),
+        body: { member_id },
       }),
       invalidatesTags: ["chats"],
     }),
@@ -202,20 +197,27 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
     deleteMessages: builder.mutation({
       query: ({ message_ids, chat_ids, delete_type }) => ({
-        url: "",
-        method: "POST",
+        url: "/chat/single-chat",
+        method: "DELETE",
         body: {
-          query: deletMessageMutation,
-          variables: {
-            input: {
-              delete_type,
-              message_ids,
-              chat_ids,
-            },
-          },
+
+          delete_type,
+          message_ids,
+          chat_ids,
+
         },
       }),
       invalidatesTags: [{ type: "chats", id: "LIST" }],
+    }),
+
+    forwardMessage: builder.mutation({
+      query: ({ reciever_ids, chat_ids, message_ids }) => ({
+        url: '/chat/all-chats',
+        method: 'POST',
+        body: {
+          reciever_ids, chat_ids, message_ids
+        }
+      }), invalidatesTags: ['chats'],
     }),
     setWallPaper: builder.mutation({
       query: ({ url }) => ({
@@ -250,6 +252,7 @@ export const {
   useCreateNewGroupMutation,
   usePrefetch,
   useReactMessageMutation,
+  useForwardMessageMutation,
   useReplyToMessageMutation,
   useSendMessageMutation,
   useNewChatMutation,

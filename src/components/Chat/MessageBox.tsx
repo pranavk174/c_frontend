@@ -3,6 +3,8 @@ import Messages from "./Messages";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { emoji, MessageboxProps } from "@/lib/dummy";
+import { logger } from "@/lib/utils";
+
 const MessageBox = memo(
   ({
     startPressTimer,
@@ -30,7 +32,7 @@ const MessageBox = memo(
     setReplyMessage,
     emojis,
   }: MessageboxProps) => {
-    // console.log("message box triggereddddd");
+    // logger.log("message box triggereddddd");
 
 
 
@@ -120,7 +122,7 @@ const MessageBox = memo(
                 onClick={(e) => {
                   e.stopPropagation();
 
-                  console.log(msg?.id, "messgae id ", em.react_id);
+                  logger.log(msg?.id, "messgae id ", em.react_id);
                   handleLike(msg?.id, em.react_id);
                 }}
                 className="cursor-pointer hover:scale-125 transition-transform"

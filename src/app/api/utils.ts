@@ -1,5 +1,7 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/utils";
+
 
 const api = axios.create({
   baseURL: process.env.BASE_URL,
@@ -66,10 +68,10 @@ export const boilerPlate = async (
   } catch (error) {
     const err = error as AxiosError;
 
-    console.log(err.response?.data, { depth: null });
-    console.log(err);
-    console.log(error);
-    console.log(err.response);
+    logger.log(err.response?.data, { depth: null });
+    logger.log(err);
+    logger.log(error);
+    logger.log(err.response);
     return NextResponse.json(
       {
         success: false,
@@ -105,10 +107,10 @@ export const getBoilerplate = async (
   } catch (error) {
     const err = error as AxiosError;
 
-    // console.log(err.response?.data, { depth: null });
-    // console.log(err);
-    console.log(err.response?.request.res.statusMessage);
-    console.log(err.response?.request.res, { depth: null }, "===============");
+    // logger.log(err.response?.data, { depth: null });
+    // logger.log(err);
+    logger.log(err.response?.request.res.statusMessage);
+    logger.log(err.response?.request.res, { depth: null }, "===============");
     return NextResponse.json(
       {
         success: false,

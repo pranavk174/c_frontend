@@ -4,7 +4,7 @@ import {
   getAllchatsQuery,
   getSingleChatQuery,
 } from "@/graphql/Modules/Chat/Chat.queries";
-import { newChatMutation } from "@/graphql/Modules/Chat/Chat.mutation";
+import { deletMessageMutation, newChatMutation } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const POST = async (req: NextRequest) => {
   const { member_id } = await req.json();
@@ -35,3 +35,25 @@ export const GET = async (req: NextRequest) => {
     true,
   );
 };
+
+
+export const DELETE = async (req: NextRequest) => {
+
+  const { delete_type,
+    message_ids,
+    chat_ids, } = await req.json()
+
+
+  return boilerPlate(
+    req,
+    deletMessageMutation,
+    {
+      delete_type,
+      message_ids,
+      chat_ids
+    },
+    true,
+  );
+
+
+}

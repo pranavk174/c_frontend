@@ -24,6 +24,8 @@ import React, {
 import Messages from "./Messages";
 import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
+import { logger } from "@/lib/utils";
+
 type emoji = {
   react_id: number;
   emoji: string;
@@ -129,7 +131,7 @@ const Chatlist = memo(
 
       if (bottomRef.current) observer.observe(bottomRef.current);
 
-      //  console.log("= data =================")
+      //  logger.log("= data =================")
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
 
@@ -153,7 +155,7 @@ const Chatlist = memo(
     //       return acc
     //     }, [])
 
-    //     console.log(message_ids, "unseen message idsssssss")
+    //     logger.log(message_ids, "unseen message idsssssss")
     //     socket.emit(MESSAGE_SEEN)
 
     //   } catch (error) {
@@ -162,7 +164,7 @@ const Chatlist = memo(
     // }, [data, nextCursor])
 
     const handleLike = async (msg_id: number, react_id: number) => {
-      console.log(user_id);
+      logger.log(user_id);
 
       const pathResult = dispatch(
         chatApi.util.updateQueryData(
@@ -191,7 +193,7 @@ const Chatlist = memo(
         ),
       );
 
-      console.log(chat_id, "chat_iddddddddd");
+      logger.log(chat_id, "chat_iddddddddd");
       try {
         socket.emit(
           MESSAGE_REACTION,
@@ -207,9 +209,9 @@ const Chatlist = memo(
               // rollback
               pathResult.undo();
 
-              console.log(response, "callback response");
+              logger.log(response, "callback response");
             }
-            console.log(response, "callback response outside");
+            logger.log(response, "callback response outside");
           },
         );
 
@@ -225,7 +227,7 @@ const Chatlist = memo(
     const toggleSelection = (ids: number) => {
       // debugger;
       setSelectedMessages((prev) => {
-        // console.log(
+        // logger.log(
         //   typeof prev[0],
         //   "type of fddddd",
         //   prev,
@@ -239,7 +241,7 @@ const Chatlist = memo(
           //   setSelectionMode(false);
           // }
 
-          console.log(filtered, "filteredddddd");
+          logger.log(filtered, "filteredddddd");
           return filtered;
         }
 
@@ -248,7 +250,7 @@ const Chatlist = memo(
     };
 
     const handleLongPress = (id: number) => {
-      // console.log("Long Press Triggered");
+      // logger.log("Long Press Triggered");
       setSelected((p) => [...p, id]);
       setMenu(true);
       setSelectionMode(true);
@@ -389,7 +391,7 @@ const Chatlist = memo(
                         onClick={(e) => {
                           e.stopPropagation();
 
-                          console.log(msg.id, "messgae id ", em.react_id);
+                          logger.log(msg.id, "messgae id ", em.react_id);
                           handleLike(msg.id, em.react_id);
                         }}
                         className="cursor-pointer hover:scale-125 transition-transform"

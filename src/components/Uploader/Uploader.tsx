@@ -4,6 +4,8 @@ import { Message } from "@/lib/dummy";
 import React, { Dispatch, RefObject, SetStateAction, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { logger } from "@/lib/utils";
+
 
 interface UploaderProps {
     startUpload: () => Promise<void>
@@ -52,7 +54,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //     });
 
     //     const data = await upload.json();
-    //     console.log(data, "data....");
+    //     logger.log(data, "data....");
     //     const id = data.uploadId;
     //     setUploadId(id);
 
@@ -70,7 +72,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //             }
 
     //             const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-    //             //  console.log();
+    //             //  logger.log();
     //             const form = new FormData();
     //             form.append("uploadId", id);
     //             form.append("chunk", chunk);
@@ -95,7 +97,7 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //         });
 
     //         if (done.ok) {
-    //             //  console.log(done);
+    //             //  logger.log(done);
     //             alert("upload completed");
     //         } else {
     //             alert("error in uploading");
@@ -127,11 +129,11 @@ const Uploader = ({ startUpload, cancelUpload, setMessages, uploadChunks, paused
     //             return "success";
     //         }
     //     } catch (error) {
-    //         //  console.log(error, "errorrrrr");
+    //         //  logger.log(error, "errorrrrr");
     //     }
     // };
 
-    //   //  console.log(paused, "paused...");
+    //   //  logger.log(paused, "paused...");
 
 
     return (

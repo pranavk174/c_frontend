@@ -3,6 +3,8 @@ import { useAppDispatch } from "@/lib/hooks";
 
 import { useDeleteMessagesMutation, chatApi } from "@/redux/Apis/Chat";
 import React, { Dispatch, SetStateAction } from "react";
+import { logger } from "@/lib/utils";
+
 
 interface deleteMessageProps {
   setShowModal: Dispatch<SetStateAction<valueProps>>;
@@ -51,7 +53,7 @@ const DeleteMessage = ({
       setSelectedMessages([]);
     } catch (error) {
       pathResult.undo();
-      console.log(error, "error in deeltion.");
+      logger.log(error, "error in deeltion.");
     }
   };
 

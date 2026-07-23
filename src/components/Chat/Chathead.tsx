@@ -36,6 +36,9 @@ import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
 import { EDIT_MESSAGE } from "@/lib/events";
 import { useGetUserQuery, useGetUsersQuery } from "@/redux/Apis/Users";
 import { useSearchParams } from "next/navigation";
+import { logger } from "@/lib/utils";
+import UserList from "./UserList";
+
 
 interface chatHeadProps {
   menu: boolean;
@@ -75,7 +78,7 @@ const Chathead = memo(
     );
     const { user } = useGetUserQuery(null, {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
-        // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
+        // logger.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
         return {
           user: data?.data?.getUser?.data,
           isLoading,
@@ -86,7 +89,7 @@ const Chathead = memo(
 
     const { users } = useGetUsersQuery(null, {
       selectFromResult: ({ data, isSuccess }) => {
-        console.log(members, "membersssss");
+        logger.log(members, "membersssss");
 
         const newData = data?.data?.getUsers?.data?.items.reduce(
           (acc: profileProps[], idx: profileProps) => {
@@ -110,7 +113,7 @@ const Chathead = memo(
           newData.push({ ...user, role: member?.role });
         }
 
-        console.log(
+        logger.log(
           newData,
           "new Dataaaaa,,,",
           data?.data?.getUsers?.data?.items,
@@ -120,12 +123,12 @@ const Chathead = memo(
           users: data?.data?.getUsers?.data?.items,
         };
       },
-      skip: chatDetails?.chat_type !== "group",
+      skip: chatDetails?.chat_type !== "group" && open.type !== 'forward',
     });
 
     // const [editMessage, { isLoading }] = useEditMessageMutation();
 
-    console.log("chat head trigged ");
+    logger.log("chat head trigged ");
     const handleSave = async (content: string) => {
       try {
         const patchResult = dispatch(
@@ -154,7 +157,7 @@ const Chathead = memo(
             chat_id: [chatDetails?.chat_id],
           },
           (res: socketResponse) => {
-            console.log("socket response", res);
+            logger.log("socket response", res);
             if (!res.success) {
               patchResult.undo();
               throw new Error(res.message);
@@ -162,7 +165,7 @@ const Chathead = memo(
           },
         );
       } catch (error) {
-        console.log(error, "errror");
+        logger.log(error, "errror");
       } finally {
       }
     };
@@ -185,7 +188,10 @@ const Chathead = memo(
               <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition hidden sm:block">
                 <CornerUpLeft className="w-5 h-5" />
               </button>
-              <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
+              <button onClick={() => setOpen({
+                type: "forward",
+                open: true,
+              })} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
                 <CornerUpRight className="w-5 h-5" />
               </button>
               <div className="w-px h-6 bg-wa-divider dark:bg-wa-divider-dark mx-1"></div>
@@ -335,7 +341,7 @@ const Chathead = memo(
                   open: false,
                 });
               }}
-              onCancel={() => {}}
+              onCancel={() => { }}
             />
           )}
 
@@ -347,6 +353,13 @@ const Chathead = memo(
               open={open}
               setOpen={setOpen}
             />
+          )}
+
+
+          {open.type === "forward" && (
+            <UserList users={users} open={open}
+              selectedMessages={selectedMessages}
+              setOpen={setOpen} />
           )}
         </Modal>
         {/* <Modal open={block} values setModal={setBlock}>

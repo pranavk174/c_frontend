@@ -17,6 +17,8 @@ import { useGetUserQuery } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { STORY_LIKE, STORY_SEEN } from "@/lib/events";
+import { logger } from "@/lib/utils";
+
 
 const StoryList = () => {
   const { chatSocket: socket, notificationSocket } = useSocket();
@@ -33,7 +35,7 @@ const StoryList = () => {
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const [storyIndex, setStoryIndex] = useState<number>(0);
 
-  console.log(user_id, "user id...");
+  logger.log(user_id, "user id...");
   const [modal, setModal] = useState<"storyupload" | "storypreview" | null>(
     null,
   );
@@ -42,7 +44,7 @@ const StoryList = () => {
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
         const result = data?.data?.getUser?.data;
-        // console.log(result, "user data..", data);
+        // logger.log(result, "user data..", data);
 
         return {
           user: result,
@@ -69,14 +71,14 @@ const StoryList = () => {
       const updatedStories =
         !isExists && user
           ? [
-              {
-                user_id: user.id,
-                name: user.name,
-                profile_pic: user.profile_pic,
-                stories: [],
-              },
-              ...stories,
-            ]
+            {
+              user_id: user.id,
+              name: user.name,
+              profile_pic: user.profile_pic,
+              stories: [],
+            },
+            ...stories,
+          ]
           : updatedArray;
 
       return {
@@ -87,7 +89,7 @@ const StoryList = () => {
     },
   });
 
-  // console.log(storiesData, "stori data......");
+  // logger.log(storiesData, "stori data......");
   const [files, setFiles] = useState<File[]>([]);
 
   const onClickHandle = (
@@ -115,10 +117,10 @@ const StoryList = () => {
 
         dispatch(
           storyApi.util.updateQueryData("getStories", null, (draft) => {
-            console.log(data, "story seen successssss");
+            logger.log(data, "story seen successssss");
             draft.data.getAllStories.data.stories.forEach(
               (story: UserStories) => {
-                console.log(data, "story seen inner  successssss");
+                logger.log(data, "story seen inner  successssss");
                 story.stories.forEach((st) => {
                   if (st.id === data.story_id) {
                     if (!st.interactions) {
@@ -129,7 +131,7 @@ const StoryList = () => {
                       (i) => i.id === data.user_id,
                     );
 
-                    console.log("ye condition true hai", alreadyExists);
+                    logger.log("ye condition true hai", alreadyExists);
 
                     if (!alreadyExists) {
                       st.interactions.push({
@@ -143,7 +145,7 @@ const StoryList = () => {
                       });
                     }
                   } else {
-                    console.log("condition false....");
+                    logger.log("condition false....");
                   }
                 });
               },
@@ -166,7 +168,7 @@ const StoryList = () => {
           });
         }
 
-        console.log("liked ddaaaaataa..", data);
+        logger.log("liked ddaaaaataa..", data);
 
         dispatch(
           storyApi.util.updateQueryData("getStories", null, (draft) => {
@@ -194,7 +196,7 @@ const StoryList = () => {
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      console.log(e.target.files, "input eventssss");
+      logger.log(e.target.files, "input eventssss");
       if (e.target.files) {
         setFiles(Array.from(e.target.files));
 
@@ -206,7 +208,7 @@ const StoryList = () => {
       }
       // await uploadImage()
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   };
 

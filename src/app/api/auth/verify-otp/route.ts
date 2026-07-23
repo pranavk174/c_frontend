@@ -2,12 +2,14 @@ import { verifyOtpMutation } from "@/graphql/Modules/Users/User.mutation";
 import { NextRequest, NextResponse } from "next/server";
 import { backendRequests } from "../../utils";
 import { AxiosError } from "axios";
+import { logger } from "@/lib/utils";
+
 
 export const POST = async (req: NextRequest) => {
   const { email, otp, device_id, ip_address, location, device_name } =
     await req.json();
   try {
-    console.log("triggered");
+    logger.log("triggered");
     const response = await backendRequests(req, {
       data: JSON.stringify({
         query: verifyOtpMutation,
@@ -24,7 +26,7 @@ export const POST = async (req: NextRequest) => {
       }),
     });
 
-    console.log(response, "response in verifuy output");
+    logger.log(response, "response in verifuy output");
 
     const res = NextResponse.json(response.data, {
       status: response.status,
@@ -44,10 +46,10 @@ export const POST = async (req: NextRequest) => {
     return res;
   } catch (error) {
     const err = error as AxiosError;
-    console.log(err.response?.data, { depth: null });
-    console.log(err);
-    console.log(error);
-    console.log(err.response);
+    logger.log(err.response?.data, { depth: null });
+    logger.log(err);
+    logger.log(error);
+    logger.log(err.response);
     return NextResponse.json(
       {
         success: false,

@@ -3,42 +3,48 @@ import { twMerge } from "tailwind-merge";
 import { socketResponse } from "./dummy";
 
 
+
+
+
+
 type LogLevel = "log" | "info" | "warn" | "error" | "debug";
 
 const isDev = process.env.NODE_ENV === "development";
 
-function print(
-  level: LogLevel,
-  scope: string,
-  ...args: unknown[]
-) {
-  if (!isDev && level !== "error") return;
-
-  const time = new Date().toLocaleTimeString();
-
-  console[level](
-    `%c[${time}] [${scope}]`,
-    "color:#3b82f6;font-weight:bold",
-    ...args
-  );
-}
+/* eslint-disable no-console */
 
 export const logger = {
-  log: (scope: string, ...args: unknown[]) =>
-    print("log", scope, ...args),
+  error: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.error('[ERROR]', ...args);
+    }
+    // Add error tracking service calls here (Sentry, etc.)
+  },
 
-  info: (scope: string, ...args: unknown[]) =>
-    print("info", scope, ...args),
+  warn: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.warn('[WARN]', ...args);
+    }
+  },
 
-  warn: (scope: string, ...args: unknown[]) =>
-    print("warn", scope, ...args),
+  info: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.info('[INFO]', ...args);
+    }
+  },
 
-  error: (scope: string, ...args: unknown[]) =>
-    print("error", scope, ...args),
-
-  debug: (scope: string, ...args: unknown[]) =>
-    print("debug", scope, ...args),
+  debug: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.debug('[DEBUG]', ...args);
+    }
+  },
+  log: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.log('[log]', ...args);
+    }
+  },
 };
+
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -91,7 +97,7 @@ export const getDeviceInfo = async () => {
       longitude: data.longitude,
     };
   } catch (error) {
-    console.log("IP fetch failed", error);
+    logger.log("IP fetch failed", error);
   }
 
   return {
@@ -111,7 +117,7 @@ export const capitalizeWords = (word: string) => {
     .map((d) => d[0].toUpperCase().concat(d.substring(1)))
     .join(" ");
 
-  console.log(splitted, "splitteddddd");
+  logger.log(splitted, "splitteddddd");
   return splitted;
 };
 
@@ -121,9 +127,9 @@ export const socketCallback = (response: socketResponse) => {
     // rollback
     // patchResult?.undo();
 
-    console.log(response, "callback response");
+    logger.log(response, "callback response");
   }
-  console.log(response, "callback response outside");
+  logger.log(response, "callback response outside");
 };
 
 export const uploadImage = async (file: File) => {
@@ -138,7 +144,7 @@ export const uploadImage = async (file: File) => {
 
     const result = await data.json();
 
-    console.log(result, "res ponse upload....");
+    logger.log(result, "res ponse upload....");
 
     return result.fileUrl;
   } catch (error) {

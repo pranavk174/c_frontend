@@ -1,8 +1,11 @@
 import { Notification } from "@/lib/dummy";
 
-import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { useGetNotificationsQuery, useSeenNotificationMutation } from "@/redux/Apis/Notification";
 import { div } from "framer-motion/client";
 import Image from "next/image";
+import { logger } from "@/lib/utils";
+import { useEffect } from "react";
+
 
 const notifications = [
     {
@@ -55,9 +58,24 @@ const notifications = [
 export default function NotificationUI({ notifications }: { notifications: Notification }) {
 
 
+    const [seenNotification] = useSeenNotificationMutation()
 
 
-    console.log(notifications, "notofcationssss")
+
+    useEffect(() => {
+        if (Array.isArray(notifications) && notifications.length > 0) {
+            const notification_ids = notifications.map((item: Notification) => item.notification_id)
+            try {
+                seenNotification({ notification_ids }).unwrap()
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+        , [notifications, seenNotification])
+
+
+    logger.log(notifications, "notofcationssss")
 
 
     return (

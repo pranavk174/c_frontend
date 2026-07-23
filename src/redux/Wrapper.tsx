@@ -5,6 +5,8 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { store, persistor } from "./store";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { logger } from "@/lib/utils";
+
 
 export default function Wrapper({ children }: { children: React.ReactNode }) {
   //   const [isOnline, setIsOnline] = useState(true);
@@ -14,9 +16,9 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
       registrations.forEach((reg) => {
         reg.unregister().then((boolean) => {
           if (boolean) {
-            console.log("older service worker removed succesfully");
+            logger.log("older service worker removed succesfully");
           } else {
-            console.log("falied to remove service workey");
+            logger.log("falied to remove service workey");
           }
         });
       });
@@ -27,10 +29,10 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     await navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
       .then((registration) => {
-        console.log("New Service Worker Registered:", registration);
+        logger.log("New Service Worker Registered:", registration);
       })
       .catch((error) => {
-        console.log("Service Worker Registration Failed:", error);
+        logger.log("Service Worker Registration Failed:", error);
       });
   };
 

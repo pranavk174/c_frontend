@@ -1,6 +1,8 @@
 import { Action, Middleware, isRejectedWithValue } from "@reduxjs/toolkit";
 
 import { showGlobalToast } from "../toastservices";
+import { logger } from "@/lib/utils";
+
 
 interface actionProps {
   payload: {
@@ -22,11 +24,11 @@ interface metaProps {
     condition: boolean;
   } & (
     | {
-        rejectedWithValue: true;
-      }
+      rejectedWithValue: true;
+    }
     | ({
-        rejectedWithValue: false;
-      } & {})
+      rejectedWithValue: false;
+    } & {})
   );
 }
 
@@ -43,7 +45,7 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
       };
     };
 
-    console.log(payload, "payload dataaaa");
+    logger.log(payload, "payload dataaaa");
 
     // const endpointName = (action.meta)?.arg?.endpointName;
 
@@ -55,7 +57,7 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
       return;
     }
 
-    // console.log("API:", endpointName);
+    // logger.log("API:", endpointName);
     // showToast(message, "error");
     // showGlobalToast(`error in ${endpointName} API`, "error");
   }

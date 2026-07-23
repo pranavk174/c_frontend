@@ -27,6 +27,8 @@ import {
   ReactNode,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import { logger } from "@/lib/utils";
+
 
 type SocketContextType = {
   chatSocket: Socket;
@@ -95,7 +97,7 @@ export const SocketProvider = ({ children }: Props) => {
         showToast(data, "error");
       },
       [NEW_NOTIFICATION]: (data: Notification) => {
-        console.log(data, "data recieved in notication");
+        logger.log(data, "data recieved in notication");
         dispatch(
           NotificationApi.util.updateQueryData(
             "getNotifications",
@@ -115,7 +117,7 @@ export const SocketProvider = ({ children }: Props) => {
             "getNotifications",
             null,
             (draft) => {
-              console.log(data, "notifcation responseeeeeeeee seen wala...");
+              logger.log(data, "notifcation responseeeeeeeee seen wala...");
               draft.data.getNotification.data.items =
                 draft.data.getNotification.data.items.filter(
                   (seen: Notification) => data.includes(seen.notification_id),
@@ -133,7 +135,7 @@ export const SocketProvider = ({ children }: Props) => {
         showToast(data, "error");
       },
       [ONLINE_USERS]: (data: string[]) => {
-        console.log("online user dataaa budddyyyy...");
+        logger.log("online user dataaa budddyyyy...");
         dispatch(addOnlineUsers(data));
 
         // return callback({
@@ -143,11 +145,11 @@ export const SocketProvider = ({ children }: Props) => {
     }),
     [showToast, dispatch],
   );
-  console.log("triggered wrappper...");
+  logger.log("triggered wrappper...");
 
   useEffect(() => {
     chatSocket.onAnyOutgoing((event, ...args) => {
-      console.log("ANY outgoing Event in Backend EVENT:", event, args);
+      logger.log("ANY outgoing Event in Backend EVENT:", event, args);
     });
   }, [chatSocket]);
 

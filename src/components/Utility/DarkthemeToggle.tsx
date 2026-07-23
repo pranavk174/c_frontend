@@ -2,6 +2,8 @@
 import React, { useRef, useState } from 'react'
 import SoundToggle from './Togglebuton';
 import { useUpdatePreferenceMutation } from '@/redux/Apis/Users';
+import { logger } from "@/lib/utils";
+
 
 const DarkthemeToggle = () => {
     const [isDark, setIsDark] = useState<boolean>(() => {
@@ -14,7 +16,7 @@ const DarkthemeToggle = () => {
         try {
             await updatePreference({ theme }).unwrap();
         } catch (error) {
-            console.log(error);
+            logger.log(error);
         }
     };
     const debouncedUpdateTheme = (theme: "dark" | "light") => {

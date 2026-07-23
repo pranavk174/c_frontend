@@ -11,7 +11,9 @@ import { chatApi } from "@/redux/Apis/Chat";
 import { MESSAGE_SEEN } from "./events";
 import { AppDispatch } from "@/redux/store";
 import { Socket } from "socket.io-client";
-import {} from "./utils";
+import { } from "./utils";
+import { logger } from "@/lib/utils";
+
 export interface GetChatByIdResponse {
   data: {
     getChatById: {
@@ -39,28 +41,28 @@ export const addMessage =
     replyMessage: Message | null,
     url: string | null = null,
   ) =>
-  (draft: Draft<GetChatByIdResponse>) => {
-    const items = draft?.data?.getChatById?.data?.items;
+    (draft: Draft<GetChatByIdResponse>) => {
+      const items = draft?.data?.getChatById?.data?.items;
 
-    if (!items) return;
+      if (!items) return;
 
-    items.push({
-      id: (items[items.length - 1]?.id || 0) + 1,
-      sender_id: user_id ?? 2,
-      created_at: Date.now().toString(),
-      seen_at: null,
-      story_id: null,
-      seen_users: [],
-      content: inputText,
-      preview: url,
-      reply_to_message_id: replyMessage?.id ?? null,
-      is_forwarded: false,
-      is_edited: false,
-      is_deleted: false,
-      reactions: [],
-      isLocal: true,
-    });
-  };
+      items.push({
+        id: (items[items.length - 1]?.id || 0) + 1,
+        sender_id: user_id ?? 2,
+        created_at: Date.now().toString(),
+        seen_at: null,
+        story_id: null,
+        seen_users: [],
+        content: inputText,
+        preview: url,
+        reply_to_message_id: replyMessage?.id ?? null,
+        is_forwarded: false,
+        is_edited: false,
+        is_deleted: false,
+        reactions: [],
+        isLocal: true,
+      });
+    };
 
 export const updateMessage =
   (message_id?: number | null) => (draft: Draft<GetChatByIdResponse>) => {
@@ -123,7 +125,7 @@ export const refetchChat = (
 
         // update existing
         if (exists) {
-          console.log("triggered here and exitsssss");
+          logger.log("triggered here and exitsssss");
           draft.data.getChatById.data.items = items.map((m: Message) => {
             if (m?.id === data[0].id) {
               return { ...m, ...data[0], isLocal: false };
@@ -146,14 +148,14 @@ export const refetchChat = (
           )
           .map((m: Message) => m.id);
 
-        console.log(
+        logger.log(
           unseenNewMessages,
           current(draft.data.getChatById.data.items),
           " <<<<====in reftech message unseen new messagessssssss===>>>>",
         );
 
         if (unseenNewMessages.length > 0) {
-          console.log("eejhkdsahf kdfdthis unseeed message", unseenNewMessages);
+          logger.log("eejhkdsahf kdfdthis unseeed message", unseenNewMessages);
           socket.emit(
             MESSAGE_SEEN,
             {
@@ -175,10 +177,10 @@ export const refetchChat = (
                           !chat.seen_users.includes(user_id) &&
                           unseenNewMessages.includes(chat.id)
                         ) {
-                          console.log("ye condition true hai");
+                          logger.log("ye condition true hai");
                           chat.seen_users = [...chat.seen_users, user_id];
                         }
-                        console.log("ye condition false hai......");
+                        logger.log("ye condition false hai......");
                       },
                     );
                   },
@@ -191,9 +193,9 @@ export const refetchChat = (
                 patchResult3.undo();
                 chatPatchResult.undo();
 
-                console.log(response, "callback response");
+                logger.log(response, "callback response");
               }
-              console.log(response, "callback response outside");
+              logger.log(response, "callback response outside");
             },
           );
         }
@@ -250,7 +252,7 @@ export const seenMessage = (
         draft.data.getChatById.data.items.forEach((message: Message) => {
           const seenData = seenMap.get(message.id);
 
-          // console.log(seenData, "seen dataaaa.", seenMap);
+          // logger.log(seenData, "seen dataaaa.", seenMap);
           if (!seenData) return;
 
           message.seen_users = message.seen_users || [];
@@ -262,7 +264,7 @@ export const seenMessage = (
           message.seen_at = seenData.seen_at;
         });
 
-        // console.log(
+        // logger.log(
         //   current(draft.data.getChatById.data.items),
         //   "latest updated dataaaaaaaa",
         // );

@@ -9,6 +9,8 @@ import Image from "next/image";
 import { uploadImage } from "@/lib/utils";
 import { Camera } from "lucide-react";
 import { profileProps, valueProps } from "@/lib/dummy";
+import { logger } from "@/lib/utils";
+
 type UploadableForm = {
   profile_pic?: string | null;
   cover_pic?: string | null;
@@ -49,7 +51,7 @@ const Uploader = <T extends UploadableForm>({
       setFile(object);
       const url = await uploadImage(e.target.files?.[0]);
 
-      console.log(url, "url dataaa");
+      logger.log(url, "url dataaa");
       setFormData({
         ...formData,
         [e.target.name]: url,

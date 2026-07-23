@@ -1,42 +1,46 @@
-import React from "react";
+import React, { useCallback } from "react";
 import Image from "next/image";
 import Checkbox from "../Utility/Checkbox";
 import { NewChatProps } from "@/lib/dummy";
 import { useRouter } from "next/navigation";
 import { useNewChatMutation } from "@/redux/Apis/Chat";
 import UserCard from "../User/UserCard";
+import { logger } from "@/lib/utils";
+
 const NewChatTab = ({ users, setModal }: NewChatProps) => {
   const router = useRouter();
   const [newChat] = useNewChatMutation();
-  const handleCreate = async (
-    member_id: number,
-    chat_id: number | null = null,
-  ) => {
-    try {
-      if (chat_id !== null) {
-        router.push(`/chat/${chat_id}?chat_type=private`);
-        console.log("ye chat dataaaa");
-      } else {
-        const data = await newChat({ member_id }).unwrap();
 
-        if (data.data.createNewChat.data.chat_id) {
-          console.log(data.data.createNewChat.data.chat_id, "chat idddd");
-          router.push(
-            `/chat/${data.data.createNewChat.data.chat_id}?chat_type=private`,
-          );
+  const handleCreate =
+    useCallback(async (
+      member_id: number,
+      chat_id: number | null = null,
+    ) => {
+      try {
+
+        logger.debug(chat_id, member_id, "=========== member id dataaa")
+        if (chat_id !== null) {
+          router.push(`/chat/${chat_id}?chat_type=private`);
+          logger.log("ye chat dataaaa");
+        } else {
+          const data = await newChat({ member_id }).unwrap();
+          if (data.data.createNewChat.data.chat_id) {
+            logger.log(data.data.createNewChat.data.chat_id, "chat idddd");
+            router.push(
+              `/chat/${data.data.createNewChat.data.chat_id}?chat_type=private`,
+            );
+          }
         }
+        return;
+      } catch (error) {
+        logger.log(error, "error in creating chat...");
+      } finally {
+        setModal({
+          open: false,
+          type: null,
+        });
       }
-      return;
-    } catch (error) {
-      console.log(error, "error in creating chat...");
-    } finally {
-      setModal({
-        open: false,
-        type: null,
-      });
-    }
-  };
-
+    }, [newChat, router, setModal])
   return (
     <>
       {" "}
@@ -63,7 +67,7 @@ const NewChatTab = ({ users, setModal }: NewChatProps) => {
           </div>
         ) : (
           users.map((user) => (
-            <UserCard key={user.id} user={user} type={"chat"} />
+            <UserCard key={user.id} handleCreate={handleCreate} user={user} type={"chat"} />
           ))
         )}
       </div>

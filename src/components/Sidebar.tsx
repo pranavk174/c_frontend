@@ -41,6 +41,8 @@ import NewChat from "./Chat/NewChat";
 import SoundToggle from "./Utility/Togglebuton";
 import DarkthemeToggle from "./Utility/DarkthemeToggle";
 import { useRouter } from "next/navigation";
+import { logger } from "@/lib/utils";
+
 export default function Sidebar() {
   const [logout] = useLogoutMutation();
   const pathname = usePathname();
@@ -58,7 +60,7 @@ export default function Sidebar() {
   const route = useRouter();
   const { user } = useGetUserQuery(null, {
     selectFromResult: ({ data, isLoading, isSuccess }) => {
-      // console.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
+      // logger.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
       return {
         user: data?.data?.getUser?.data,
         isLoading,
@@ -98,7 +100,7 @@ export default function Sidebar() {
     },
   });
 
-  console.log(users, "all usersss....");
+  logger.log(users, "all usersss....");
 
   const handler = useMemo(
     () => ({
@@ -133,7 +135,7 @@ export default function Sidebar() {
     }
   });
 
-  // console.log(data, "dataaaaa in chatss");
+  // logger.log(data, "dataaaaa in chatss");
   const filteredChats = data?.filter((chat: Chat) =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -269,7 +271,7 @@ export default function Sidebar() {
         <div className="flex mt-2  flex-col relative overflow-y-auto overflow-x-hidden  gap-1 h-full ">
           {filteredChats?.map((chat: Chat) => {
             const isActive = pathname === `/chat/${chat?.chat_id}`;
-            // console.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
+            // logger.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
             return (
               <Link
                 className=" overflow-hidden"

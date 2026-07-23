@@ -1,3 +1,5 @@
+import { logger } from "@/lib/utils";
+import axios, { AxiosInstance } from "axios";
 import {
   createApi,
   fetchBaseQuery,
@@ -26,7 +28,7 @@ export interface GraphQLError {
   message: string;
   locations: GraphQLErrorLocation[];
   path: string[];
-    extensions?: {
+  extensions?: {
     status: number;
     code: string
   };
@@ -38,6 +40,14 @@ interface errors {
 export interface GraphQLResponse<T> {
   data: refreshToken | errors | T | null;
 }
+
+
+
+const api: AxiosInstance = axios.create({
+  baseURL: "/api",
+  withCredentials: true,
+});
+
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "/api",
@@ -54,7 +64,7 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions);
 
   const data = result?.data as errors | null;
-  console.log(data?.errors?.[0].message, "result dataaaaaaa");
+  logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
 
   // Access token expired
 
@@ -75,7 +85,6 @@ const baseQueryWithReauth: BaseQueryFn<
         localStorage.removeItem("device_id");
         localStorage.removeItem("user");
         localStorage.removeItem("persist:root");
-
         window.location.href = "/login";
         return;
       });
@@ -119,6 +128,6 @@ export default baseQueryWithReauth;
 export const BaseApi = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["chats", "User", "story", "wallpaper", "emoji"],
+  tagTypes: ["chats", "User", "story", "wallpaper", "emoji", "notification"],
   endpoints: () => ({}),
 });

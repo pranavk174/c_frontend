@@ -7,6 +7,7 @@ import { logger } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Uploader from "../Utility/Uploader";
 import { useCreateNewGroupMutation } from "@/redux/Apis/Chat";
+import UserList from "./UserList";
 
 interface formProps {
   groupName: string;
@@ -16,7 +17,7 @@ interface formProps {
 }
 
 const NewGroupTab = ({ users }: NewChatProps) => {
-  const [selected, setSelected] = useState<number[]>([]);
+
   const [createNewGroup, { isLoading: isCreating }] =
     useCreateNewGroupMutation();
   const [formData, setFormData] = useState<formProps>({
@@ -32,7 +33,7 @@ const NewGroupTab = ({ users }: NewChatProps) => {
     try {
       await createNewGroup(formData).unwrap();
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   };
 
@@ -45,6 +46,8 @@ const NewGroupTab = ({ users }: NewChatProps) => {
           <div className="bg-[#202c33] px-4 py-4 border-b border-wa-search-input-dark">
             <h2 className="text-xl font-semibold text-white">New Group</h2>
           </div>
+
+
           <div className="bg-wa-bg-dark p-3 border-b border-wa-search-input-dark">
             <input
               type="text"
@@ -79,7 +82,7 @@ const NewGroupTab = ({ users }: NewChatProps) => {
                       };
                     });
 
-                    console.log(formData, "formdataa");
+                    logger.log(formData, "formdataa");
                   }}
                   selectedUser={formData.members.includes(user.id)}
                   key={user.id}
