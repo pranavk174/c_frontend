@@ -6,24 +6,19 @@ export const storyApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
     createStory: builder.mutation({
       query: ({ text_data, content, message_ids = [] }) => ({
-        url: "",
+        url: "/story/crud",
         method: "POST",
         body: {
-          query: createStoryMutation,
-          variables: {
-            input: {
-              text_data,
-              content,
-              message_ids,
-            },
-          },
+          text_data,
+          content,
+          message_ids,
         },
       }),
       invalidatesTags: ["story"],
     }),
     getStories: builder.query({
       query: () => ({
-        url: "/story",
+        url: "/story/crud",
         method: "GET",
       }),
       providesTags: ["story"],
@@ -45,33 +40,27 @@ export const storyApi = BaseApi.injectEndpoints({
 
     replyToStory: builder.mutation({
       query: ({ id, content }) => ({
-        url: "",
+        url: "/story/reply",
         method: "POST",
         body: {
-          query:
-            replySToryMutation,
-          variables: {
-            id,
-            content,
-          },
-        },
+
+          id,
+          content,
+        }
       }),
+      invalidatesTags: ["story"],
     }),
 
     likeStory: builder.mutation({
       query: ({ id, like, reaction_id = null }) => ({
-        url: "",
+        url: "/story/like",
         method: "POST",
         body: {
-          query:
-            likeStoryMutation,
-          variables: {
-            input: {
-              id,
-              reaction_id,
-              like,
-            },
-          },
+          id,
+          reaction_id,
+          like,
+
+
         },
       }),
       invalidatesTags: ["story"],

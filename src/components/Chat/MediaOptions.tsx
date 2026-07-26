@@ -1,6 +1,12 @@
 "use client";
 
-import React, { Dispatch, RefObject, SetStateAction, useRef, useState } from "react";
+import React, {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useRef,
+  useState,
+} from "react";
 import {
   Paperclip,
   Image as Pic,
@@ -11,29 +17,25 @@ import {
   User,
 } from "lucide-react";
 import Uploader from "../Uploader/Uploader";
-import { Message, modalValue, valueProps } from "@/lib/dummy";
+import { mediaUploads, Message, modalValue, valueProps } from "@/lib/dummy";
 import Modal from "../HOComponents/Modal";
 import MediaPreviewContent from "../ModalChilds/MediaPreviewContent";
 
-interface mediaOptionsProps {
+interface mediaOptionsProps extends mediaUploads {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  // setMessages: Dispatch<SetStateAction<Message[]>>
-  startUpload: () => Promise<void>;
-  cancelUpload: () => Promise<"success" | undefined>;
-  uploadChunks: (id: string) => Promise<void>;
+
   pausedRef: React.RefObject<boolean>;
-  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+
   progress: number;
-  file: File | null;
+
   uploadId: string;
   messages: Message[];
-  inputRef: RefObject<HTMLInputElement | null>
+  inputRef: RefObject<HTMLInputElement | null>;
   setInputText: Dispatch<SetStateAction<string>>;
 }
 import { useToast } from "../Utility/Toast";
 import { logger } from "@/lib/utils";
-
 
 const MediaOptions = ({
   setInputText,
@@ -44,7 +46,6 @@ const MediaOptions = ({
   setFile,
   startUpload,
   setOpen,
-
 }: mediaOptionsProps) => {
   const [show, setShow] = useState<valueProps>(modalValue);
   const imageRef = useRef<HTMLInputElement>(null);
@@ -60,7 +61,6 @@ const MediaOptions = ({
         ref={imageRef}
         type="file"
         onChange={(e) => {
-
           if (e.target.files?.[0] && e.target.files?.[0].size > 10485760) {
             showToast("File Size Cant be Greater then 10MB", "error");
 

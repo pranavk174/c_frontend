@@ -30,11 +30,11 @@ import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
 import WhatsAppNotificationUI from "./Notifications/Notification";
-import { useGetNotificationsQuery } from "@/redux/Apis/Notification";
+import { NotificationApi, useGetNotificationsQuery } from "@/redux/Apis/Notification";
 import { useToast } from "./Utility/Toast";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { addUser } from "@/redux/slices/User";
-import { NEW_MESSAGE_ALERT } from "@/lib/events";
+import { NEW_MESSAGE_ALERT, SEEN_NOTIFICATION } from "@/lib/events";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
@@ -123,6 +123,15 @@ export default function Sidebar() {
           }),
         );
       },
+      [SEEN_NOTIFICATION]: (data: any) => {
+
+        dispatch(NotificationApi.util.updateQueryData("getNotifications", null, (draft) => {
+          draft.data.getNotification.data.items = [];
+          // if (notification) {
+          //   notification.isSeen = data.isSeen
+          // }
+        }))
+      }
     }),
     [dispatch],
   );
@@ -156,7 +165,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`w-full pl-2 gap-1 py-2  relative min-w-22.5 ${!expanded ? "max-w-[12%] lg:max-w-[5.5%]" : "max-w-[70%] md:max-w-[25%]"}  transition-all duration-400   flex bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark`}
+      className={`w-full pl-2 gap-1 py-2    relative min-w-22.5 ${!expanded ? "max-w-[12%] lg:max-w-[5.5%]" : "max-w-[70%] md:max-w-[25%]"}  transition-all duration-400   flex bg-wa-panel dark:bg-wa-panel-dark border-r border-wa-divider dark:border-wa-divider-dark`}
     >
       {/* Sidebar Header */}
 
@@ -249,7 +258,7 @@ export default function Sidebar() {
       {/* Search Bar */}
       {/* {current === "chats" && ( */}
       <div
-        className={`transition-all relative rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? "z-1 md:z-0" : ""}`}
+        className={`transition-all overflow-hidden relative rounded-lg  bg-wa-sidebar-menu p-2 w-full duration-400 rleative ${expanded ? "z-1 md:z-0" : ""}`}
       >
         <div className="p-2 rounded-lg shrink-0 bg-green-400 dark:bg-wa-panel-dark border-b border-wa-divider dark:border-wa-divider-dark flex items-center space-x-2">
           <div className="flex-1 flex items-center bg-wa-search dark:bg-wa-search-dark rounded-lg px-4 py-2">

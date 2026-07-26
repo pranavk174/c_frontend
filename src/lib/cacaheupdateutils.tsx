@@ -138,7 +138,10 @@ export const refetchChat = (
         }
 
         // add new
-        draft.data.getChatById.data.items.push(...data);
+        draft.data.getChatById.data.items = [
+          ...draft.data.getChatById.data.items,
+          ...data,
+        ];
 
         const unseenNewMessages = draft.data.getChatById.data.items
           .filter(

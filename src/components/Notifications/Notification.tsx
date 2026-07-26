@@ -1,10 +1,12 @@
-import { Notification } from "@/lib/dummy";
+import { Notification, socketResponse } from "@/lib/dummy";
 
 import { useGetNotificationsQuery, useSeenNotificationMutation } from "@/redux/Apis/Notification";
 import { div } from "framer-motion/client";
 import Image from "next/image";
 import { logger } from "@/lib/utils";
 import { useEffect } from "react";
+import { useSocket } from "@/layouts/SocketWrapper";
+import { SEEN_NOTIFICATION } from "@/lib/events";
 
 
 const notifications = [
@@ -57,18 +59,30 @@ const notifications = [
 
 export default function NotificationUI({ notifications }: { notifications: Notification }) {
 
+    const { notificationSocket } = useSocket()
 
     const [seenNotification] = useSeenNotificationMutation()
 
 
 
     useEffect(() => {
-        if (Array.isArray(notifications) && notifications.length > 0) {
-            const notification_ids = notifications.map((item: Notification) => item.notification_id)
-            try {
-                seenNotification({ notification_ids }).unwrap()
-            } catch (error) {
-                console.log(error)
+
+        return () => {
+
+
+
+            if (Array.isArray(notifications) && notifications.length > 0) {
+                const notification_ids = notifications.map((item: Notification) => item.notification_id)
+                try {
+                    logger.debug("unmounted")
+                    // seenNotification({ notification_ids }).unwrap()
+                    notificationSocket.emit(SEEN_NOTIFICATION, { notification_ids }, (response: socketResponse) => {
+
+                        console.log("notifications een successfully....", response)
+                    })
+                } catch (error) {
+                    console.log(error)
+                }
             }
         }
     }

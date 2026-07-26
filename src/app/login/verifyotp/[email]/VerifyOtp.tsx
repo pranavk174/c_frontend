@@ -128,9 +128,12 @@ export default function VerifyOtp({ email }: { email: string }) {
         <button
           disabled={isLoading}
           onClick={resendOtp}
-          className="text-white bg-transparent cursor-pointer hover:text-gray-200 font-semibold text-center w-full mt-4 "
+          className=" bg-transparent cursor-pointer text-gray-200  dark:hover:text-gray-500 font-semibold text-center w-full mt-4 "
         >
-          Resend OTP
+
+
+
+          {isLoading ? "Resending...." : "Resend OTP"}
         </button>
       </div>
     </div>

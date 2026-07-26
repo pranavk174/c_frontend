@@ -13,7 +13,11 @@ import dynamic from "next/dynamic";
 
 import { useSelector } from "react-redux";
 // import { chatApi } from "../../../../redux/Apis/User";
-import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
+import {
+  chatApi,
+  useGetMembersQuery,
+  useSendMessageMutation,
+} from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 
@@ -72,7 +76,6 @@ import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
 
 import { logger } from "@/lib/utils";
 
-
 interface mediaProps {
   file_name: string;
   url: string;
@@ -90,7 +93,7 @@ const ChatPage = ({ id }: { id: number }) => {
   const controllerRef = useRef<AbortController | null>(null);
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
-
+  const [sendMessage] = useSendMessageMutation();
   const CHUNK_SIZE = 1024 * 1024;
   const pausedRef = useRef(false);
 
@@ -104,7 +107,6 @@ const ChatPage = ({ id }: { id: number }) => {
   });
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
-
 
   const { chatSocket: socket, notificationSocket } = useSocket();
 
@@ -232,6 +234,7 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
+  logger.debug(file, "file data media");
   const { members, memberIds } = useGetMembersQuery(
     { chat_id: id },
     {
@@ -287,23 +290,23 @@ const ChatPage = ({ id }: { id: number }) => {
     async (e: React.FormEvent | mediaProps) => {
       const input = inputRef.current;
 
-      if (!input || !socket) return;
+      if (!socket) return;
 
-      const content = input.value.trim();
+      // const content = input.value.trim();
 
-      if (!content && "preventDefault" in e) return;
+      // if (!content && "preventDefault" in e) return;
 
       if ("preventDefault" in e) {
         logger.log("gotr issueeee");
         e.preventDefault();
-      } else if ((!e.url && !inputRef.current && !input.value) || !socket) {
+      } else if (!e.url || !socket) {
         return;
       }
 
-      logger.log(chatDetails, "input text rfwaaaal");
+      // logger.log(chatDetails, "input text rfwaaaal");
       const newMessage = {
         chat_ids: [id],
-        content: input.value,
+        content: inputRef.current ? inputRef.current.value : "",
         media: "preventDefault" in e ? [] : [e],
         reciever_ids: chat_type === "group" ? memberIds : [chatDetails.user_id],
         message_ids: [replyMessage?.id],
@@ -316,14 +319,21 @@ const ChatPage = ({ id }: { id: number }) => {
           chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
-            addMessage(input.value, user_id ?? 2, replyMessage),
+            addMessage(
+              inputRef.current ? inputRef.current.value : "",
+              user_id ?? 2,
+              replyMessage,
+            ),
           ),
         );
         chatPatchResult = dispatch(
           chatApi.util.updateQueryData(
             "getAllChats",
             {},
-            updateAllChatcache(id, input.value),
+            updateAllChatcache(
+              id,
+              inputRef.current ? inputRef.current.value : "",
+            ),
           ),
         );
       }
@@ -361,27 +371,27 @@ const ChatPage = ({ id }: { id: number }) => {
           // await replyToMessage(newMessage).unwrap();
           setReplyMessage(null);
         } else {
-          socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
-            // agar backend fail
-            if (!response.success) {
-              // rollback
-              patchResult?.undo();
-              chatPatchResult?.undo();
-              logger.log(response, "callback response");
-            }
-            if (response.data) {
-              dispatch(
-                chatApi.util.updateQueryData(
-                  "getSingleChat",
-                  { chat_ids: [id] },
-                  updateMessage(response?.data?.message?.id),
-                ),
-              );
-            }
-            logger.log(response, "callback response outside");
-          });
+          // socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
+          //   // agar backend fail
+          //   if (!response.success) {
+          //     // rollback
+          //     patchResult?.undo();
+          //     chatPatchResult?.undo();
+          //     logger.log(response, "callback response");
+          //   }
+          //   if (response.data) {
+          //     dispatch(
+          //       chatApi.util.updateQueryData(
+          //         "getSingleChat",
+          //         { chat_ids: [id] },
+          //         updateMessage(response?.data?.message?.id),
+          //       ),
+          //     );
+          //   }
+          //   logger.log(response, "callback response outside");
+          // });
           logger.log("messege sent...");
-          // await sendMessage(newMessage);
+          await sendMessage(newMessage).unwrap();
         }
 
         scrollToBottom();
@@ -394,8 +404,7 @@ const ChatPage = ({ id }: { id: number }) => {
       // setMessages([...messages, newMessage]);
       setInputText("");
       // inputRef.current = null
-      // if (inputRef.current) {
-      input.value = "";
+      if (input) input.value = "";
       // inputRef.current = null
       // }
     },
@@ -507,41 +516,48 @@ const ChatPage = ({ id }: { id: number }) => {
     [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage, dispatch],
   );
   const startUpload = useCallback(async () => {
-    if (!file || currentChunk > 0 || !user_id) return;
+    // debugger;
+    if (!file || currentChunk > 0 || !user_id) {
+      logger.debug("data is bklank", file, currentChunk);
+      showToast("data file is blank", "warning");
+      return;
+    }
+
+    let pathResult;
 
     const url = URL.createObjectURL(file);
     if (inputRef.current) {
-      const pathResult = dispatch(
+      pathResult = dispatch(
         chatApi.util.updateQueryData(
           "getSingleChat",
           { chat_ids: [id] },
           addMessage(inputRef.current.value, user_id, replyMessage, url),
         ),
       );
+    }
 
-      // logger.log(messages, "messageeeeeeee", inputText)
+    // logger.log(messages, "messageeeeeeee", inputText)
 
-      try {
-        controllerRef.current = new AbortController();
-        const upload = await fetch(
-          `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
-          {
-            method: "POST",
-            headers: {
-              "Content-type": "application/json",
-            },
+    try {
+      controllerRef.current = new AbortController();
+      const upload = await fetch(
+        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
           },
-        );
+        },
+      );
 
-        const data = await upload.json();
-        logger.log(data, "data....");
-        const uid = data.uploadId;
-        setUploadId(uid);
+      const data = await upload.json();
+      logger.log(data, "data....");
+      const uid = data.uploadId;
+      setUploadId(uid);
 
-        uploadChunks(uid);
-      } catch (error) {
-        pathResult.undo();
-      }
+      uploadChunks(uid);
+    } catch (error) {
+      pathResult?.undo();
     }
   }, [
     currentChunk,
@@ -550,16 +566,11 @@ const ChatPage = ({ id }: { id: number }) => {
     // setMessages,
     replyMessage,
     id,
+    showToast,
     user_id,
     uploadChunks,
     // inputText,
   ]);
-
-  useEffect(() => {
-    socket.onAny((event, ...args) => {
-      logger.log("ANY EVENT:", event, args);
-    });
-  }, [socket]);
 
   const cancelUpload = useCallback(async () => {
     controllerRef.current?.abort();

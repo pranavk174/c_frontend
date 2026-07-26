@@ -7,6 +7,7 @@ import {
   FetchArgs,
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
+import { showGlobalToast } from "../toastservices";
 
 export interface refreshToken {
   data: {
@@ -54,6 +55,22 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 
+
+const controllers = new Map<string, AbortController>();
+
+function getRequest(args: string | FetchArgs) {
+  const url = typeof args === "string" ? args : args.url!;
+
+  controllers?.get(url)?.abort();
+
+  const controller = new AbortController();
+  controllers?.set(url, controller);
+
+  return {
+    ...(typeof args === "string" ? { url } : args),
+    signal: controller.signal,
+  };
+}
 type BaseQueryResult = ReturnType<typeof baseQuery>;
 let refreshPromise: Promise<Awaited<BaseQueryResult>> | null = null;
 const baseQueryWithReauth: BaseQueryFn<
@@ -61,62 +78,75 @@ const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions);
+
+
+  let result = await baseQuery(getRequest(args), api, extraOptions);
 
   const data = result?.data as errors | null;
   logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
 
+
   // Access token expired
 
-  if (data?.errors?.[0].message === "invalid signature") {
-    if (!refreshPromise) {
-      refreshPromise = Promise.resolve(
-        baseQuery(
-          {
-            url: "/auth/logout",
-            method: "POST",
-          },
-          api,
-          extraOptions,
-        ),
-      ).finally(() => {
-        refreshPromise = null;
+  if (data?.errors) {
+    showGlobalToast(data?.errors?.[0].message ?? "", "error");
+    if (data?.errors?.[0].message === "invalid signature") {
+      if (!refreshPromise) {
+        refreshPromise = Promise.resolve(
+          baseQuery(
+            {
+              url: "/auth/logout",
+              method: "POST",
+            },
+            api,
+            extraOptions,
+          ),
+        ).finally(() => {
+          refreshPromise = null;
+          localStorage.removeItem("persist:root");
+          localStorage.removeItem("device_id");
+          localStorage.removeItem("user");
+          localStorage.removeItem("persist:root");
+          window.location.href = "/login";
+          return;
+        });
+      }
+    }
+
+    if (
+      data?.errors?.[0]?.extensions?.status === 401 &&
+      data?.errors?.[0].message === "jwt expired"
+    ) {
+      if (!refreshPromise) {
+        refreshPromise = Promise.resolve(
+          baseQuery(
+            {
+              url: "/auth/refresh-token",
+              method: "POST",
+            },
+            api,
+            extraOptions,
+          ),
+        ).finally(() => {
+          refreshPromise = null;
+        });
+      }
+
+      const refreshResult = await refreshPromise;
+
+      if (refreshResult.data) {
+
+
+        result = await baseQuery(getRequest(args), api, extraOptions);
+
+      } else {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
         localStorage.removeItem("persist:root");
         localStorage.removeItem("device_id");
         localStorage.removeItem("user");
         localStorage.removeItem("persist:root");
-        window.location.href = "/login";
-        return;
-      });
-    }
-  }
-
-  if (
-    data?.errors?.[0]?.extensions?.status === 401 &&
-    data?.errors?.[0].message === "jwt expired"
-  ) {
-    if (!refreshPromise) {
-      refreshPromise = Promise.resolve(
-        baseQuery(
-          {
-            url: "/auth/refresh-token",
-            method: "POST",
-          },
-          api,
-          extraOptions,
-        ),
-      ).finally(() => {
-        refreshPromise = null;
-      });
-    }
-
-    const refreshResult = await refreshPromise;
-
-    if (refreshResult.data) {
-      result = await baseQuery(args, api, extraOptions);
-    } else {
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      }
     }
   }
 

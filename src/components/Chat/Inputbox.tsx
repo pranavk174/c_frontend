@@ -1,6 +1,6 @@
 "use client";
 
-import { Chat, Message, MessageItem } from "@/lib/dummy";
+import { Chat, mediaUploads, Message, MessageItem } from "@/lib/dummy";
 
 import { Mic, Paperclip, Send, Smile } from "lucide-react";
 import React, {
@@ -17,9 +17,9 @@ import MediaOptions from "./MediaOptions";
 import { STOP_TYPING, START_TYPING } from "@/lib/events";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { logger } from "@/lib/utils";
+import VoiceRecorder from "./VoicerRecorder";
 
-
-interface inputBoxProps {
+interface inputBoxProps extends mediaUploads {
   chatDetails: Chat;
   replyMessage: Message | null;
   setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
@@ -27,15 +27,12 @@ interface inputBoxProps {
   scrollToBottom: () => void;
   messages?: Message[];
   chat_id: number;
-  startUpload: () => Promise<void>;
-  cancelUpload: () => Promise<"success" | undefined>;
-  uploadChunks: (id: string) => Promise<void>;
   pausedRef: React.RefObject<boolean>;
-  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+
   progress: number;
   uploadId: string;
   reciever_ids: number[];
-  file: File | null;
+
   // inputText: string;
   setInputText: Dispatch<SetStateAction<string>>;
   inputRef: RefObject<HTMLInputElement | null>;
@@ -65,14 +62,22 @@ const Inputbox = memo(
     chat_id,
   }: inputBoxProps) => {
     // const [inputText, setInputText] = useState("");
+    const [mic, setMic] = useState<boolean>(false);
     const [open, setOpen] = useState(false);
     const { chatSocket: socket, notificationSocket } = useSocket();
 
     const typingRef = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const handleTyping = () => {
-      // Pehli baar typing start
+    const handleTyping = (e: React.FormEvent<HTMLInputElement>) => {
+      // Pehli baar typing start-
+      logger.log("typing", e?.currentTarget.value);
+
+      if (e.currentTarget.value === "") {
+        setMic(true);
+      } else {
+        setMic(false);
+      }
       if (!typingRef.current) {
         typingRef.current = true;
         socket.emit(START_TYPING, { chat_id, reciever_ids });
@@ -88,7 +93,6 @@ const Inputbox = memo(
         socket.emit(STOP_TYPING, { chat_id, reciever_ids });
       }, 1500);
     };
-
 
     return (
       <footer className=" py-1 h-fit relative  bg-wa-header dark:bg-wa-header-dark flex items-center px-4 shrink-0 z-10">
@@ -156,25 +160,16 @@ const Inputbox = memo(
           )}
 
           {/* Input */}
-          <div className="flex items-center px-2 py-2">
-            {/* <input
-              type="text"
-              ref={inputRef}
-              // value={inputText}
-              // onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type a message"
-              className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-            /> */}
-
-            <input
-              type="text"
-              ref={inputRef}
-              onInput={handleTyping}
-              placeholder="Type a message"
-              className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-            />
-            <div className="ml-2 shrink-0">
-              {inputRef.current ? (
+          {mic ? (
+            <div className="flex items-center px-2 py-2">
+              <input
+                type="text"
+                ref={inputRef}
+                onInput={handleTyping}
+                placeholder="Type a message"
+                className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+              />
+              <div className="ml-2 shrink-0">
                 <button
                   disabled={!inputRef.current}
                   onClick={handleSendMessage}
@@ -182,13 +177,17 @@ const Inputbox = memo(
                 >
                   <Send className="w-5 h-5" />
                 </button>
-              ) : (
-                <button className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition">
-                  <Mic className="w-5 h-5" />
-                </button>
-              )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <VoiceRecorder
+              inputRef={inputRef}
+              setFile={setFile}
+              startUpload={startUpload}
+              uploadChunks={uploadChunks}
+              cancelUpload={cancelUpload}
+            />
+          )}
         </form>
       </footer>
     );

@@ -7,7 +7,7 @@ import { logger } from "@/lib/utils";
 const Authlayout = async ({ children }: { children: React.ReactNode }) => {
   const token = (await cookies()).get("accessToken");
   const theme = (await cookies()).get("theme")?.value;
-  logger.log(token, "token.....", theme);
+  // logger.log(token, "token.....", theme);
 
   if (!token) {
     redirect("/login");

@@ -2,14 +2,10 @@ import { Message } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
 import { logger } from "@/lib/utils";
 
-
 import {
-
   editMessageMutation,
-
   replyMessageMutation,
   sendMessageMutation,
-
 } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const chatApi = BaseApi.injectEndpoints({
@@ -36,12 +32,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // logger.log(result, "result.......");
         return result
           ? [
-            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
+              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -145,19 +141,21 @@ export const chatApi = BaseApi.injectEndpoints({
     }),
 
     sendMessage: builder.mutation({
-      query: ({ content, chat_ids, reciever_ids, media }) => ({
-        url: "",
+      query: ({
+        content,
+        chat_ids,
+        reciever_ids,
+        media,
+        message_ids = [],
+      }) => ({
+        url: "/chat/message",
         method: "POST",
         body: {
-          query: sendMessageMutation,
-          variables: {
-            input: {
-              content,
-              chat_ids,
-              reciever_ids,
-              media,
-            },
-          },
+          chat_ids,
+          content,
+          media,
+          reciever_ids,
+          message_ids,
         },
       }),
       invalidatesTags: ["chats"],
@@ -200,11 +198,9 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "/chat/single-chat",
         method: "DELETE",
         body: {
-
           delete_type,
           message_ids,
           chat_ids,
-
         },
       }),
       invalidatesTags: [{ type: "chats", id: "LIST" }],
@@ -212,12 +208,15 @@ export const chatApi = BaseApi.injectEndpoints({
 
     forwardMessage: builder.mutation({
       query: ({ reciever_ids, chat_ids, message_ids }) => ({
-        url: '/chat/all-chats',
-        method: 'POST',
+        url: "/chat/all-chats",
+        method: "POST",
         body: {
-          reciever_ids, chat_ids, message_ids
-        }
-      }), invalidatesTags: ['chats'],
+          reciever_ids,
+          chat_ids,
+          message_ids,
+        },
+      }),
+      invalidatesTags: ["chats"],
     }),
     setWallPaper: builder.mutation({
       query: ({ url }) => ({

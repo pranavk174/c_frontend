@@ -29,7 +29,7 @@ export interface selectedProp {
   sender_id: number;
 }
 
-export interface chatListProps {
+export interface chatListProps extends mediaUploads {
   menu: boolean;
 
   setMenu: Dispatch<SetStateAction<boolean>>;
@@ -52,13 +52,10 @@ export interface chatListProps {
   selectedMessages: number[];
   user_id: number | null;
 
-  startUpload: () => Promise<void>;
-  cancelUpload: () => Promise<"success" | undefined>;
-  uploadChunks: (id: string) => Promise<void>;
   // setMessages?: Dispatch<SetStateAction<Message[]>>;
   messages: Message[];
   pausedRef: React.RefObject<boolean>;
-  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+
   progress: number;
   uploadId: string;
 }
@@ -291,4 +288,13 @@ export interface socketCallback {
   message: string;
   status: number;
   success: boolean;
+}
+
+export interface mediaUploads {
+  startUpload: () => Promise<void>;
+  cancelUpload: () => Promise<"success" | undefined>;
+  uploadChunks: (id: string) => Promise<void>;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  file?: File | null;
+
 }
