@@ -60,22 +60,37 @@ export const boilerPlate = async (
       }),
     });
 
-    const res = NextResponse.json(response.data, {
-      status: response.status,
+
+    const key = Object.keys(response.data.data)[0];
+
+    // logger.debug(key, response.data[key]);
+    logger.debug("reposne in json...", response.data, key, response.data.data[key].status)
+
+
+    const res = NextResponse.json({
+      success: response.data.data[key].success,
+      message: response.data.data[key].message,
+      data: response.data.data,
+    }, {
+      status: response.data.data[key].status,
+
     });
+
+
 
     return res;
   } catch (error) {
     const err = error as AxiosError;
 
-    logger.log(err.response?.data, { depth: null });
-    logger.log(err);
-    logger.log(error);
-    logger.log(err.response);
+    logger.dir(err.response?.data, "==========");
+    // logger.log(err.response?.data, { depth: null });
+    // logger.log(err);
+    // logger.log(error);
+    // logger.log(err.response);
     return NextResponse.json(
       {
         success: false,
-        message: "Something went wrong",
+        message: "Something went wronsssssg",
         error: (err.response?.data, { depth: null }),
       },
       {
@@ -99,24 +114,51 @@ export const getBoilerplate = async (
       }),
     });
 
-    const res = NextResponse.json(response.data, {
-      status: response.status,
-    });
 
-    return res;
+    if (response.data.errors) {
+
+      return NextResponse.json({
+        success: response.data.errors[0].success,
+        message: response.data.errors[0].message,
+        errors: response.data.errors,
+
+      }, {
+        status: response.data.errors[0].status,
+      })
+
+    }
+
+    else {
+      logger.log(response.data, "logger data in response")
+      const key = Object.keys(response.data.data)[0];
+
+      const res = NextResponse.json({
+        success: response.data.data[key].success,
+        message: response.data.data[key].message,
+        data: response.data.data,
+
+      }, {
+        status: response.data.data[key].status,
+
+      });
+
+      logger.debug(res, "response in json... in get", response.data, key, response.data.data[key].status);
+
+      return res;
+    }
   } catch (error) {
     const err = error as AxiosError;
 
-    // logger.log(err.response?.data, { depth: null });
+    logger.debug(err.response, "==========", err);
     // logger.log(err);
-    logger.log(err.response?.request.res.statusMessage);
-    logger.log(err.response?.request.res, { depth: null }, "===============");
+    // logger.log(err.response?.request.res.statusMessage);
+    // logger.log(err.response?.request.res, { depth: null }, "===============");
     return NextResponse.json(
       {
         success: false,
 
         message:
-          err.response?.request.res.statusMessage ?? "Something went wrong",
+          err.response?.request.res.statusMessage ?? "Something went wrossssssng",
         error: err.response?.data,
       },
       {
