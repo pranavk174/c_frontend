@@ -79,11 +79,11 @@ const baseQueryWithReauth: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
 
-
-  let result = await baseQuery(getRequest(args), api, extraOptions);
+  let result = null
+  result = await baseQuery(getRequest(args), api, extraOptions);
 
   const data = result?.data as errors | null;
-  logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
+  // logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
 
 
   // Access token expired
@@ -136,6 +136,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
       if (refreshResult.data) {
 
+        result = null
 
         result = await baseQuery(getRequest(args), api, extraOptions);
 
@@ -149,6 +150,11 @@ const baseQueryWithReauth: BaseQueryFn<
       }
     }
   }
+
+
+  logger.debug(result, data, "data in response ")
+
+
 
   return result;
 };
