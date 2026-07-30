@@ -26,7 +26,7 @@ export default function VerifyOtp({ email }: { email: string }) {
 
         const { device_id, ip_address, location, device_name } = data;
 
-        logger.log(data, "dataaaaa");
+        // logger.log(data, "dataaaaa");
 
         const verified = await verifyOtp({
           otp,

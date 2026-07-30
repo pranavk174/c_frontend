@@ -4,7 +4,6 @@ import { backendRequests } from "../../utils";
 import { AxiosError } from "axios";
 import { logger } from "@/lib/utils";
 
-
 export const POST = async (req: NextRequest) => {
   const { email, otp, device_id, ip_address, location, device_name } =
     await req.json();
@@ -28,9 +27,18 @@ export const POST = async (req: NextRequest) => {
 
     logger.log(response, "response in verifuy output");
 
-    const res = NextResponse.json(response.data, {
-      status: response.status,
-    });
+    const key = Object.keys(response.data.data)[0];
+
+    const res = NextResponse.json(
+      {
+        success: response.data.data[key].success,
+        message: response.data.data[key].message,
+        data: response.data.data,
+      },
+      {
+        status: response.data.data[key].status,
+      },
+    );
 
     // Backend se aayi Set-Cookie
 

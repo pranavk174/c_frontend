@@ -38,6 +38,11 @@ export const logger = {
       console.debug('[DEBUG]', ...args);
     }
   },
+  dir: (...args: unknown[]) => {
+    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
+      console.dir('[DEBUG]', ...args);
+    }
+  },
   log: (...args: unknown[]) => {
     if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
       console.log('[log]', ...args);

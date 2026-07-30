@@ -22,9 +22,13 @@ export default function LoginPage() {
 
       try {
         const data = await login({ email }).unwrap();
+        logger.log(data.errors, "data in login...");
+        if (!data.errors) {
+          router.push(`/login/verifyotp/${encodeURIComponent(email)}`);
+        }
         // if (data.success === true) {
-        setStep("otp");
-        router.push(`/login/verifyotp/${encodeURIComponent(email)}`);
+        // setStep("otp");
+
         // }
       } catch (error) {
         logger.log(error, "error dataaa");

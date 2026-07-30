@@ -31,30 +31,28 @@ export interface GraphQLError {
   path: string[];
   extensions?: {
     status: number;
-    code: string
+    code: string;
   };
 }
 
 interface errors {
   errors?: GraphQLError[];
+  message: string;
+  success?: boolean;
 }
 export interface GraphQLResponse<T> {
   data: refreshToken | errors | T | null;
 }
-
-
 
 const api: AxiosInstance = axios.create({
   baseURL: "/api",
   withCredentials: true,
 });
 
-
 const baseQuery = fetchBaseQuery({
   baseUrl: "/api",
   credentials: "include",
 });
-
 
 const controllers = new Map<string, AbortController>();
 
@@ -78,13 +76,17 @@ const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-
-  let result = null
+  let result = null;
   result = await baseQuery(getRequest(args), api, extraOptions);
+
+  if (result.error) {
+    const errorData = result?.error?.data as errors | null;
+    showGlobalToast(errorData?.message ?? "", "error");
+    logger.debug(result?.error, "result dataaa");
+  }
 
   const data = result?.data as errors | null;
   // logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
-
 
   // Access token expired
 
@@ -135,11 +137,9 @@ const baseQueryWithReauth: BaseQueryFn<
       const refreshResult = await refreshPromise;
 
       if (refreshResult.data) {
-
-        result = null
+        result = null;
 
         result = await baseQuery(getRequest(args), api, extraOptions);
-
       } else {
         localStorage.removeItem("user");
         window.location.href = "/login";
@@ -149,12 +149,15 @@ const baseQueryWithReauth: BaseQueryFn<
         localStorage.removeItem("persist:root");
       }
     }
+    // return null;
+    // throw new Error(data?.errors?.[0].message)
   }
 
+  if (data?.success) {
+    showGlobalToast(data?.message ?? "", "success");
+  }
 
-  logger.debug(result, data, "data in response ")
-
-
+  logger.debug(result, data, "data in response ");
 
   return result;
 };

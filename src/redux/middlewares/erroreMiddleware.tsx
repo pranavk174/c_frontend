@@ -45,7 +45,7 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
       };
     };
 
-    logger.log(payload, "payload dataaaa");
+    // logger.log(payload, "payload dataaaa");
 
     // const endpointName = (action.meta)?.arg?.endpointName;
 
