@@ -290,7 +290,7 @@ const ChatPage = ({ id }: { id: number }) => {
     async (e: React.FormEvent | mediaProps) => {
       const input = inputRef.current;
 
-      if (!socket) return;
+      if (!socket || !input) return;
 
       // const content = input.value.trim();
 
@@ -306,7 +306,7 @@ const ChatPage = ({ id }: { id: number }) => {
       // logger.log(chatDetails, "input text rfwaaaal");
       const newMessage = {
         chat_ids: [id],
-        content: inputRef.current ? inputRef.current.value : "",
+        content: input.value,
         media: "preventDefault" in e ? [] : [e],
         reciever_ids: chat_type === "group" ? memberIds : [chatDetails.user_id],
         message_ids: [replyMessage?.id],
@@ -319,21 +319,14 @@ const ChatPage = ({ id }: { id: number }) => {
           chatApi.util.updateQueryData(
             "getSingleChat",
             { chat_ids: [id] },
-            addMessage(
-              inputRef.current ? inputRef.current.value : "",
-              user_id ?? 2,
-              replyMessage,
-            ),
+            addMessage(input.value, user_id ?? 2, replyMessage),
           ),
         );
         chatPatchResult = dispatch(
           chatApi.util.updateQueryData(
             "getAllChats",
             {},
-            updateAllChatcache(
-              id,
-              inputRef.current ? inputRef.current.value : "",
-            ),
+            updateAllChatcache(id, input.value),
           ),
         );
       }
@@ -371,27 +364,27 @@ const ChatPage = ({ id }: { id: number }) => {
           // await replyToMessage(newMessage).unwrap();
           setReplyMessage(null);
         } else {
-          // socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
-          //   // agar backend fail
-          //   if (!response.success) {
-          //     // rollback
-          //     patchResult?.undo();
-          //     chatPatchResult?.undo();
-          //     logger.log(response, "callback response");
-          //   }
-          //   if (response.data) {
-          //     dispatch(
-          //       chatApi.util.updateQueryData(
-          //         "getSingleChat",
-          //         { chat_ids: [id] },
-          //         updateMessage(response?.data?.message?.id),
-          //       ),
-          //     );
-          //   }
-          //   logger.log(response, "callback response outside");
-          // });
+          socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
+            // agar backend fail
+            if (!response.success) {
+              // rollback
+              patchResult?.undo();
+              chatPatchResult?.undo();
+              logger.log(response, "callback response");
+            }
+            if (response.data) {
+              dispatch(
+                chatApi.util.updateQueryData(
+                  "getSingleChat",
+                  { chat_ids: [id] },
+                  updateMessage(response?.data?.message?.id),
+                ),
+              );
+            }
+            logger.log(response, "callback response outside");
+          });
           logger.log("messege sent...");
-          await sendMessage(newMessage).unwrap();
+          // await sendMessage(newMessage).unwrap();
         }
 
         scrollToBottom();

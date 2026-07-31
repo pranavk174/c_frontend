@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/Users";
 import { getDeviceInfo } from "@/lib/utils";
@@ -8,9 +8,11 @@ import { addUser } from "@/redux/slices/User";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logger } from "@/lib/utils";
+import { deviceConfig } from "@/lib/dummy";
 
 export default function VerifyOtp({ email }: { email: string }) {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
+  const [data, setData] = useState<deviceConfig | undefined>(undefined);
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const [otp, setOtp] = useState("");
 
@@ -18,11 +20,27 @@ export default function VerifyOtp({ email }: { email: string }) {
   const [verifyOtp, { isLoading, isSuccess: isverifySuccess }] =
     useVerifyOtpMutation();
   const router = useRouter();
+
+
+  useEffect(() => {
+    const getData = async () => {
+      const data = await getDeviceInfo();
+      if (data) {
+
+
+        setData(data)
+
+      }
+    }
+    getData()
+  }, [])
+
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length === 6) {
       try {
-        const data = await getDeviceInfo();
+
+        if (!data) return
 
         const { device_id, ip_address, location, device_name } = data;
 

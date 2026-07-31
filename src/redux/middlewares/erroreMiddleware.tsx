@@ -24,11 +24,11 @@ interface metaProps {
     condition: boolean;
   } & (
     | {
-        rejectedWithValue: true;
-      }
+      rejectedWithValue: true;
+    }
     | ({
-        rejectedWithValue: false;
-      } & {})
+      rejectedWithValue: false;
+    } & {})
   );
 }
 
@@ -49,8 +49,7 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
 
     // const endpointName = (action.meta)?.arg?.endpointName;
 
-    const message =
-      payload.message ?? payload.data?.message ?? "Something went wrong";
+
 
     if (payload.status === "FETCH_ERROR" || payload.data?.offline) {
       window.location.href = "/offline.html";

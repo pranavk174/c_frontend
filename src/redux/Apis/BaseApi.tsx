@@ -32,6 +32,7 @@ export interface GraphQLError {
   extensions?: {
     status: number;
     code: string;
+    error: string
   };
 }
 
@@ -91,6 +92,7 @@ const baseQueryWithReauth: BaseQueryFn<
   // Access token expired
 
   if (data?.errors) {
+    logger.debug(data?.errors?.[0].extensions?.error, "statuss")
     showGlobalToast(data?.errors?.[0].message ?? "", "error");
     if (data?.errors?.[0].message === "invalid signature") {
       if (!refreshPromise) {

@@ -160,26 +160,26 @@ const Inputbox = memo(
           )}
 
           {/* Input */}
-          {mic ? (
-            <div className="flex items-center px-2 py-2">
-              <input
-                type="text"
-                ref={inputRef}
-                onInput={handleTyping}
-                placeholder="Type a message"
-                className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-              />
-              <div className="ml-2 shrink-0">
-                <button
-                  disabled={!inputRef.current}
-                  onClick={handleSendMessage}
-                  className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
+          {/* {!mic ? ( */}
+          <div className="flex items-center px-2 py-2">
+            <input
+              type="text"
+              ref={inputRef}
+              onInput={handleTyping}
+              placeholder="Type a message"
+              className="w-full bg-wa-panel dark:bg-wa-search-input-dark border-none rounded-lg px-4 py-2 text-sm focus:outline-none dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            />
+            <div className="ml-2 shrink-0">
+              <button
+                disabled={!inputRef.current}
+                onClick={handleSendMessage}
+                className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
+              >
+                <Send className="w-5 h-5" />
+              </button>
             </div>
-          ) : (
+          </div>
+          {/* ) : (
             <VoiceRecorder
               inputRef={inputRef}
               setFile={setFile}
@@ -187,7 +187,7 @@ const Inputbox = memo(
               uploadChunks={uploadChunks}
               cancelUpload={cancelUpload}
             />
-          )}
+          )} */}
         </form>
       </footer>
     );

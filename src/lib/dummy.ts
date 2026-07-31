@@ -1,5 +1,19 @@
 import { Dispatch, RefObject, SetStateAction } from "react";
 
+
+export interface deviceConfig {
+  device_id: string;
+  ip_address: string;
+  location: {
+    city: string;
+    region: string;
+    country: string;
+    latitude: string;
+    longitude: string;
+  } | null;
+  device_name: string;
+}
+
 export type Chat = {
   // id: string;
   name: string;

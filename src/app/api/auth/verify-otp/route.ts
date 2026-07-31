@@ -25,7 +25,7 @@ export const POST = async (req: NextRequest) => {
       }),
     });
 
-    logger.log(response, "response in verifuy output");
+    logger.log(response.data, "response in verifuy output");
 
     const key = Object.keys(response.data.data)[0];
 
@@ -54,14 +54,17 @@ export const POST = async (req: NextRequest) => {
     return res;
   } catch (error) {
     const err = error as AxiosError;
-    logger.log(err.response?.data, { depth: null });
-    logger.log(err);
-    logger.log(error);
-    logger.log(err.response);
+    logger.log(err.response?.data, { depth: null }, err.response?.data.errors[0].message);
+    // logger.log(err);
+
+    // logger.log(error);
+    // logger.log(err.response);
     return NextResponse.json(
       {
         success: false,
         message: "Something went wrong",
+        error: err.response?.data.errors[0].message
+
       },
       {
         status: 500,

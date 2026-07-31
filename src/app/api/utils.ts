@@ -107,6 +107,7 @@ export const boilerPlate = async (
         success: false,
         message: "Something went wronsssssg",
         error: (err.response?.data, { depth: null }),
+        status: err.response?.request.res.statusCode,
       },
       {
         status: err.response?.request.res.statusCode,
@@ -180,6 +181,7 @@ export const getBoilerplate = async (
           err.response?.request.res.statusMessage ??
           "Something went wrossssssng",
         error: err.response?.data,
+        status: err.response?.request.res.statusCode,
       },
       {
         status: err.response?.request.res.statusCode,
