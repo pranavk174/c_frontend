@@ -3,7 +3,7 @@
 import { useToast } from "@/components/Utility/Toast";
 import { Notification } from "@/lib/dummy";
 import {
-  CONNECTION_ERROR,
+  CONNECTION_ERROR, 
   ERROR,
   NEW_NOTIFICATION,
   ONLINE_USERS,
