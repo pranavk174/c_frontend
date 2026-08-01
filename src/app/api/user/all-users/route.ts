@@ -1,7 +1,7 @@
 import { getAllUsersQuery } from "@/graphql/Modules/Users/User.queries";
-import { NextRequest, NextResponse } from "next/server";
-import { backendRequest, backendRequests, getBoilerplate } from "../../utils";
+import { NextRequest, } from "next/server";
+import { boilerPlate, } from "../../utils";
 
 export const GET = async (req: NextRequest) => {
- return getBoilerplate(req, getAllUsersQuery);
+    return boilerPlate(req, getAllUsersQuery);
 };

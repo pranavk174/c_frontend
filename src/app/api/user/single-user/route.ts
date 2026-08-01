@@ -1,36 +1,34 @@
 import { getUserQuery } from "@/graphql/Modules/Users/User.queries";
-import { NextRequest, NextResponse } from "next/server";
-import { boilerPlate, getBoilerplate } from "../../utils";
+import { NextRequest } from "next/server";
+import { boilerPlate } from "../../utils";
 import {
   updatePreference,
   updateUserMutation,
 } from "@/graphql/Modules/Users/User.mutation";
 
 export const GET = async (req: NextRequest) => {
-  return getBoilerplate(req, getUserQuery);
+  return boilerPlate(req, getUserQuery);
 };
 
 export const PUT = async (req: NextRequest) => {
-  const { name, profile_pic, bio, cover_pic, theme } = await req.json();
-  const input = true;
+  const values = await req.json();
+
   return boilerPlate(
     req,
     updateUserMutation,
+    values,
     {
-      name,
-      profile_pic,
-      bio,
-      cover_pic,
-      theme,
-    },
-    input,
+      inputs: true
+    }
   );
 };
 
 export const PATCH = async (req: NextRequest) => {
-  const { theme } = await req.json();
+  const values = await req.json();
 
-  const input = true;
+  console.log(values, "valuesss")
 
-  return boilerPlate(req, updatePreference, { theme }, input);
+  return boilerPlate(req, updatePreference, values, {
+    inputs: true
+  });
 };

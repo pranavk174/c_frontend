@@ -3,15 +3,14 @@ import { NextRequest } from "next/server";
 import { boilerPlate } from "../../utils";
 
 export const PUT = async (req: NextRequest) => {
-  const { blocked_user_id, reason } = await req.json();
+  const values = await req.json();
   const input = true;
   return boilerPlate(
     req,
     blockUserMutation,
+    values,
     {
-      blocked_user_id,
-      reason,
-    },
-    input,
+      inputs: true
+    }
   );
 };

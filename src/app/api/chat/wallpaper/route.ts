@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getBoilerplate } from "../../utils";
+import { NextRequest } from "next/server";
+import { boilerPlate } from "../../utils";
 import {
-  getEmojiQuery,
   getWallpaperQuery,
 } from "@/graphql/Modules/Chat/Chat.queries";
 import { setWallPaperMutation } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const POST = async (req: NextRequest) => {
-  const { url } = await req.json();
-  return getBoilerplate(req, setWallPaperMutation, { url }, true);
+  const values = await req.json();
+  return boilerPlate(req, setWallPaperMutation, values, { inputs: true });
 };
 
 export const GET = async (req: NextRequest) => {
-  return getBoilerplate(req, getWallpaperQuery);
+  return boilerPlate(req, getWallpaperQuery);
 };

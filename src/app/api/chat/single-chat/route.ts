@@ -1,20 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { boilerPlate, getBoilerplate } from "../../utils";
+import { NextRequest } from "next/server";
+import { boilerPlate } from "../../utils";
 import {
-  getAllchatsQuery,
   getSingleChatQuery,
 } from "@/graphql/Modules/Chat/Chat.queries";
 import { deletMessageMutation, newChatMutation } from "@/graphql/Modules/Chat/Chat.mutation";
 
 export const POST = async (req: NextRequest) => {
-  const { member_id } = await req.json();
+  const values = await req.json();
   return boilerPlate(
     req,
     newChatMutation,
+    values,
     {
-      member_id,
+      inputs: false
     },
-    false,
   );
 };
 
@@ -32,27 +31,25 @@ export const GET = async (req: NextRequest) => {
       limit: Number(limit),
       cursor: Number(cursor),
     },
-    true,
+    {
+      inputs: true
+    },
   );
 };
 
 
 export const DELETE = async (req: NextRequest) => {
 
-  const { delete_type,
-    message_ids,
-    chat_ids, } = await req.json()
+  const values = await req.json();
 
 
   return boilerPlate(
     req,
     deletMessageMutation,
+    values,
     {
-      delete_type,
-      message_ids,
-      chat_ids
+      inputs: true
     },
-    true,
   );
 
 

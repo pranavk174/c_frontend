@@ -1,32 +1,10 @@
-import { loginMutation } from "@/graphql/Modules/Users/User.mutation";
-import { NextRequest, NextResponse } from "next/server";
-import { backendRequests } from "../../utils";
+import { createUserMutation } from "@/graphql/Modules/Users/User.mutation";
+import { NextRequest } from "next/server";
+import { boilerPlate } from "../../utils";
 
 export const POST = async (req: NextRequest) => {
-  try {
-    const { email } = await req.json();
-    const response = await backendRequests(req, {
-      data: JSON.stringify({
-        query: loginMutation,
-        variables: {
-          email,
-        },
-      }),
-    });
-    const res = NextResponse.json(response.data, {
-      status: response.status,
-    });
+  const values = await req.json();
 
-    return res;
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Something went wrong",
-      },
-      {
-        status: 500,
-      },
-    );
-  }
+  return boilerPlate(req, createUserMutation, values, {});
+
 };

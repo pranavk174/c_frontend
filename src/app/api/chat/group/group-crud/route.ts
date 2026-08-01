@@ -1,32 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import {
-  getAllchatsQuery,
   getSingleChatQuery,
 } from "@/graphql/Modules/Chat/Chat.queries";
 import {
-  newChatMutation,
   newGroupMutation,
 } from "@/graphql/Modules/Chat/Chat.mutation";
 import { boilerPlate } from "@/app/api/utils";
 
 export const POST = async (req: NextRequest) => {
-  const {
-    groupName,
-    profile_pic,
-    member_ids: members,
-    cover_pic,
-  } = await req.json();
+  const values = await req.json();
   return boilerPlate(
     req,
     newGroupMutation,
+    values,
     {
-      groupName,
-      profile_pic,
-      member_ids: members,
-      cover_pic,
+      inputs: true
     },
-    true,
   );
 };
 
@@ -44,6 +34,8 @@ export const GET = async (req: NextRequest) => {
       limit: Number(limit),
       cursor: Number(cursor),
     },
-    true,
+    {
+      inputs: true
+    },
   );
 };
