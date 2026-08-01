@@ -49,13 +49,15 @@ export const boilerPlate = async (
   req: NextRequest,
   graphQlQuery: string,
   values = {},
-  inputs = false,
+  { inputs = false,
+    type = 'general' } = {}
 ) => {
   try {
+
     const response = await backendRequests(req, {
       data: JSON.stringify({
         query: graphQlQuery,
-        variables: inputs ? { input: { ...values } } : { ...values },
+        variables: inputs ? { input: values } : values,
       }),
     });
 
@@ -74,12 +76,15 @@ export const boilerPlate = async (
       const key = Object.keys(response.data.data)[0];
 
       // logger.debug(key, response.data[key]);
-      logger.debug(
-        "reposne in json...",
-        response.data,
-        key,
-        response.data.data[key].status,
-      );
+      // logger.debug(
+      //   "reposne in json...",
+      //   response.data,
+      //   key,
+      //   response.data.data[key].status,
+      // );
+
+
+
 
       const res = NextResponse.json(
         {
@@ -92,16 +97,27 @@ export const boilerPlate = async (
         },
       );
 
+      if (type === 'auth') {
+        const cookies = response.headers["set-cookie"];
+
+        if (Array.isArray(cookies)) {
+          cookies.forEach((cookie) => {
+            res.headers.append("Set-Cookie", cookie);
+          });
+        }
+
+      }
+
       return res;
     }
   } catch (error) {
     const err = error as AxiosError;
 
     logger.debug(err, "==========");
-    // logger.log(err.response?.data, { depth: null });
+    logger.log(err.response?.data, { depth: null });
     // logger.log(err);
     // logger.log(error);
-    // logger.log(err.response);
+    logger.log(err.response);
     return NextResponse.json(
       {
         success: false,
@@ -142,7 +158,7 @@ export const getBoilerplate = async (
         },
       );
     } else {
-      logger.log(response.data, "logger data in response");
+      // logger.log(response.data, "logger data in response");
       const key = Object.keys(response.data.data)[0];
 
       const res = NextResponse.json(
@@ -156,20 +172,20 @@ export const getBoilerplate = async (
         },
       );
 
-      logger.debug(
-        res,
-        "response in json... in get",
-        response.data,
-        key,
-        response.data.data[key].status,
-      );
+      // logger.debug(
+      //   res,
+      //   "response in json... in get",
+      //   response.data,
+      //   key,
+      //   response.data.data[key].status,
+      // );
 
       return res;
     }
   } catch (error) {
     const err = error as AxiosError;
 
-    logger.debug(err.response, "==========", err);
+    // logger.debug(err.response, "==========", err);
     // logger.log(err);
     // logger.log(err.response?.request.res.statusMessage);
     // logger.log(err.response?.request.res, { depth: null }, "===============");
