@@ -61,7 +61,7 @@ export const SocketProvider = ({ children }: Props) => {
       reconnection: true,
       reconnectionAttempts: 5,
       // Vercel does not support WebSocket upgrades via rewrites, use polling only
-      transports: isVercel ? ["polling"] : ["polling", "websocket"],
+      transports: !isVercel ? ["polling"] : ["polling", "websocket"],
     });
   }, [isVercel]);
 
@@ -71,7 +71,7 @@ export const SocketProvider = ({ children }: Props) => {
       reconnection: true,
       reconnectionAttempts: 5,
       // Vercel does not support WebSocket upgrades via rewrites, use polling only
-      transports: isVercel ? ["polling"] : ["polling", "websocket"],
+      transports: !isVercel ? ["polling"] : ["polling", "websocket"],
     });
   }, [isVercel]);
 
