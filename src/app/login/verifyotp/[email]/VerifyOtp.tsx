@@ -144,14 +144,14 @@ export default function VerifyOtp({ email }: { email: string }) {
           </div>
         </form>
         <button
-          disabled={isLoading}
+          disabled={isLoading || isLogging}
           onClick={resendOtp}
-          className=" bg-transparent cursor-pointer text-gray-200  dark:hover:text-gray-500 font-semibold text-center w-full mt-4 "
+          className=" bg-transparent cursor-pointer text-gray-200 disabled:text-gray-700  dark:hover:text-gray-500 font-semibold text-center w-full mt-4 "
         >
 
 
 
-          {isLoading ? "Resending...." : "Resend OTP"}
+          {isLogging ? "Resending...." : "Resend OTP"}
         </button>
       </div>
     </div>

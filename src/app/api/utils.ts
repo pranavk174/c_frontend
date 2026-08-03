@@ -7,23 +7,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const backendRequest = async (
-  req: NextRequest,
-  config: AxiosRequestConfig,
-) => {
-  const cookie = req.headers.get("cookie");
 
-  return api({
-    ...config,
-    url: "/graphql",
-    method: "POST",
-    headers: {
-      ...config.headers,
-      "Content-Type": "application/json",
-      Cookie: cookie ?? "",
-    },
-  });
-};
 
 export const backendRequests = async (
   req: NextRequest,
@@ -62,6 +46,7 @@ export const boilerPlate = async (
     });
 
     if (response.data.errors) {
+      throw response.data.errors[0];
       return NextResponse.json(
         {
           success: response.data.errors[0].success,
@@ -111,97 +96,25 @@ export const boilerPlate = async (
       return res;
     }
   } catch (error) {
-    const err = error as AxiosError;
+    logger.log(error);
 
-    logger.debug(err, "==========");
-    logger.log(err.response?.data, { depth: null });
-    // logger.log(err);
-    // logger.log(error);
-    logger.log(err.response);
+    // GraphQL errors thrown from response.data.errors[0] carry an `extensions` field
+    const gqlError = error as { message?: string; extensions?: { status?: number; code?: string } };
+    const axiosErr = error as AxiosError;
+
+    const status = gqlError.extensions?.status ?? 500;
+    const code = gqlError.extensions?.code;
+    const message = gqlError.message ?? axiosErr.message ?? "Something went wrong";
+
     return NextResponse.json(
       {
         success: false,
-        message: "Something went wronsssssg",
-        error: (err.response?.data, { depth: null }),
-        status: err.response?.request.res.statusCode,
+        message,
+        error: message,
+        status,
+        code,
       },
-      {
-        status: err.response?.request.res.statusCode,
-      },
-    );
-  }
-};
-
-export const getBoilerplate = async (
-  req: NextRequest,
-  graphQlQuery: string,
-  values = {},
-  params = false,
-) => {
-  try {
-    const response = await backendRequests(req, {
-      data: JSON.stringify({
-        query: graphQlQuery,
-        variables: { ...values },
-      }),
-    });
-
-    if (response.data.errors) {
-      return NextResponse.json(
-        {
-          success: response.data.errors[0].success,
-          message: response.data.errors[0].message,
-          errors: response.data.errors,
-        },
-        {
-          status: response.data.errors[0].status,
-        },
-      );
-    } else {
-      // logger.log(response.data, "logger data in response");
-      const key = Object.keys(response.data.data)[0];
-
-      const res = NextResponse.json(
-        {
-          success: response.data.data[key].success,
-          message: response.data.data[key].message,
-          data: response.data.data,
-        },
-        {
-          status: response.data.data[key].status,
-        },
-      );
-
-      // logger.debug(
-      //   res,
-      //   "response in json... in get",
-      //   response.data,
-      //   key,
-      //   response.data.data[key].status,
-      // );
-
-      return res;
-    }
-  } catch (error) {
-    const err = error as AxiosError;
-
-    // logger.debug(err.response, "==========", err);
-    // logger.log(err);
-    // logger.log(err.response?.request.res.statusMessage);
-    // logger.log(err.response?.request.res, { depth: null }, "===============");
-    return NextResponse.json(
-      {
-        success: false,
-
-        message:
-          err.response?.request.res.statusMessage ??
-          "Something went wrossssssng",
-        error: err.response?.data,
-        status: err.response?.request.res.statusCode,
-      },
-      {
-        status: err.response?.request.res.statusCode,
-      },
+      { status },
     );
   }
 };

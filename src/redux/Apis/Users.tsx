@@ -1,20 +1,6 @@
 import { profileProps } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
-import {
-  blockUserMutation,
-  createUserMutation,
-  loginMutation,
-  logoutMutaion,
-  refreshTokenGenerateMutation,
-  unBlockUserMutation,
-  updatePreference,
-  updateUserMutation,
-  verifyOtpMutation,
-} from "@/graphql/Modules/Users/User.mutation";
-import {
-  getAllUsersQuery,
-  getUserQuery,
-} from "@/graphql/Modules/Users/User.queries";
+
 
 export const authApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -55,7 +41,7 @@ export const authApi = BaseApi.injectEndpoints({
         url: "/auth/create-user",
         method: "POST",
         body: JSON.stringify({
-          formData,
+          ...formData,
         }),
       }),
       invalidatesTags: ["User"],
@@ -107,12 +93,9 @@ export const authApi = BaseApi.injectEndpoints({
       query: ({ theme }) => ({
         url: "/user/single-user",
         method: "PATCH",
-        body: JSON.stringify({
-          query: updatePreference,
-          variables: {
-            input: { theme },
-          },
-        }),
+        body:
+          { theme },
+
       }),
     }),
     blockUser: builder.mutation({

@@ -70,8 +70,15 @@ export default function UserProfile({ profile, email }: UserProfileProps) {
 
   const handleSave = async () => {
     try {
-      await createUser({ formData }).unwrap();
-      router.replace("/");
+      const data = await createUser({ formData }).unwrap();
+      logger.debug(data.errors[0].extensions.code, "data in create user")
+      if (data.errors[0].extensions.code === "REGISTER_ERROR") {
+        router.back()
+
+      } else {
+        // router.replace("/");
+      }
+      // router.replace("/");
     } catch (err) {
       logger.log(err);
     }

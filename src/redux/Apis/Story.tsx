@@ -28,13 +28,9 @@ export const storyApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query:
 
-            seenStoryMutation,
-          variables: {
-            id,
-          },
-        },
+          id,
+        }
       }),
     }),
 

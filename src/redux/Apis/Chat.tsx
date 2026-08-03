@@ -32,12 +32,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // logger.log(result, "result.......");
         return result
           ? [
-              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-                type: "chats" as const,
-                id: msg.id,
-              })),
-              { type: "chats", id: "LIST" },
-            ]
+            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+              type: "chats" as const,
+              id: msg.id,
+            })),
+            { type: "chats", id: "LIST" },
+          ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -99,22 +99,11 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: `
-                    mutation reactMessage($input:ChatInput!){
-        reactMessage(input:$input){
-    
-    message,success,status,error
-        }
-    }
-                    
-                    `,
-          variables: {
-            input: {
-              chat_ids,
-              message_ids,
-              reaction_id: parseInt(react_id),
-            },
-          },
+
+          chat_ids,
+          message_ids,
+          reaction_id: parseInt(react_id),
+
         },
       }),
       invalidatesTags: ["chats"],
@@ -165,14 +154,11 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: replyMessageMutation,
-          variables: {
-            input: {
-              message_ids,
-              content,
-              chat_ids,
-            },
-          },
+
+          message_ids,
+          content,
+          chat_ids,
+
         },
       }),
       invalidatesTags: ["chats"],
@@ -182,14 +168,11 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-          query: editMessageMutation,
-          variables: {
-            input: {
-              message_ids: [message_id],
-              chat_ids: chat_id,
-              content,
-            },
-          },
+
+          message_ids: [message_id],
+          chat_ids: chat_id,
+          content,
+
         },
       }),
     }),

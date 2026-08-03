@@ -5,6 +5,8 @@ import { boilerPlate } from "../../utils";
 export const POST = async (req: NextRequest) => {
   const values = await req.json();
 
-  return boilerPlate(req, createUserMutation, values, {});
+  return boilerPlate(req, createUserMutation, values, {
+    inputs: true
+  });
 
 };
