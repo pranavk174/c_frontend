@@ -1,5 +1,19 @@
 import { Dispatch, RefObject, SetStateAction } from "react";
 
+export interface errors {
+  error?: string;
+  message: string;
+  success?: boolean;
+  status: number
+  code: string | number
+
+}
+
+
+export interface errorConfig {
+  data: errors | null
+  status: number;
+}
 
 export interface deviceConfig {
   device_id: string;

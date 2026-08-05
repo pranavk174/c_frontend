@@ -37,9 +37,12 @@ export interface GraphQLError {
 }
 
 interface errors {
-  errors?: GraphQLError[];
+  error?: string;
   message: string;
   success?: boolean;
+  status: number
+  code: string | number
+
 }
 export interface GraphQLResponse<T> {
   data: refreshToken | errors | T | null;
@@ -80,21 +83,13 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = null;
   result = await baseQuery(getRequest(args), api, extraOptions);
 
+
+
   if (result.error) {
-    const errorData = result?.error?.data as errors | null;
-    showGlobalToast(errorData?.message ?? "", "error");
-    logger.debug(result?.error, "result dataaa");
-  }
-
-  const data = result?.data as errors | null;
-  // logger.log(data?.errors?.[0].message, "result dataaaaaaa", data?.errors?.[0]?.extensions?.status);
-
-  // Access token expired
-
-  if (data?.errors) {
-    logger.debug(data?.errors?.[0].extensions?.error, "statuss")
-    showGlobalToast(data?.errors?.[0].message ?? "", "error");
-    if (data?.errors?.[0].message === "invalid signature") {
+    // const data = result.error?.data as errors | undefined;
+    const data = result.error.data as unknown as errors | null
+    showGlobalToast(data?.message ?? "", "error");
+    if (data?.message === "invalid signature") {
       if (!refreshPromise) {
         refreshPromise = Promise.resolve(
           baseQuery(
@@ -118,8 +113,8 @@ const baseQueryWithReauth: BaseQueryFn<
     }
 
     if (
-      data?.errors?.[0]?.extensions?.status === 401 &&
-      data?.errors?.[0].message === "jwt expired"
+      data?.status === 401 &&
+      data?.message === "jwt expired"
     ) {
       if (!refreshPromise) {
         refreshPromise = Promise.resolve(
@@ -155,11 +150,13 @@ const baseQueryWithReauth: BaseQueryFn<
     // throw new Error(data?.errors?.[0].message)
   }
 
-  if (data?.success) {
-    showGlobalToast(data?.message ?? "", "success");
-  }
 
-  logger.debug(result, data, "data in response ");
+  // logger.debug(result, "result data in api")
+  // if (result?.success) {
+  //   showGlobalToast(result?.message ?? "", "success");
+  // }
+
+  // logger.debug(result, data, "data in response ");
 
   return result;
 };

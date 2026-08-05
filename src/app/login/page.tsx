@@ -7,7 +7,8 @@ import { useLoginMutation } from "@/redux/Apis/Users";
 import { useRouter } from "next/navigation";
 
 import DarkthemeToggle from "@/components/Utility/DarkthemeToggle";
-import { logger } from "@/lib/utils";
+import { asyncHandler, logger } from "@/lib/utils";
+import { errorConfig, errors } from "@/lib/dummy";
 
 export default function LoginPage() {
   const [step, setStep] = useState<"email" | "otp" | "profile">("email");
@@ -15,26 +16,16 @@ export default function LoginPage() {
   const [login, { isLoading: isLogging, isSuccess }] = useLoginMutation();
   const router = useRouter();
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      // In a real app, send OTP to email here
-
-      try {
-        const data = await login({ email }).unwrap();
-        logger.log(data.errors, "data in login...");
-        if (!data.errors) {
-          router.push(`/login/verifyotp/${encodeURIComponent(email)}`);
-        }
-        // if (data.success === true) {
-        // setStep("otp");
-
-        // }
-      } catch (error) {
-        logger.log(error, "error dataaa");
+  const handleEmailSubmit =
+    asyncHandler(async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!email) return
+      const data = await login({ email }).unwrap();
+      logger.log(data.errors, "data in login...");
+      if (!data.errors) {
+        router.push(`/login/verifyotp/${encodeURIComponent(email)}`);
       }
-    }
-  };
+    })
 
   return (
     <div className="min-h-screen bg-wa-bg dark:bg-wa-bg-dark flex items-center justify-center p-4">

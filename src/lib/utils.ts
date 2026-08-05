@@ -4,7 +4,7 @@ import { socketResponse } from "./dummy";
 
 
 
- 
+
 
 
 type LogLevel = "log" | "info" | "warn" | "error" | "debug";
@@ -158,4 +158,27 @@ export const uploadImage = async (file: File) => {
 };
 
 
+
+export const asyncHandler =
+  <Args extends unknown[], R>(
+    fn: (...args: Args) => Promise<R>,
+    options?: {
+      onError?: (error: unknown) => void;
+      onFinally?: () => void;
+    }
+  ) =>
+    async (...args: Args): Promise<R | undefined> => {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        options?.onError?.(error);
+        logger.debug("async handler error", error
+        )
+        return undefined;
+
+      } finally {
+        options?.onFinally?.();
+      }
+
+    };
 

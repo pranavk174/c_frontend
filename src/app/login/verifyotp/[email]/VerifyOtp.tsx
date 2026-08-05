@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { MessageSquare, ArrowRight, ArrowLeft } from "lucide-react";
 import { useLoginMutation, useVerifyOtpMutation } from "@/redux/Apis/Users";
-import { getDeviceInfo } from "@/lib/utils";
+import { asyncHandler, getDeviceInfo } from "@/lib/utils";
 import { addUser } from "@/redux/slices/User";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
@@ -23,7 +23,7 @@ export default function VerifyOtp({ email }: { email: string }) {
 
 
   useEffect(() => {
-    const getData = async () => {
+    const getData = asyncHandler(async () => {
       const data = await getDeviceInfo();
       if (data) {
 
@@ -31,66 +31,52 @@ export default function VerifyOtp({ email }: { email: string }) {
         setData(data)
 
       }
-    }
+    })
     getData()
   }, [])
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
+  const handleOtpSubmit = asyncHandler(async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.length === 6) {
-      try {
+      if (!data) return
+      const { device_id, ip_address, location, device_name } = data;
 
-        if (!data) return
+      // logger.log(data, "dataaaaa");
 
-        const { device_id, ip_address, location, device_name } = data;
+      const verified = await verifyOtp({
+        otp,
+        email,
+        device_id,
+        ip_address,
+        location: location?.city + "," + location?.country,
+        device_name,
+      }).unwrap();
 
-        // logger.log(data, "dataaaaa");
-
-        const verified = await verifyOtp({
-          otp,
-          email,
-          device_id,
-          ip_address,
-          location: location?.city + "," + location?.country,
-          device_name,
-        }).unwrap();
-
-        if (verified?.errors || verified?.verifyOtp?.success === false) {
-          return;
-        }
-
-        if (verified.data.verifyOtp.data.is_verified) {
-          router.push(
-            `/login/verifyotp/${encodeURIComponent(email)}/create-profile`,
-          );
-          return;
-        }
-
-        if (document.cookie.includes("theme")) {
-          const value = document.cookie.includes("dark") ? "dark" : "light";
-          document.documentElement.classList.remove("dark", "light");
-          document.documentElement.classList.add(value);
-        }
-
-        // dispatch(addUser(verified.data.verifyOtp.data));
-        router.replace("/");
-      } catch (error) {
-        // logger.log(error?.data.errors[0].message, "errorrrr")
-        // alert(error?.data.errors[0].message)
+      if (verified?.errors || verified?.verifyOtp?.success === false) {
+        return;
       }
 
-      // Verify OTP here, then redirect or go to profile
-      // window.location.href = "/";
-    }
-  };
+      if (verified.data.verifyOtp.data.is_verified) {
+        router.push(
+          `/login/verifyotp/${encodeURIComponent(email)}/create-profile`,
+        );
+        return;
+      }
 
-  const resendOtp = async () => {
-    try {
-      await login({ email }).unwrap();
-    } catch (error) {
-      logger.log(error, "errorrrrrrr");
+      if (document.cookie.includes("theme")) {
+        const value = document.cookie.includes("dark") ? "dark" : "light";
+        document.documentElement.classList.remove("dark", "light");
+        document.documentElement.classList.add(value);
+      }
+      router.replace("/");
     }
-  };
+  });
+
+  const resendOtp = asyncHandler(async () => {
+
+    await login({ email }).unwrap();
+
+  });
 
   return (
     <div className="min-h-screen bg-wa-bg dark:bg-wa-bg-dark flex items-center justify-center p-4">

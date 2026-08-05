@@ -96,7 +96,7 @@ export const boilerPlate = async (
       return res;
     }
   } catch (error) {
-    logger.log(error);
+    // logger.log(error);
 
     // GraphQL errors thrown from response.data.errors[0] carry an `extensions` field
     const gqlError = error as { message?: string; extensions?: { status?: number; code?: string } };
@@ -105,6 +105,9 @@ export const boilerPlate = async (
     const status = gqlError.extensions?.status ?? 500;
     const code = gqlError.extensions?.code;
     const message = gqlError.message ?? axiosErr.message ?? "Something went wrong";
+
+
+    // logger.log(message, code, status, "error data", error[Object.keys(error)[6]].data)
 
     return NextResponse.json(
       {
