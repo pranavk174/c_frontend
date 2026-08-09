@@ -71,7 +71,7 @@ const Inputbox = memo(
 
     const handleTyping = (e: React.FormEvent<HTMLInputElement>) => {
       // Pehli baar typing start-
-      logger.log("typing", e?.currentTarget.value);
+      // logger.log("typing", e?.currentTarget.value);
 
       if (e.currentTarget.value === "") {
         setMic(true);
@@ -171,7 +171,7 @@ const Inputbox = memo(
             />
             <div className="ml-2 shrink-0">
               <button
-                disabled={!inputRef.current}
+                // disabled={!inputRef.current}
                 onClick={handleSendMessage}
                 className="p-2 text-wa-icon dark:text-wa-icon-dark hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
               >

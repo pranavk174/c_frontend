@@ -19,7 +19,7 @@ export const userSlice = createSlice({
     addUser: (state, action) => {
       state.name = action.payload.name;
       state.id = parseInt(action.payload.id);
-      state.email = action.payload.emai;
+      state.email = action.payload.email;
     },
     removeUser: (state) => {
       state.name = "";

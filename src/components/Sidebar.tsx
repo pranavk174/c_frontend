@@ -150,23 +150,25 @@ export default function Sidebar() {
     if (user) {
       dispatch(addUser(user));
     }
-  });
+  }, [dispatch, user]);
 
   // logger.log(data, "dataaaaa in chatss");
-  const filteredChats = useMemo(() => data?.filter((chat: Chat) =>
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  ), [data, searchQuery]);
+  const filteredChats = useMemo(
+    () =>
+      data?.filter((chat: Chat) =>
+        chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [data, searchQuery],
+  );
 
   const { onlineUsers } = useSelector(
     (state: RootState) => state.onlineUsersSlice,
   );
 
   const handleLogout = asyncHandler(async () => {
-
     await logout(null).unwrap();
     document.documentElement.classList.remove("dark", "light");
     route.replace("/login");
-
   });
 
   return (
@@ -286,84 +288,84 @@ export default function Sidebar() {
         <div className="flex mt-2  flex-col relative overflow-y-auto overflow-x-hidden  gap-1 h-full ">
           {chatsLoading
             ? [...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse flex space-x-4 px-4 py-3 rounded-md"
-              >
-                <div className="rounded-full bg-gray-200 dark:bg-gray-700 size-12"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))
-            : filteredChats?.map((chat: Chat) => {
-              const isActive = pathname === `/chat/${chat?.chat_id}`;
-              // logger.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
-              return (
-                <Link
-                  className=" overflow-hidden"
-                  href={`/chat/${chat?.chat_id}?chat_type=${chat.chat_type}`}
-                  key={chat?.chat_id}
+                <div
+                  key={i}
+                  className="animate-pulse flex space-x-4 px-4 py-3 rounded-md"
                 >
-                  <div
-                    className={cn(
-                      " flex flex-col md:flex-row items-center rounded-md px-4  py-3 hover:bg-wa-header dark:hover:bg-gray-600 cursor-pointer transition-colors",
-                      isActive && "bg-wa-header dark:bg-gray-600",
-                    )}
+                  <div className="rounded-full bg-gray-200 dark:bg-gray-700 size-12"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))
+            : filteredChats?.map((chat: Chat) => {
+                const isActive = pathname === `/chat/${chat?.chat_id}`;
+                // logger.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
+                return (
+                  <Link
+                    className=" overflow-hidden"
+                    href={`/chat/${chat?.chat_id}?chat_type=${chat.chat_type}`}
+                    key={chat?.chat_id}
                   >
-                    <div className="relative size-12   mr-4 shrink-0 overflow-hidden">
-                      <Image
-                        priority
-                        fill
-                        sizes="48px"
-                        src={chat?.profile_pic}
-                        alt={chat?.name}
-                        className="w-full h-full object-cover rounded-full"
-                      />
-                      {chat.user_id !== null && (
-                        <span
-                          className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
-                        ></span>
+                    <div
+                      className={cn(
+                        " flex flex-col md:flex-row items-center rounded-md px-4  py-3 hover:bg-wa-header dark:hover:bg-gray-600 cursor-pointer transition-colors",
+                        isActive && "bg-wa-header dark:bg-gray-600",
                       )}
-                    </div>
-                    <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
-                      <div className="flex justify-between items-center mb-1">
-                        <h3 className="text-base words-break text-wrap  font-normal text-gray-900 dark:text-gray-100 truncate">
-                          {chat?.name}
-                        </h3>
-                        <span
-                          className={cn(
-                            "text-xs whitespace-nowrap",
-                            chat.unread_count > 0
-                              ? "text-wa-primary dark:text-wa-primary-dark font-medium"
-                              : "text-gray-500 dark:text-gray-400",
-                          )}
-                        >
-                          {/* {Date(chat?.last_message_at)} */}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
-                          {chat?.last_message &&
-                            chat?.last_message.length > 10
-                            ? `${chat?.last_message.substring(0, 10)}...`
-                            : chat.last_message}
-                        </p>
-                        {chat?.unread_count > 0 && (
-                          <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                            {chat?.unread_count}
-                          </span>
+                    >
+                      <div className="relative size-12   mr-4 shrink-0 overflow-hidden">
+                        <Image
+                          priority
+                          fill
+                          sizes="48px"
+                          src={chat?.profile_pic}
+                          alt={chat?.name}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                        {chat.user_id !== null && (
+                          <span
+                            className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
+                          ></span>
                         )}
                       </div>
+                      <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <h3 className="text-base words-break text-wrap  font-normal text-gray-900 dark:text-gray-100 truncate">
+                            {chat?.name}
+                          </h3>
+                          <span
+                            className={cn(
+                              "text-xs whitespace-nowrap",
+                              chat.unread_count > 0
+                                ? "text-wa-primary dark:text-wa-primary-dark font-medium"
+                                : "text-gray-500 dark:text-gray-400",
+                            )}
+                          >
+                            {/* {Date(chat?.last_message_at)} */}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
+                            {chat?.last_message &&
+                            chat?.last_message.length > 10
+                              ? `${chat?.last_message.substring(0, 10)}...`
+                              : chat.last_message}
+                          </p>
+                          {chat?.unread_count > 0 && (
+                            <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                              {chat?.unread_count}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        {/* <span>{chat?.last_message_at?.toLocaleString()}</span> */}
+                      </div>
                     </div>
-                    <div>
-                      {/* <span>{chat?.last_message_at?.toLocaleString()}</span> */}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+                  </Link>
+                );
+              })}
         </div>
       </div>
       {/* )} */}

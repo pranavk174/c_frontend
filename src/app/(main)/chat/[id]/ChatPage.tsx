@@ -234,7 +234,7 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-  logger.debug(file, "file data media");
+  // logger.debug(file, "file data media");
   const { members, memberIds } = useGetMembersQuery(
     { chat_id: id },
     {
@@ -290,7 +290,10 @@ const ChatPage = ({ id }: { id: number }) => {
     async (e: React.FormEvent | mediaProps) => {
       const input = inputRef.current;
 
-      if (!socket || !input) return;
+      if (!socket || !input) {
+        logger.debug(socket, input, "logger in handkesend message");
+        return;
+      }
 
       // const content = input.value.trim();
 

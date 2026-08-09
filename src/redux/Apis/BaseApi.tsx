@@ -32,7 +32,7 @@ export interface GraphQLError {
   extensions?: {
     status: number;
     code: string;
-    error: string
+    error: string;
   };
 }
 
@@ -40,9 +40,8 @@ interface errors {
   error?: string;
   message: string;
   success?: boolean;
-  status: number
-  code: string | number
-
+  status: number;
+  code: string | number;
 }
 export interface GraphQLResponse<T> {
   data: refreshToken | errors | T | null;
@@ -83,11 +82,11 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = null;
   result = await baseQuery(getRequest(args), api, extraOptions);
 
-
+  // logger.log(result.error, "result data errorrrr");
 
   if (result.error) {
     // const data = result.error?.data as errors | undefined;
-    const data = result.error.data as unknown as errors | null
+    const data = result.error.data as unknown as errors | null;
     showGlobalToast(data?.message ?? "", "error");
     if (data?.message === "invalid signature") {
       if (!refreshPromise) {
@@ -112,10 +111,9 @@ const baseQueryWithReauth: BaseQueryFn<
       }
     }
 
-    if (
-      data?.status === 401 &&
-      data?.message === "jwt expired"
-    ) {
+    logger.info(data, "error responbse");
+
+    if (data?.status === 401 && data?.message === "jwt expired") {
       if (!refreshPromise) {
         refreshPromise = Promise.resolve(
           baseQuery(
@@ -132,8 +130,30 @@ const baseQueryWithReauth: BaseQueryFn<
       }
 
       const refreshResult = await refreshPromise;
-
-      if (refreshResult.data) {
+      logger.debug(refreshResult.error, "errorrrrrr");
+      logger.debug(refreshResult?.data, "refresh token response in base api");
+      if (refreshResult?.error) {
+        refreshPromise = Promise.resolve(
+          baseQuery(
+            {
+              url: "/auth/logout",
+              method: "POST",
+            },
+            api,
+            extraOptions,
+          ),
+        ).finally(() => {
+          refreshPromise = null;
+          localStorage.removeItem("persist:root");
+          localStorage.removeItem("device_id");
+          localStorage.removeItem("user");
+          localStorage.removeItem("persist:root");
+          window.location.href = "/login";
+          return;
+        });
+        // throw new Error(refreshResult?.error?.status);
+      }
+      if (refreshResult?.data) {
         result = null;
 
         result = await baseQuery(getRequest(args), api, extraOptions);
@@ -149,7 +169,6 @@ const baseQueryWithReauth: BaseQueryFn<
     // return null;
     // throw new Error(data?.errors?.[0].message)
   }
-
 
   // logger.debug(result, "result data in api")
   // if (result?.success) {

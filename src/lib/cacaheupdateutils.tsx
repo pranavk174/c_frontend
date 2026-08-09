@@ -125,7 +125,7 @@ export const refetchChat = (
 
         // update existing
         if (exists) {
-          logger.log("triggered here and exitsssss");
+          // logger.log("triggered here and exitsssss");
           draft.data.getChatById.data.items = items.map((m: Message) => {
             if (m?.id === data[0].id) {
               return { ...m, ...data[0], isLocal: false };
@@ -153,7 +153,7 @@ export const refetchChat = (
 
         logger.log(
           unseenNewMessages,
-          current(draft.data.getChatById.data.items),
+          // current(draft.data.getChatById.data.items),
           " <<<<====in reftech message unseen new messagessssssss===>>>>",
         );
 

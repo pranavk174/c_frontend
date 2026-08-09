@@ -175,9 +175,11 @@ async function handleStaticRequest(request) {
 
   try {
     const response = await fetch(request);
+    console.log(response, "respone in worker");
     if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch {
+  } catch (err) {
+    console.log("error in worker", err);
     return new Response("Offline", { status: 503 });
   }
 }

@@ -113,12 +113,12 @@ const Chathead = memo(
           newData.push({ ...user, role: member?.role });
         }
 
-        logger.log(
-          newData,
-          "new Dataaaaa,,,",
-          data?.data?.getUsers?.data?.items,
-          d,
-        );
+        // logger.log(
+        //   newData,
+        //   "new Dataaaaa,,,",
+        //   data?.data?.getUsers?.data?.items,
+        //   d,
+        // );
         return {
           users: data?.data?.getUsers?.data?.items,
         };

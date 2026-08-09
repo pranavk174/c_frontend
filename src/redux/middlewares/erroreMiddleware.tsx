@@ -15,6 +15,24 @@ interface actionProps {
   };
 }
 
+export interface ErrorResponse {
+  success: boolean;
+  message: string;
+  error: string;
+  status?: number;
+  offline?: boolean;
+  data?: {
+    message?: string;
+    offline?: boolean;
+  };
+  code: string;
+}
+
+export interface ApiErrorResponse {
+  data: ErrorResponse;
+  status: number | string;
+}
+
 interface metaProps {
   meta: {
     arg: unknown;
@@ -24,11 +42,11 @@ interface metaProps {
     condition: boolean;
   } & (
     | {
-      rejectedWithValue: true;
-    }
+        rejectedWithValue: true;
+      }
     | ({
-      rejectedWithValue: false;
-    } & {})
+        rejectedWithValue: false;
+      } & {})
   );
 }
 
@@ -36,22 +54,17 @@ export const errorMiddleware: Middleware = () => (next) => (action) => {
   // const { showToast } = useToast()
 
   if (isRejectedWithValue(action)) {
-    const payload = action.payload as {
-      status?: number | string;
-      message?: string;
-      data?: {
-        message?: string;
-        offline?: boolean;
-      };
-    };
+    const payload = action.payload as ApiErrorResponse;
 
-    // logger.log(payload, "payload dataaaa");
+    logger.log(payload, "payload dataaaa");
 
     // const endpointName = (action.meta)?.arg?.endpointName;
 
-
-
-    if (payload.status === "FETCH_ERROR" || payload.data?.offline) {
+    if (
+      payload.status === "FETCH_ERROR" ||
+      payload?.data?.code === "ECONNREFUSED" ||
+      payload.data?.offline
+    ) {
       window.location.href = "/offline.html";
       return;
     }

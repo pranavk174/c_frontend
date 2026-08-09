@@ -7,36 +7,35 @@ import { store, persistor } from "./store";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { logger } from "@/lib/utils";
 
-
 export default function Wrapper({ children }: { children: React.ReactNode }) {
   //   const [isOnline, setIsOnline] = useState(true);
   const onLineRef = useRef(false);
-  const cleanOldServiceWorker = async () => {
-    await navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((reg) => {
-        reg.unregister().then((boolean) => {
-          if (boolean) {
-            logger.log("older service worker removed succesfully");
-          } else {
-            logger.log("falied to remove service workey");
-          }
-        });
-      });
-    });
-  };
-
-  const registerNewServiceWorker = async () => {
-    await navigator.serviceWorker
-      .register("/sw.js", { scope: "/" })
-      .then((registration) => {
-        logger.log("New Service Worker Registered:", registration);
-      })
-      .catch((error) => {
-        logger.log("Service Worker Registration Failed:", error);
-      });
-  };
 
   useEffect(() => {
+    const cleanOldServiceWorker = async () => {
+      await navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((reg) => {
+          reg.unregister().then((boolean) => {
+            if (boolean) {
+              logger.log("older service worker removed succesfully");
+            } else {
+              logger.log("falied to remove service workey");
+            }
+          });
+        });
+      });
+    };
+
+    const registerNewServiceWorker = async () => {
+      await navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((registration) => {
+          logger.log("New Service Worker Registered:", registration);
+        })
+        .catch((error) => {
+          logger.log("Service Worker Registration Failed:", error);
+        });
+    };
     if (!navigator.onLine) {
       window.location.href = "/offline.html";
     }
@@ -49,7 +48,7 @@ export default function Wrapper({ children }: { children: React.ReactNode }) {
     window.addEventListener("offline", handleOffline);
     if ("serviceWorker" in navigator) {
       // Clean up old service workers
-      // cleanOldServiceWorker();
+      cleanOldServiceWorker();
       // Register the new service worker
       // registerNewServiceWorker();
       // Ensure the service worker is ready

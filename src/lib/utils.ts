@@ -2,54 +2,50 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { socketResponse } from "./dummy";
 
-
-
-
-
-
 type LogLevel = "log" | "info" | "warn" | "error" | "debug";
 
-const isDev = process.env.NODE_ENV === "development";
+const isDev =
+  process.env.NODE_ENV === "development" ||
+  process.env.NEXT_PUBLIC_NODE_ENV === "development";
 
 /* eslint-disable no-console */
 
 export const logger = {
   error: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.error('[ERROR]', ...args);
+    if (isDev) {
+      console.error("[ERROR]", ...args);
     }
     // Add error tracking service calls here (Sentry, etc.)
   },
 
   warn: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.warn('[WARN]', ...args);
+    if (isDev) {
+      console.warn("[WARN]", ...args);
     }
   },
 
   info: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.info('[INFO]', ...args);
+    if (isDev) {
+      console.info("[INFO]", ...args);
     }
   },
 
   debug: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.debug('[DEBUG]', ...args);
+    if (isDev) {
+      console.debug("[DEBUG]", ...args);
     }
   },
   dir: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.dir('[DEBUG]', ...args);
+    if (isDev) {
+      console.dir("[DEBUG]", ...args);
     }
   },
   log: (...args: unknown[]) => {
-    if (process.env.NEXT_PUBLIC_NODE_ENV !== 'production') {
-      console.log('[log]', ...args);
+    if (isDev) {
+      console.log("[log]", ...args);
     }
   },
 };
-
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -157,28 +153,22 @@ export const uploadImage = async (file: File) => {
   }
 };
 
-
-
 export const asyncHandler =
   <Args extends unknown[], R>(
     fn: (...args: Args) => Promise<R>,
     options?: {
       onError?: (error: unknown) => void;
       onFinally?: () => void;
-    }
+    },
   ) =>
-    async (...args: Args): Promise<R | undefined> => {
-      try {
-        return await fn(...args);
-      } catch (error) {
-        options?.onError?.(error);
-        logger.debug("async handler error", error
-        )
-        return undefined;
-
-      } finally {
-        options?.onFinally?.();
-      }
-
-    };
-
+  async (...args: Args): Promise<R | undefined> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      options?.onError?.(error);
+      logger.debug("async handler error", error);
+      return undefined;
+    } finally {
+      options?.onFinally?.();
+    }
+  };
