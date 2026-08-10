@@ -1,12 +1,12 @@
 import { createUserMutation } from "@/graphql/Modules/Users/User.mutation";
 import { NextRequest } from "next/server";
-import { boilerPlate } from "../../utils";
+import { asyncHandlerBackendApis, boilerPlate } from "../../utils";
 
-export const POST = async (req: NextRequest) => {
+export const POST = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
 
   return boilerPlate(req, createUserMutation, values, {
     inputs: true
   });
 
-};
+});

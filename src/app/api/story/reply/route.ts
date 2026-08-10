@@ -1,17 +1,8 @@
 import { NextRequest } from "next/server";
-
-import { boilerPlate } from "../../utils";
+import { asyncHandlerBackendApis, boilerPlate } from "../../utils";
 import { replySToryMutation } from "@/graphql/Modules/Story/stories.mutation";
 
-
-
-
-export const POST = async (req: NextRequest) => {
+export const POST = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
-  return boilerPlate(req, replySToryMutation, values, {
-    inputs: false
-  },)
-}
-
-
-
+  return boilerPlate(req, replySToryMutation, values, { inputs: false });
+});

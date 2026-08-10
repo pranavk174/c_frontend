@@ -1,35 +1,16 @@
 import { NextRequest } from "next/server";
-import { boilerPlate } from "../../utils";
-
-
+import { asyncHandlerBackendApis, boilerPlate } from "../../utils";
 import {
   deletMessageMutation,
-
   sendMessageMutation,
 } from "@/graphql/Modules/Chat/Chat.mutation";
 
-export const POST = async (req: NextRequest) => {
+export const POST = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
+  return boilerPlate(req, sendMessageMutation, values, { inputs: true });
+});
 
-  return boilerPlate(
-    req,
-    sendMessageMutation,
-    values,
-    {
-      inputs: true
-    },
-  );
-};
-
-export const DELETE = async (req: NextRequest) => {
+export const DELETE = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
-
-  return boilerPlate(
-    req,
-    deletMessageMutation,
-    values,
-    {
-      inputs: true
-    },
-  );
-};
+  return boilerPlate(req, deletMessageMutation, values, { inputs: true });
+});

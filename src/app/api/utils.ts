@@ -2,19 +2,10 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/utils";
 
-import { asyncHandler } from "@/lib/utils";
-
 const api = axios.create({
   baseURL: process.env.BASE_URL,
   withCredentials: true,
 });
-
-interface aggreGateError {
-  name: string;
-  code: string;
-  message: string;
-  status: number;
-}
 
 export const backendRequests = async (
   req: NextRequest,
@@ -97,8 +88,6 @@ export const boilerPlate = async (
   }
 };
 
-
-
 type GqlError = {
   message?: string;
   extensions?: {
@@ -118,13 +107,11 @@ type AsyncHandlerOptions = {
   onFinally?: () => void;
 };
 
-export const asyncHandlerBackendApis = <
-  Args extends unknown[],
-  Response = NextResponse
->(
-  fn: (...args: Args) => Promise<Response>,
-  options?: AsyncHandlerOptions,
-) =>
+export const asyncHandlerBackendApis =
+  <Args extends unknown[], Response = NextResponse>(
+    fn: (...args: Args) => Promise<Response>,
+    options?: AsyncHandlerOptions,
+  ) =>
   async (...args: Args): Promise<Response | NextResponse> => {
     try {
       return await fn(...args);
@@ -135,13 +122,10 @@ export const asyncHandlerBackendApis = <
       const aggregateError = error as AggregateErrorType;
       const axiosError = error as AxiosError;
 
-      const status =
-        gqlError.extensions?.status ?? 500;
+      const status = gqlError.extensions?.status ?? 500;
 
       const code =
-        gqlError.extensions?.code ??
-        aggregateError.code ??
-        axiosError.code;
+        gqlError.extensions?.code ?? aggregateError.code ?? axiosError.code;
 
       const message =
         gqlError.message ??

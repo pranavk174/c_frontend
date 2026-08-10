@@ -1,34 +1,23 @@
 import { getUserQuery } from "@/graphql/Modules/Users/User.queries";
 import { NextRequest } from "next/server";
-import { boilerPlate } from "../../utils";
+import { asyncHandlerBackendApis, boilerPlate } from "../../utils";
 import {
   updatePreference,
   updateUserMutation,
 } from "@/graphql/Modules/Users/User.mutation";
+import { logger } from "@/lib/utils";
 
-export const GET = async (req: NextRequest) => {
+export const GET = asyncHandlerBackendApis(async (req: NextRequest) => {
   return boilerPlate(req, getUserQuery);
-};
+});
 
-export const PUT = async (req: NextRequest) => {
+export const PUT = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
+  return boilerPlate(req, updateUserMutation, values, { inputs: true });
+});
 
-  return boilerPlate(
-    req,
-    updateUserMutation,
-    values,
-    {
-      inputs: true
-    }
-  );
-};
-
-export const PATCH = async (req: NextRequest) => {
+export const PATCH = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
-
-  console.log(values, "valuesss")
-
-  return boilerPlate(req, updatePreference, values, {
-    inputs: true
-  });
-};
+  logger.log(values, "valuesss");
+  return boilerPlate(req, updatePreference, values, { inputs: true });
+});

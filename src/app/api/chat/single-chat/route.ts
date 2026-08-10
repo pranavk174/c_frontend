@@ -1,26 +1,19 @@
 import { NextRequest } from "next/server";
-import { boilerPlate } from "../../utils";
+import { asyncHandlerBackendApis, boilerPlate } from "../../utils";
+import { getSingleChatQuery } from "@/graphql/Modules/Chat/Chat.queries";
 import {
-  getSingleChatQuery,
-} from "@/graphql/Modules/Chat/Chat.queries";
-import { deletMessageMutation, newChatMutation } from "@/graphql/Modules/Chat/Chat.mutation";
+  deletMessageMutation,
+  newChatMutation,
+} from "@/graphql/Modules/Chat/Chat.mutation";
 
-export const POST = async (req: NextRequest) => {
+export const POST = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
-  return boilerPlate(
-    req,
-    newChatMutation,
-    values,
-    {
-      inputs: false
-    },
-  );
-};
+  return boilerPlate(req, newChatMutation, values, { inputs: false });
+});
 
-export const GET = async (req: NextRequest) => {
+export const GET = asyncHandlerBackendApis(async (req: NextRequest) => {
   const searchParams = req.nextUrl.searchParams;
-
-  const chat_ids = searchParams.getAll("chat_ids"); // ?chat_ids=1&chat_ids=2
+  const chat_ids = searchParams.getAll("chat_ids");
   const limit = searchParams.get("limit");
   const cursor = searchParams.get("cursor");
   return boilerPlate(
@@ -31,26 +24,11 @@ export const GET = async (req: NextRequest) => {
       limit: Number(limit),
       cursor: Number(cursor),
     },
-    {
-      inputs: true
-    },
+    { inputs: true },
   );
-};
+});
 
-
-export const DELETE = async (req: NextRequest) => {
-
+export const DELETE = asyncHandlerBackendApis(async (req: NextRequest) => {
   const values = await req.json();
-
-
-  return boilerPlate(
-    req,
-    deletMessageMutation,
-    values,
-    {
-      inputs: true
-    },
-  );
-
-
-}
+  return boilerPlate(req, deletMessageMutation, values, { inputs: true });
+});
