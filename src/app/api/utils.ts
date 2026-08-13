@@ -90,6 +90,7 @@ export const boilerPlate = async (
 
 type GqlError = {
   message?: string;
+  path?: string[];
   extensions?: {
     status?: number;
     code?: string;
@@ -112,47 +113,62 @@ export const asyncHandlerBackendApis =
     fn: (...args: Args) => Promise<Response>,
     options?: AsyncHandlerOptions,
   ) =>
-  async (...args: Args): Promise<Response | NextResponse> => {
-    try {
-      return await fn(...args);
-    } catch (error: unknown) {
-      options?.onError?.(error);
+    async (...args: Args): Promise<Response | NextResponse> => {
+      try {
+        return await fn(...args);
+      } catch (error: unknown) {
+        options?.onError?.(error);
 
-      const gqlError = error as GqlError;
-      const aggregateError = error as AggregateErrorType;
-      const axiosError = error as AxiosError;
+        const gqlError = error as GqlError;
+        const aggregateError = error as AggregateErrorType;
+        const axiosError = error as AxiosError;
 
-      const status = gqlError.extensions?.status ?? 500;
+        const status = gqlError.extensions?.status ?? 500;
 
-      const code =
-        gqlError.extensions?.code ?? aggregateError.code ?? axiosError.code;
+        const code =
+          gqlError.extensions?.code ?? aggregateError.code ?? axiosError.code;
 
-      const message =
-        gqlError.message ??
-        axiosError.message ??
-        aggregateError.message ??
-        "Something went wrong";
+        const message =
+          gqlError.message ??
+          axiosError.message ??
+          aggregateError.message ??
+          "Something went wrong";
 
-      logger.log(
-        aggregateError.code,
-        message,
-        code,
-        status,
-        "error data",
-        aggregateError.name,
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
+        logger.log(
+          aggregateError.code,
           message,
-          error: message,
-          status,
           code,
-        },
-        { status },
-      );
-    } finally {
-      options?.onFinally?.();
-    }
-  };
+          status,
+          "error data",
+          aggregateError.name,
+          gqlError?.path?.[0],
+          error
+        );
+
+        const res = NextResponse.json(
+          {
+            success: false,
+            message,
+            error: message,
+            status,
+            code,
+            api: gqlError?.path?.[0]
+          },
+          { status },
+        );
+
+
+        if (gqlError?.path?.[0] === 'logout') {
+          res.cookies.delete("accessToken");
+          res.cookies.delete("refreshToken");
+        }
+
+
+
+        logger.info(res, "response in api")
+
+        return res
+      } finally {
+        options?.onFinally?.();
+      }
+    };
