@@ -112,6 +112,28 @@ export const refetchChat = (
     }),
   );
 
+ export const refetchChat = (
+  dispatch: AppDispatch,
+  data: Message[],
+  id: number,
+  user_id: number,
+  chatDetails: Chat,
+  socket: Socket,
+  cursor: number | null,
+) => {
+  const chatPatchResult = dispatch(
+    chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
+      const items = draft.data.getAllChats.data.items;
+      draft.data.getAllChats.data.items.forEach((item: Chat) => {
+        if (item.chat_id === id) {
+          item.last_message = data[0]?.content ? data[0]?.content : "image";
+          item.last_message_at = data[0].created_at;
+          item.last_message_id = data[0].id;
+        }
+      });
+    }),
+  );
+
   const patchResult = dispatch(
     chatApi.util.updateQueryData(
       "getSingleChat",
@@ -159,48 +181,65 @@ export const refetchChat = (
 
         if (unseenNewMessages.length > 0) {
           logger.log("eejhkdsahf kdfdthis unseeed message", unseenNewMessages);
-          socket.emit(
-            MESSAGE_SEEN,
-            {
-              chat_id: id,
-              message_ids: unseenNewMessages,
-              reciever_id: chatDetails?.user_id,
-            },
-            (response: socketResponse) => {
-              const patchResult3 = dispatch(
-                chatApi.util.updateQueryData(
-                  "getSingleChat",
-                  { chat_ids: [id], cursor, limit: 20 },
-                  (draft) => {
-                    draft?.data?.getChatById?.data?.items?.forEach(
-                      (chat: Message) => {
-                        if (
-                          user_id &&
-                          chat.sender_id !== user_id &&
-                          !chat.seen_users.includes(user_id) &&
-                          unseenNewMessages.includes(chat.id)
-                        ) {
-                          logger.log("ye condition true hai");
-                          chat.seen_users = [...chat.seen_users, user_id];
-                        }
-                        logger.log("ye condition false hai......");
-                      },
-                    );
-                  },
-                ),
-              );
-              // agar backend fail
-              if (!response.success) {
-                // rollback
-                patchResult.undo();
-                patchResult3.undo();
-                chatPatchResult.undo();
+          // socket.emit(
+          //   MESSAGE_SEEN,
+          //   {
+          //     chat_id: id,
+          //     message_ids: unseenNewMessages,
+          //     reciever_id: chatDetails?.user_id,
+          //   },
+          //   (response: socketResponse) => {
+          //     const patchResult3 = dispatch(
+          //       chatApi.util.updateQueryData(
+          //         "getSingleChat",
+          //         { chat_ids: [id], cursor, limit: 20 },
+          //         (draft) => {
+          //           // draft?.data?.getChatById?.data?.items?.forEach(
+          //           //   (chat: Message) => {
+          //           //     if (
+          //           //       user_id &&
+          //           //       chat.sender_id !== user_id &&
+          //           //       !chat.seen_users.includes(user_id) &&
+          //           //       unseenNewMessages.includes(chat.id)
+          //           //     ) {
+          //           //       logger.log("ye condition true hai");
+          //           //       chat.seen_users = [...chat.seen_users, user_id];
+          //           //     }
+          //           //     logger.log("ye condition false hai......");
+          //           //   },
+          //           // );
 
-                logger.log(response, "callback response");
-              }
-              logger.log(response, "callback response outside");
-            },
-          );
+
+          //           const items = draft?.data?.getChatById?.data?.items ?? [];
+
+          //           draft.data.getChatById.data.items = items.map((chat: Message) => {
+          //             if (
+          //               user_id &&
+          //               chat.sender_id !== user_id &&
+          //               !chat.seen_users.includes(user_id) &&
+          //               unseenNewMessages.includes(chat.id)
+          //             ) {
+          //               chat.seen_users.push(user_id); // direct mutation
+          //             }
+
+          //             return chat;
+          //           });
+
+          //         },
+          //       ),
+          //     );
+          //     // agar backend fail
+          //     if (!response.success) {
+          //       // rollback
+          //       patchResult.undo();
+          //       patchResult3.undo();
+          //       chatPatchResult.undo();
+
+          //       logger.log(response, "callback response");
+          //     }
+          //     logger.log(response, "callback response outside");
+          //   },
+          // );
         }
       },
     ),
