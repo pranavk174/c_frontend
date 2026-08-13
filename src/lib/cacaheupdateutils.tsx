@@ -112,28 +112,6 @@ export const refetchChat = (
     }),
   );
 
- export const refetchChat = (
-  dispatch: AppDispatch,
-  data: Message[],
-  id: number,
-  user_id: number,
-  chatDetails: Chat,
-  socket: Socket,
-  cursor: number | null,
-) => {
-  const chatPatchResult = dispatch(
-    chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-      const items = draft.data.getAllChats.data.items;
-      draft.data.getAllChats.data.items.forEach((item: Chat) => {
-        if (item.chat_id === id) {
-          item.last_message = data[0]?.content ? data[0]?.content : "image";
-          item.last_message_at = data[0].created_at;
-          item.last_message_id = data[0].id;
-        }
-      });
-    }),
-  );
-
   const patchResult = dispatch(
     chatApi.util.updateQueryData(
       "getSingleChat",
