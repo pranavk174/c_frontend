@@ -23,7 +23,7 @@ export interface GetChatByIdResponse {
     };
   };
 }
-
+ 
 export interface GetAllChatResponse {
   data: {
     getAllChats: {
