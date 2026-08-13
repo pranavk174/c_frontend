@@ -8,6 +8,7 @@ import {
   FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 import { showGlobalToast } from "../toastservices";
+import { log } from "node:console";
 
 export interface refreshToken {
   data: {
@@ -47,10 +48,10 @@ export interface GraphQLResponse<T> {
   data: refreshToken | errors | T | null;
 }
 
-const api: AxiosInstance = axios.create({
-  baseURL: "/api",
-  withCredentials: true,
-});
+// const baseQuery: AxiosInstance = axios.create({
+//   baseURL: "/api",
+//   withCredentials: true,
+// });
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "/api",
@@ -74,13 +75,14 @@ function getRequest(args: string | FetchArgs) {
 }
 type BaseQueryResult = ReturnType<typeof baseQuery>;
 let refreshPromise: Promise<Awaited<BaseQueryResult>> | null = null;
+let logOutPromise: Promise<Awaited<BaseQueryResult>> | null = null;
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   let result = null;
-  result = await baseQuery(getRequest(args), api, extraOptions);
+  result = await baseQuery(args, api, extraOptions);
 
   // logger.log(result.error, "result data errorrrr");
 
@@ -89,8 +91,8 @@ const baseQueryWithReauth: BaseQueryFn<
     const data = result.error.data as unknown as errors | null;
     showGlobalToast(data?.message ?? "", "error");
     if (data?.message === "invalid signature") {
-      if (!refreshPromise) {
-        refreshPromise = Promise.resolve(
+      if (!logOutPromise) {
+        logOutPromise = Promise.resolve(
           baseQuery(
             {
               url: "/auth/logout",
@@ -100,7 +102,7 @@ const baseQueryWithReauth: BaseQueryFn<
             extraOptions,
           ),
         ).finally(() => {
-          refreshPromise = null;
+          logOutPromise = null;
           localStorage.removeItem("persist:root");
           localStorage.removeItem("device_id");
           localStorage.removeItem("user");
@@ -133,30 +135,34 @@ const baseQueryWithReauth: BaseQueryFn<
       logger.debug(refreshResult.error, "errorrrrrr");
       logger.debug(refreshResult?.data, "refresh token response in base api");
       if (refreshResult?.error) {
-        refreshPromise = Promise.resolve(
-          baseQuery(
-            {
-              url: "/auth/logout",
-              method: "POST",
-            },
-            api,
-            extraOptions,
-          ),
-        ).finally(() => {
-          refreshPromise = null;
-          localStorage.removeItem("persist:root");
-          localStorage.removeItem("device_id");
-          localStorage.removeItem("user");
-          localStorage.removeItem("persist:root");
-          window.location.href = "/login";
-          return;
-        });
+        if (!logOutPromise) {
+          logOutPromise = Promise.resolve(
+            baseQuery(
+              {
+                url: "/auth/logout",
+                method: "POST",
+              },
+              api,
+              extraOptions,
+            ),
+          ).finally(() => {
+            refreshPromise = null;
+            localStorage.removeItem("persist:root");
+            localStorage.removeItem("device_id");
+            localStorage.removeItem("user");
+            localStorage.removeItem("persist:root");
+            window.location.href = "/login";
+            return;
+          });
+        }
+
+        await logOutPromise
         // throw new Error(refreshResult?.error?.status);
       }
       if (refreshResult?.data) {
         result = null;
 
-        result = await baseQuery(getRequest(args), api, extraOptions);
+        result = await baseQuery(args, api, extraOptions);
       } else {
         localStorage.removeItem("user");
         window.location.href = "/login";
