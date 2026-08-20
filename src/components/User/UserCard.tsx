@@ -34,7 +34,7 @@ const UserCard = ({
 
 
 
-  //   logger.log(selected, "selected ", user.id);
+  logger.log(selected, "selected ", user.id, selectedUser);
   return (
     <div
       role="button"
@@ -78,7 +78,7 @@ const UserCard = ({
       </div>
       {/* Online Dot */}
 
-      {type === "group" && (
+      {type !== 'chat' && (
         <Checkbox
           id="default-checkbox"
           label="Default checkbox"

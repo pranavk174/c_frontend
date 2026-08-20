@@ -3,7 +3,7 @@
 import { useToast } from "@/components/Utility/Toast";
 import { Notification } from "@/lib/dummy";
 import {
-  CONNECTION_ERROR, 
+  CONNECTION_ERROR,
   ERROR,
   NEW_NOTIFICATION,
   ONLINE_USERS,
@@ -94,6 +94,10 @@ export const SocketProvider = ({ children }: Props) => {
   const handlerNotification = useMemo(
     () => ({
       [ERROR]: (data: string) => {
+
+
+        logger.log(data, "errorrrrrrrr notfication socket wraperrrr");
+
         showToast(data, "error");
       },
       [NEW_NOTIFICATION]: (data: Notification) => {
@@ -132,6 +136,7 @@ export const SocketProvider = ({ children }: Props) => {
   const handler = useMemo(
     () => ({
       [ERROR]: (data: string) => {
+        logger.log(data, "errorrrrrrrr chat socket wraperrrr");
         showToast(data, "error");
       },
       [ONLINE_USERS]: (data: string[]) => {
@@ -155,12 +160,19 @@ export const SocketProvider = ({ children }: Props) => {
 
   useSocketEvents(chatSocket, handler);
   useSocketEvents(notificationSocket, handlerNotification);
+
+
+  logger.count("ye cntext spocket socktext rener hua")
+  const socketContextValue = useMemo(
+    () => ({
+      chatSocket,
+      notificationSocket,
+    }),
+    [chatSocket, notificationSocket],
+  );
   return (
     <SocketContext.Provider
-      value={{
-        chatSocket,
-        notificationSocket,
-      }}
+      value={socketContextValue}
     >
       {children}
     </SocketContext.Provider>

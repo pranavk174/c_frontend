@@ -45,7 +45,7 @@ const MessageBox = memo(
         onMouseLeave={cancelPressTimer}
         onTouchStart={() => startPressTimer(msg?.id)}
         onTouchEnd={cancelPressTimer}
-        onMouseEnter={() => setActive(msg?.id)}
+        // onMouseEnter={() => setActive(msg?.id)}
         onClick={() => {
           if (selectionMode) {
             toggleSelection(msg?.id);
@@ -79,7 +79,7 @@ const MessageBox = memo(
         <div
           className={cn(
             "flex items-center gap-2 mx-2 transition-opacity duration-200",
-            active === msg?.id ? "opacity-100" : "opacity-0",
+            "opacity-0 group-hover:opacity-100",
           )}
         >
           <button
@@ -158,7 +158,7 @@ const MessageBox = memo(
             />
           )}
         </div>
-      </motion.div>
+      </motion.div >
     );
   },
 );

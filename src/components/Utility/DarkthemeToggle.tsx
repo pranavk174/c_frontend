@@ -29,7 +29,7 @@ const DarkthemeToggle = () => {
         }, 500);
     };
     return (
-        <div className={` mt-4 rotate-90 text-[clamp(16px,4vw,16px)]`}>
+        <div className={`  text-[clamp(16px,4vw,16px)]`}>
             <SoundToggle
                 left={""}
                 name={"theme"}

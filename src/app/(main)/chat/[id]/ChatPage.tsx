@@ -596,46 +596,6 @@ const ChatPage = ({ id }: { id: number }) => {
     }
   }, [uploadId]);
 
-  const handler = useMemo(
-    () => ({
-      [START_TYPING]: (data: boolean) => {
-        setTyping(true);
-      },
-      [STOP_TYPING]: (data: boolean) => {
-        setTyping(false);
-      },
-      [REFETCH_CHATS]: (data: Message[]) => {
-        // logger.log(data, "chats dataaaa.... new wala...");
-        if (!data) {
-          return;
-        }
-        if (!user_id) return;
-        refetchChat(dispatch, data, id, user_id, chatDetails, socket, cursor);
-      },
-
-      [MESSAGE_REACTION]: (data: message_reactions) => {
-        if (!data || !user_id) {
-          return;
-        }
-        reactMessage(dispatch, data, id);
-      },
-      [MESSAGE_SEEN]: (data: seen_user[]) => {
-        if (!data) {
-          return;
-        }
-        seenMessage(dispatch, id, data);
-      },
-
-      [EDIT_MESSAGE]: (data: Message) => {
-        logger.log(data, "data from edit message ");
-        editMessage(dispatch, id, data);
-      },
-    }),
-    [dispatch, id, socket, user_id, chatDetails, cursor],
-  );
-
-  useSocketEvents(socket, handler);
-
   const selecteds = useMemo(() => {
     return {
       message: messages?.find((msg: Message) => msg.id === selectedMessages[0])
@@ -679,6 +639,8 @@ const ChatPage = ({ id }: { id: number }) => {
   useEffect(() => {
     if (!user_id || !messages?.length) return;
 
+
+    logger.debug(messages, "message")
     // Queue me saare unseen messages add karo
     messages.forEach((msg: Message) => {
       if (msg.sender_id !== user_id && !msg.seen_users.includes(user_id)) {
@@ -755,6 +717,50 @@ const ChatPage = ({ id }: { id: number }) => {
       }
     };
   }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
+
+
+
+  const handler = useMemo(
+    () => ({
+      [START_TYPING]: (data: boolean) => {
+        setTyping(true);
+      },
+      [STOP_TYPING]: (data: boolean) => {
+        setTyping(false);
+      },
+      [REFETCH_CHATS]: (data: Message[]) => {
+        // logger.log(data, "chats dataaaa.... new wala...");
+        if (!data) {
+          return;
+        }
+        if (!user_id) return;
+        refetchChat(dispatch, data, id, user_id, chatDetails, socket, cursor);
+      },
+
+      [MESSAGE_REACTION]: (data: message_reactions) => {
+        if (!data || !user_id) {
+          return;
+        }
+        reactMessage(dispatch, data, id);
+      },
+      [MESSAGE_SEEN]: (data: seen_user[]) => {
+        if (!data) {
+          return;
+        }
+        seenMessage(dispatch, id, data);
+      },
+
+      [EDIT_MESSAGE]: (data: Message) => {
+        logger.log(data, "data from edit message ");
+        editMessage(dispatch, id, data);
+      },
+    }),
+    [dispatch, id, socket, user_id, chatDetails, cursor],
+  );
+
+  useSocketEvents(socket, handler);
+
+
   if (isLoading) {
     return (
       <div className="h-screen w-full flex flex-col justify-center items-center">

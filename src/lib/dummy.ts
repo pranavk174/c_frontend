@@ -1,4 +1,4 @@
-import { Dispatch, RefObject, SetStateAction } from "react";
+import { Dispatch, ReactElement, RefObject, SetStateAction } from "react";
 
 export interface errors {
   error?: string;
@@ -324,5 +324,21 @@ export interface mediaUploads {
   uploadChunks: (id: string) => Promise<void>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   file?: File | null;
+
+}
+
+export type activeTypes = 'include' | 'exclude' | 'everyone' | null
+
+export interface optionsProps {
+  Logo: ReactElement
+  label: string,
+  type: activeTypes
+}
+export interface Props extends optionsProps {
+  active: activeTypes
+  onClickHandeler: (data: activeTypes) => void
+  setSelected: React.Dispatch<React.SetStateAction<number[]>>
+  selected: number[]
+  users: User[]
 
 }

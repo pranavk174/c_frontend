@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useMemo, useRef } from "react";
+import React, { Dispatch, memo, SetStateAction, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Chat, ChatItem, Message, MessageItem } from "@/lib/dummy";
 import {
@@ -318,4 +318,4 @@ const Messages = ({
   );
 };
 
-export default Messages;
+export default memo(Messages);

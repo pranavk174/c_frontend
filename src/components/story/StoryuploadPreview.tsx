@@ -6,6 +6,7 @@ import { useCreateStoryMutation } from "@/redux/Apis/Story";
 import Image from "next/image";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { logger } from "@/lib/utils";
+import SpinLoader from "../Utility/SpinLoader";
 
 
 interface PreviewProps {
@@ -21,7 +22,8 @@ export default function WhatsAppStoryPreview({
 }: PreviewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [textData, setTextData] = useState<string>("");
-  const [createStory] = useCreateStoryMutation();
+  const [loading, setLoading] = useState(false)
+  const [createStory, { isLoading }] = useCreateStoryMutation();
   // File -> Preview URL
   const previewFiles = useMemo(() => {
     return files.map((file) => ({
@@ -46,7 +48,9 @@ export default function WhatsAppStoryPreview({
 
   const handleCreateStory = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    setLoading(true)
     try {
+
       const urls = await Promise.all(
         files.map((file) => {
           return uploadImage(file);
@@ -66,6 +70,8 @@ export default function WhatsAppStoryPreview({
       }
     } catch (error) {
       logger.log("error in creating story", error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -173,9 +179,10 @@ export default function WhatsAppStoryPreview({
 
             <button
               onClick={handleCreateStory}
-              className="w-14 h-14 rounded-full bg-wa-primary flex items-center justify-center text-black text-2xl"
+              disabled={loading || isLoading}
+              className="w-14 h-14 rounded-full bg-wa-primary disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center text-black text-2xl"
             >
-              ↑
+              {isLoading || loading ? <SpinLoader height={"20px"} width={"20px"} /> : "↑"}
             </button>
           </div>
         </div>

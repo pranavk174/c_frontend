@@ -10,43 +10,73 @@ const isDev =
 
 /* eslint-disable no-console */
 
+// export const logger = {
+//   error: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.error("[ERROR]", ...args);
+//     }
+//     // Add error tracking service calls here (Sentry, etc.)
+//   },
+
+//   warn: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.warn("[WARN]", ...args);
+//     }
+//   },
+
+//   info: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.info("[INFO]", ...args);
+//     }
+//   },
+
+//   debug: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.debug("[DEBUG]", ...args);
+//     }
+//   },
+//   dir: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.dir("[DEBUG]", ...args);
+//     }
+//   },
+//   log: (...args: unknown[]) => {
+//     if (isDev) {
+//       console.log("[log]", ...args);
+//     }
+//   },
+// };
+
+const noop = () => null
+
 export const logger = {
-  error: (...args: unknown[]) => {
-    if (isDev) {
-      console.error("[ERROR]", ...args);
-    }
-    // Add error tracking service calls here (Sentry, etc.)
-  },
+  debug: isDev
+    ? console.debug.bind(console, "[DEBUG]")
+    : noop,
 
-  warn: (...args: unknown[]) => {
-    if (isDev) {
-      console.warn("[WARN]", ...args);
-    }
-  },
+  info: isDev
+    ? console.info.bind(console, "[INFO]")
+    : noop,
 
-  info: (...args: unknown[]) => {
-    if (isDev) {
-      console.info("[INFO]", ...args);
-    }
-  },
+  warn: isDev
+    ? console.warn.bind(console, "[WARN]")
+    : noop,
 
-  debug: (...args: unknown[]) => {
-    if (isDev) {
-      console.debug("[DEBUG]", ...args);
-    }
-  },
-  dir: (...args: unknown[]) => {
-    if (isDev) {
-      console.dir("[DEBUG]", ...args);
-    }
-  },
-  log: (...args: unknown[]) => {
-    if (isDev) {
-      console.log("[log]", ...args);
-    }
-  },
+  error: isDev
+    ? console.error.bind(console, "[ERROR]")
+    : noop,
+
+  log: isDev
+    ? console.log.bind(console, "[LOG]")
+    : noop,
+
+  dir: isDev
+    ? console.dir.bind(console)
+    : noop,
+  count: isDev
+    ? console.count.bind(console)
+    : noop,
 };
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -161,14 +191,14 @@ export const asyncHandler =
       onFinally?: () => void;
     },
   ) =>
-  async (...args: Args): Promise<R | undefined> => {
-    try {
-      return await fn(...args);
-    } catch (error) {
-      options?.onError?.(error);
-      logger.debug("async handler error", error);
-      return undefined;
-    } finally {
-      options?.onFinally?.();
-    }
-  };
+    async (...args: Args): Promise<R | undefined> => {
+      try {
+        return await fn(...args);
+      } catch (error) {
+        options?.onError?.(error);
+        logger.debug("async handler error", error);
+        return undefined;
+      } finally {
+        options?.onFinally?.();
+      }
+    };

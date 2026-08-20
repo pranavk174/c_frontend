@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,13 +9,13 @@ import { Chat } from "@/lib/dummy";
 import { RootState } from "@/redux/store";
 import {
   MessageSquare,
-  MoreVertical,
   Search,
   Filter,
   CircleDashed,
   Bell,
   Menu,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { modalValue, valueProps } from "@/lib/dummy";
 import { asyncHandler, cn } from "@/lib/utils";
@@ -23,7 +23,6 @@ import {
   useGetUserQuery,
   useGetUsersQuery,
   useLogoutMutation,
-  useUpdatePreferenceMutation,
 } from "@/redux/Apis/Users";
 import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
@@ -34,14 +33,11 @@ import {
   NotificationApi,
   useGetNotificationsQuery,
 } from "@/redux/Apis/Notification";
-import { useToast } from "./Utility/Toast";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { addUser } from "@/redux/slices/User";
 import { NEW_MESSAGE_ALERT, SEEN_NOTIFICATION } from "@/lib/events";
 import { useSocket } from "@/layouts/SocketWrapper";
-import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
-import SoundToggle from "./Utility/Togglebuton";
 import DarkthemeToggle from "./Utility/DarkthemeToggle";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/utils";
@@ -51,23 +47,16 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<valueProps>(modalValue);
   const [expanded, setExpanded] = useState<boolean>(true);
-
-  const [current, setCurrent] = useState<"chats" | "newChat" | "stories">(
-    "chats",
-  );
   const [searchQuery, setSearchQuery] = useState("");
-  const { chatSocket: socket, notificationSocket } = useSocket();
+  const { chatSocket: socket } = useSocket();
   const dispatch = useAppDispatch();
-  const { showToast } = useToast();
 
   const route = useRouter();
   const { user } = useGetUserQuery(null, {
-    selectFromResult: ({ data, isLoading, isSuccess }) => {
-      // logger.log(data?.getUser?.data, "user dataaaaaaaaaaaa");
+    selectFromResult: ({ data, isLoading }) => {
       return {
         user: data?.data?.getUser?.data,
         isLoading,
-        isSuccess,
       };
     },
   });
@@ -96,7 +85,7 @@ export default function Sidebar() {
   });
 
   const { users } = useGetUsersQuery(null, {
-    selectFromResult: ({ data, isSuccess }) => {
+    selectFromResult: ({ data }) => {
       return {
         users: data?.data?.getUsers?.data?.items,
       };
@@ -126,16 +115,13 @@ export default function Sidebar() {
           }),
         );
       },
-      [SEEN_NOTIFICATION]: (data: any) => {
+      [SEEN_NOTIFICATION]: () => {
         dispatch(
           NotificationApi.util.updateQueryData(
             "getNotifications",
             null,
             (draft) => {
               draft.data.getNotification.data.items = [];
-              // if (notification) {
-              //   notification.isSeen = data.isSeen
-              // }
             },
           ),
         );
@@ -237,6 +223,14 @@ export default function Sidebar() {
             >
               <MessageSquare className="size-6" />
             </button>
+
+            <Link
+              href="/settings"
+              className={`p-3 rounded-full ${pathname.startsWith("/settings") && "bg-black/5 dark:bg-white/5"} hover:bg-black/5 dark:hover:bg-white/5 transition`}
+            >
+              <Settings className="size-6" />
+            </Link>
+
             <button
               onClick={() => setExpanded((p) => !p)}
               className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
@@ -244,7 +238,7 @@ export default function Sidebar() {
               <Menu className="size-6" />
             </button>
 
-            <DarkthemeToggle />
+
           </div>
           <button
             onClick={handleLogout}
@@ -288,84 +282,84 @@ export default function Sidebar() {
         <div className="flex mt-2  flex-col relative overflow-y-auto overflow-x-hidden  gap-1 h-full ">
           {chatsLoading
             ? [...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="animate-pulse flex space-x-4 px-4 py-3 rounded-md"
-                >
-                  <div className="rounded-full bg-gray-200 dark:bg-gray-700 size-12"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  </div>
+              <div
+                key={i}
+                className="animate-pulse flex space-x-4 px-4 py-3 rounded-md"
+              >
+                <div className="rounded-full bg-gray-200 dark:bg-gray-700 size-12"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                 </div>
-              ))
+              </div>
+            ))
             : filteredChats?.map((chat: Chat) => {
-                const isActive = pathname === `/chat/${chat?.chat_id}`;
-                // logger.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
-                return (
-                  <Link
-                    className=" overflow-hidden"
-                    href={`/chat/${chat?.chat_id}?chat_type=${chat.chat_type}`}
-                    key={chat?.chat_id}
+              const isActive = pathname === `/chat/${chat?.chat_id}`;
+              // logger.log(chat?.chat_id, "royeeeeeetttee", onlineUsers.includes(String(chat.user_id)), chat)
+              return (
+                <Link
+                  className=" overflow-hidden"
+                  href={`/chat/${chat?.chat_id}?chat_type=${chat.chat_type}`}
+                  key={chat?.chat_id}
+                >
+                  <div
+                    className={cn(
+                      " flex flex-col md:flex-row items-center rounded-md px-4  py-3 hover:bg-wa-header dark:hover:bg-gray-600 cursor-pointer transition-colors",
+                      isActive && "bg-wa-header dark:bg-gray-600",
+                    )}
                   >
-                    <div
-                      className={cn(
-                        " flex flex-col md:flex-row items-center rounded-md px-4  py-3 hover:bg-wa-header dark:hover:bg-gray-600 cursor-pointer transition-colors",
-                        isActive && "bg-wa-header dark:bg-gray-600",
+                    <div className="relative size-12   mr-4 shrink-0 overflow-hidden">
+                      <Image
+                        priority
+                        fill
+                        sizes="48px"
+                        src={chat?.profile_pic}
+                        alt={chat?.name}
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                      {chat.user_id !== null && (
+                        <span
+                          className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
+                        ></span>
                       )}
-                    >
-                      <div className="relative size-12   mr-4 shrink-0 overflow-hidden">
-                        <Image
-                          priority
-                          fill
-                          sizes="48px"
-                          src={chat?.profile_pic}
-                          alt={chat?.name}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                        {chat.user_id !== null && (
-                          <span
-                            className={`size-2.5 ${onlineUsers.includes(String(chat.user_id)) || chat.isOnline ? "block" : "invisible"} absolute bottom-1 right-0  bg-green-400 rounded-[50%]`}
-                          ></span>
+                    </div>
+                    <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="text-base words-break text-wrap  font-normal text-gray-900 dark:text-gray-100 truncate">
+                          {chat?.name}
+                        </h3>
+                        <span
+                          className={cn(
+                            "text-xs whitespace-nowrap",
+                            chat.unread_count > 0
+                              ? "text-wa-primary dark:text-wa-primary-dark font-medium"
+                              : "text-gray-500 dark:text-gray-400",
+                          )}
+                        >
+                          {/* {Date(chat?.last_message_at)} */}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
+                          {chat?.last_message &&
+                            chat?.last_message.length > 10
+                            ? `${chat?.last_message.substring(0, 10)}...`
+                            : chat.last_message}
+                        </p>
+                        {chat?.unread_count > 0 && (
+                          <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
+                            {chat?.unread_count}
+                          </span>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0  border-wa-divider dark:border-wa-divider-dark pb-3">
-                        <div className="flex justify-between items-center mb-1">
-                          <h3 className="text-base words-break text-wrap  font-normal text-gray-900 dark:text-gray-100 truncate">
-                            {chat?.name}
-                          </h3>
-                          <span
-                            className={cn(
-                              "text-xs whitespace-nowrap",
-                              chat.unread_count > 0
-                                ? "text-wa-primary dark:text-wa-primary-dark font-medium"
-                                : "text-gray-500 dark:text-gray-400",
-                            )}
-                          >
-                            {/* {Date(chat?.last_message_at)} */}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm text-gray-500 dark:text-gray-400 truncate pr-2">
-                            {chat?.last_message &&
-                            chat?.last_message.length > 10
-                              ? `${chat?.last_message.substring(0, 10)}...`
-                              : chat.last_message}
-                          </p>
-                          {chat?.unread_count > 0 && (
-                            <span className="bg-wa-primary dark:bg-wa-primary-dark text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                              {chat?.unread_count}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        {/* <span>{chat?.last_message_at?.toLocaleString()}</span> */}
-                      </div>
                     </div>
-                  </Link>
-                );
-              })}
+                    <div>
+                      {/* <span>{chat?.last_message_at?.toLocaleString()}</span> */}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
         </div>
       </div>
       {/* )} */}

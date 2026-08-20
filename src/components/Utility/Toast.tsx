@@ -17,6 +17,7 @@ import {
     AlertCircle,
     X,
 } from "lucide-react";
+import { logger } from "@/lib/utils";
 
 // =========================
 // TYPES
@@ -151,6 +152,7 @@ export const ToastProvider = ({
         ];
 
 
+    logger.count("toast socket re render....")
 
     useEffect(() => {
         registerToast(showToast);

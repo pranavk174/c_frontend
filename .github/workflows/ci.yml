@@ -8,15 +8,12 @@ on:
     branches:
       - main
 
-
 jobs:
   builds:
-
     if: contains(github.event.head_commit.message, 'prod-deploy')
     runs-on: ubuntu-latest
 
     steps:
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
@@ -24,7 +21,7 @@ jobs:
           node-version: 24
 
       - uses: pnpm/action-setup@v3
-        with: 
+        with:
           version: 8
 
       - name: Install pnpm
@@ -32,13 +29,13 @@ jobs:
 
       - name: Clean project
         run: |
-              [ -d node_modules ] && rm -rf node_modules
-              [ -d .next ] && rm -rf .next
-              [ -f pnpm-lock.yaml ] && rm -f pnpm-lock.yaml
+          [ -d node_modules ] && rm -rf node_modules
+          [ -d .next ] && rm -rf .next
+          [ -f pnpm-lock.yaml ] && rm -f pnpm-lock.yaml
 
       - name: Install Dependecies
         run: pnpm i
-      
+
       - name: Build Run
         run: pnpm run build
 
@@ -48,7 +45,3 @@ jobs:
       - name: Deploy to Vercel
         if: github.ref == 'refs/heads/main'
         run: vercel --prod --yes --token=${{secrets.VERCEL_TOKEN}}
-
-
-
-
