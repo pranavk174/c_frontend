@@ -1,15 +1,12 @@
 "use client";
-
-import Image from "next/image";
 import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 
-import { Camera, Pencil, Check, X, Ban } from "lucide-react";
+import { Pencil, Check, X, Ban } from "lucide-react";
 
 import { profileProps, socketResponse, valueProps } from "@/lib/dummy";
-import SoundToggle from "../Utility/Togglebuton";
+
 import {
   useUnBlockUserMutation,
-  useUpdatePreferenceMutation,
   useUpdateUserMutation,
 } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
@@ -17,17 +14,15 @@ import { CHAT_JOINED } from "@/lib/events";
 
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
-import { uploadImage } from "@/lib/utils";
+
 import Uploader from "../Utility/Uploader";
 import { useSearchParams } from "next/navigation";
 import { logger } from "@/lib/utils";
-
 
 interface whatsappProfileProps {
   profile: profileProps;
   isUser: boolean;
   loading?: boolean;
-
   setOpen: Dispatch<SetStateAction<valueProps>>;
   onSave?: (data: whatsappProfileProps["profile"]) => void;
 }
@@ -42,16 +37,12 @@ const WhatsappProfile = ({
   const [editField, setEditField] = useState<
     "name" | "bio" | "profile_pic" | "cover_pic" | null
   >(null);
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.classList.contains("dark");
-  });
 
   const [formData, setFormData] = useState(profile);
 
   const { chatSocket: socket, notificationSocket } = useSocket();
-  const [updateUser] = useUpdateUserMutation();
-  const [unBlockUser] = useUnBlockUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [unBlockUser, { isLoading: isUnblocking }] = useUnBlockUserMutation();
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
@@ -92,7 +83,6 @@ const WhatsappProfile = ({
     // onSave?.(formData);
   };
 
-
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, checked } = e.target;
     setFormData({
@@ -111,6 +101,10 @@ const WhatsappProfile = ({
           logger.log("user joined ", response);
         },
       );
+      setOpen({
+        type: "null",
+        open: false,
+      });
     } catch (error) {
       logger.log(error, "error in unblocking...");
     }
@@ -123,8 +117,8 @@ const WhatsappProfile = ({
       {/* PROFILE IMAGE */}
 
       <div className="flex flex-col items-center justify-center border-b border-white/5">
-        <div className="relative h-[220px] w-full">
-          <div className="h-[60px] relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
+        <div className="relative h-55 w-full">
+          <div className="h-15 relative z-1  bg-transparent flex justify-between items-center px-5 text-lg font-semibold">
             Profile
             <button
               onClick={() =>
@@ -167,13 +161,14 @@ const WhatsappProfile = ({
               disabled={editField !== "name"}
               value={formData?.name ?? ""}
               onChange={handleChange}
-              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${editField === "name" ? "border-b border-wa-primary pb-1" : ""
-                }`}
+              className={`flex-1 bg-transparent outline-none text-[clamp(16px,4vw,16px)] ${
+                editField === "name" ? "border-b border-wa-primary pb-1" : ""
+              }`}
             />
 
             {editField === "name" ? (
               <div className="flex items-center gap-2">
-                <button disabled={loading} onClick={handleSave}>
+                <button disabled={isUpdating} onClick={handleSave}>
                   <Check className="w-5 h-5 text-wa-primary" />
                 </button>
 
@@ -224,13 +219,14 @@ const WhatsappProfile = ({
                 disabled={editField !== "bio"}
                 value={formData?.bio || ""}
                 onChange={handleChange}
-                className={`w-full bg-transparent outline-none wrap-break-word  text-[clamp(16px,4vw,16px)] ${editField === "bio" ? "border-b border-wa-primary pb-1" : ""
-                  }`}
+                className={`w-full bg-transparent outline-none wrap-break-word  text-[clamp(16px,4vw,16px)] ${
+                  editField === "bio" ? "border-b border-wa-primary pb-1" : ""
+                }`}
               />
 
               {editField === "bio" ? (
                 <div className="flex items-center gap-2">
-                  <button disabled={loading} onClick={handleSave}>
+                  <button disabled={isUpdating} onClick={handleSave}>
                     <Check className="w-5 h-5 text-wa-primary" />
                   </button>
 
@@ -256,17 +252,6 @@ const WhatsappProfile = ({
 
           <div className=" text-[clamp(16px,4vw,16px)]">{formData?.mobile}</div>
         </div>
-
-        <div
-          className={`px-6 py-5 ${isUser || chat_type !== "group" ? "" : "hidden invisisble"
-            }`}
-        >
-          <div className="text-wa-primary text-sm mb-3">Theme</div>
-
-          <div className={` transform-content rotate-180 text-[clamp(16px,4vw,16px)]`}>
-
-          </div>
-        </div>
       </div>
 
       <div
@@ -274,16 +259,20 @@ const WhatsappProfile = ({
       >
         <button
           onClick={handleSave}
-          className={`bg-green-400 max-w-[150px] w-full mx-auto py-2 rounded-md text-center  ${editField ? "block" : "invisible hidden"} `}
+          disabled={isUpdating}
+          className={`bg-green-400 max-w-37.5 w-full mx-auto py-2 rounded-md text-center  ${editField ? "block" : "invisible hidden"} `}
         >
           Save
         </button>
-        <button
-          onClick={handleUnblock}
-          className={`p-2 flex  items-center max-w-[150px] w-full mx-auto py-2 rounded-md text-center justify-between text-[clamp(16px,4vw,16px)]  ${formData?.blocked ? "block" : "invisible hidden"} text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition`}
-        >
-          Unblock User <Ban className="w-4 h-4" />
-        </button>
+        {formData?.blocked && (
+          <button
+            onClick={handleUnblock}
+            disabled={isUnblocking}
+            className={`p-2 flex cursor-pointer  max-w-[150px] gap-1 items-center  w-full mx-auto py-2 rounded-md text-center justify-center text-[clamp(16px,4vw,16px)]  ${formData?.blocked ? "block" : "invisible hidden"} text-red-400 cursor-pointer  hover:bg-black/5 dark:hover:bg-white/5 transition`}
+          >
+            Unblock User <Ban className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );
