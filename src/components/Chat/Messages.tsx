@@ -11,7 +11,10 @@ import { Reply, CheckCheck, Check, Smile } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/utils";
-
+import { useSendMediaMessage } from "@/lib/useSendMessage";
+import { useAppDispatch } from "@/lib/hooks";
+import { setReplyMessage } from "@/redux/slices/ChatSlice";
+import { useChat } from "@/Context/ChatContext";
 
 type emoji = {
   react_id: number;
@@ -22,18 +25,7 @@ interface messageProps {
   emojis: emoji[];
   msg: MessageItem;
   user_id: number | null;
-  // data: Message[];
-  // mappedMessages: Map<number, Message>;
-  setReplyMessage: React.Dispatch<React.SetStateAction<MessageItem | null>>;
   repliedMessage?: Message | null | undefined;
-  cancelUpload: () => Promise<"success" | undefined>;
-  uploadChunks: (id: string) => Promise<void>;
-
-  pausedRef: React.RefObject<boolean>;
-
-  progress: number;
-  uploadId: string;
-  chatDetails: Chat;
 }
 
 const Messages = ({
@@ -43,15 +35,8 @@ const Messages = ({
   emojis,
   user_id,
 
-  setReplyMessage,
-
-  uploadChunks,
-  chatDetails,
-  pausedRef,
-  progress,
-  uploadId,
   repliedMessage,
-  cancelUpload,
+  // cancelUpload,
 }: messageProps) => {
   const x = useMotionValue(0);
   const triggered = useRef(false);
@@ -59,14 +44,13 @@ const Messages = ({
   // logger.log("messages  triggereddddddddd");
 
   const router = useRouter();
-
-  //
+  const dispatch = useAppDispatch();
 
   const handleDragEnd = () => {
     if (x.get() > 90 && !triggered.current) {
       triggered.current = true;
 
-      setReplyMessage(msg);
+      dispatch(setReplyMessage(msg));
 
       setTimeout(() => {
         triggered.current = false;
@@ -84,6 +68,14 @@ const Messages = ({
 
   const repliedStory = msg.story_id ? msg.story_item : null;
 
+  const {
+    continueUpload,
+    chatDetails,
+    cancelUpload,
+    pausedRef,
+    progress,
+    uploadId,
+  } = useChat();
   // logger.log(repliedMessage, "replite message/...")
 
   return (
@@ -246,7 +238,7 @@ const Messages = ({
                           // onClick={() => ()}
                           onClick={() => {
                             pausedRef.current = false;
-                            uploadChunks(uploadId);
+                            continueUpload(uploadId);
                           }}
                           className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition"
                         >

@@ -28,14 +28,13 @@ import SpinLoader from "../Utility/SpinLoader";
 import MessageBox from "./MessageBox";
 import { logger } from "@/lib/utils";
 
-
 const VirtualChatlistGrouped = memo(
   ({
-    cancelUpload,
-    uploadChunks,
-    pausedRef,
-    progress,
-    uploadId,
+    // cancelUpload,
+    // uploadChunks,
+    // pausedRef,
+    // progress,
+    // uploadId,
     setMenu,
     chat_id,
     setSelectedMessages,
@@ -51,10 +50,10 @@ const VirtualChatlistGrouped = memo(
 
     emojis,
     user_id,
-    setShow,
+    // setShow,
 
     setReplyMessage,
-    show,
+    // show,
   }: chatListProps) => {
     const { chatSocket: socket, notificationSocket } = useSocket();
     const parentRef = React.useRef<HTMLDivElement | null>(null);
@@ -368,8 +367,8 @@ const VirtualChatlistGrouped = memo(
               const repliedMessage =
                 msg.reply_to_message_id !== null
                   ? (messages?.find(
-                    (md) => md.id === msg.reply_to_message_id,
-                  ) ?? null)
+                      (md) => md.id === msg.reply_to_message_id,
+                    ) ?? null)
                   : null;
               // logger.log(msg, "msggggggg");
 
@@ -398,24 +397,24 @@ const VirtualChatlistGrouped = memo(
                     // startUpload={startUpload}
                     // mappedMessages={messageMap}
                     setActive={setActive}
-                    show={show}
+                    // show={show}
                     selectionMode={selectionMode}
                     toggleSelection={toggleSelection}
                     isSelected={isSelected}
                     user_id={user_id}
                     active={active}
-                    setShow={setShow}
+                    // setShow={setShow}
                     repliedMessage={repliedMessage}
                     handleLike={handleLike}
-                    pausedRef={pausedRef}
-                    progress={progress}
-                    uploadId={uploadId}
-                    uploadChunks={uploadChunks}
+                    // pausedRef={pausedRef}
+                    // progress={progress}
+                    // uploadId={uploadId}
+                    // uploadChunks={uploadChunks}
                     chatDetails={chatDetails}
-                    cancelUpload={cancelUpload}
+                    // cancelUpload={cancelUpload}
                     // data={data}
                     icons={icons}
-                    setReplyMessage={setReplyMessage}
+                    // setReplyMessage={setReplyMessage}
                     emojis={emojis}
                   />
                 </div>

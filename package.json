@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "setup": "pnpm i && pnpm run dev",
-    "build": "next build",
+    "build": "tsc --noEmit && next build",
     "start": "NODE_ENV=production tsx server.ts",
     "lint": "eslint",
     "prepare": "husky"

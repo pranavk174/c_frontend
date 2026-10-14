@@ -7,13 +7,11 @@ import Image from "next/image";
 const MediaPreviewContent = ({
   file,
   onSend,
-  setInputText,
+
   inputRef,
 }: {
   file: File;
-  // inputText: string,
   inputRef: RefObject<HTMLInputElement | null>;
-  setInputText: Dispatch<SetStateAction<string>>;
   onSend: (data: { file: File; caption: string }) => void;
 }) => {
   const [caption, setCaption] = useState("");
@@ -40,7 +38,7 @@ const MediaPreviewContent = ({
           <input
             type="text"
             placeholder="Add a caption..."
-            // ref={inputRef}
+            ref={inputRef}
             // value={caption}
             onChange={(e) => {
               if (inputRef.current) inputRef.current.value = e.target.value;

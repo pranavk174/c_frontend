@@ -75,6 +75,10 @@ import Loader from "@/components/Utility/Loader";
 import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
 
 import { logger } from "@/lib/utils";
+import { useUpload } from "@/lib/useUploadHook";
+import { useSendMessage } from "@/lib/useSendMessage";
+import { setTyping } from "@/redux/slices/ChatSlice";
+import { ChatProvider, useChat } from "@/Context/ChatContext";
 
 interface mediaProps {
   file_name: string;
@@ -86,16 +90,16 @@ interface mediaProps {
 const ChatPage = ({ id }: { id: number }) => {
   const [show, setShow] = useState<number | string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [uploadId, setUploadId] = useState<string>("");
-  const [currentChunk, setCurrentChunk] = useState(0);
+  // const [file, setFile] = useState<File | null>(null);
+  // const [progress, setProgress] = useState(0);
+  // const [uploadId, setUploadId] = useState<string>("");
+  // const [currentChunk, setCurrentChunk] = useState(0);
   const controllerRef = useRef<AbortController | null>(null);
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
   const [sendMessage] = useSendMessageMutation();
   const CHUNK_SIZE = 1024 * 1024;
-  const pausedRef = useRef(false);
+  // const pausedRef = useRef(false);
 
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
 
@@ -110,14 +114,14 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const { chatSocket: socket, notificationSocket } = useSocket();
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [typing, setTyping] = useState<boolean>(false);
+  // const messagesEndRef = useRef<HTMLDivElement>(null);
+  // const [typing, setTyping] = useState<boolean>(false);
   const [menu, setMenu] = useState(false);
-  const [inputText, setInputText] = useState("");
+
   const inputRef = useRef<HTMLInputElement>(null);
-  // const resolvedParams = use(params);
-  const { showToast } = useToast();
+
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
+  const { typing } = useSelector((state: RootState) => state.ChatSlice);
 
   const { data: chatDetails } = useGetAllChatsQuery(
     {},
@@ -138,7 +142,6 @@ const ChatPage = ({ id }: { id: number }) => {
   const {
     data: messages,
     groupedMessages,
-    mappedMessages,
     isLoading,
     isFetching,
     nextCursor,
@@ -234,7 +237,6 @@ const ChatPage = ({ id }: { id: number }) => {
     },
   );
 
-  // logger.debug(file, "file data media");
   const { members, memberIds } = useGetMembersQuery(
     { chat_id: id },
     {
@@ -251,12 +253,6 @@ const ChatPage = ({ id }: { id: number }) => {
       skip: chat_type !== "group",
     },
   );
-  // const chat = messages;
-
-  // logger.log(messages, "messagessss");
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messagesEndRef]);
 
   const bottomRef = useRef(null);
   useEffect(() => {
@@ -285,316 +281,6 @@ const ChatPage = ({ id }: { id: number }) => {
         chatContainerRef.current.scrollHeight;
     }
   }, [messages, nextCursor]);
-
-  const handleSendMessage = useCallback(
-    async (e: React.FormEvent | mediaProps) => {
-      const input = inputRef.current;
-
-      if (!socket || !input) {
-        logger.debug(socket, input, "logger in handkesend message");
-        return;
-      }
-
-      // const content = input.value.trim();
-
-      // if (!content && "preventDefault" in e) return;
-
-      if ("preventDefault" in e) {
-        logger.log("gotr issueeee");
-        e.preventDefault();
-      } else if (!e.url || !socket) {
-        return;
-      }
-
-      // logger.log(chatDetails, "input text rfwaaaal");
-      const newMessage = {
-        chat_ids: [id],
-        content: input.value,
-        media: "preventDefault" in e ? [] : [e],
-        reciever_ids: chat_type === "group" ? memberIds : [chatDetails.user_id],
-        message_ids: [replyMessage?.id],
-      };
-
-      let patchResult = null;
-      let chatPatchResult = null;
-      if ("preventDefault" in e) {
-        patchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            addMessage(input.value, user_id ?? 2, replyMessage),
-          ),
-        );
-        chatPatchResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getAllChats",
-            {},
-            updateAllChatcache(id, input.value),
-          ),
-        );
-      }
-
-      try {
-        if (replyMessage !== null) {
-          socket.emit(REPLY_MESSAGE, newMessage, (response: socketResponse) => {
-            // agar backend fail
-            if (!response.success) {
-              // rollback
-              patchResult?.undo();
-              chatPatchResult?.undo();
-              logger.log(response, "callback response");
-            }
-
-            if (response.data) {
-              dispatch(
-                chatApi.util.updateQueryData(
-                  "getSingleChat",
-                  { chat_ids: [id] },
-                  updateMessage(response?.data?.message?.id),
-                ),
-              );
-            } else {
-              logger.log(
-                response,
-                "callback response outside",
-                "data" in response,
-              );
-            }
-            logger.log(response?.data?.message?.id, "mesage id ...");
-          });
-          logger.log("messege repliy sent...");
-
-          // await replyToMessage(newMessage).unwrap();
-          setReplyMessage(null);
-        } else {
-          socket.emit(SEND_MESSAGE, newMessage, (response: socketResponse) => {
-            // agar backend fail
-            if (!response.success) {
-              // rollback
-              patchResult?.undo();
-              chatPatchResult?.undo();
-              logger.log(response, "callback response");
-            }
-            if (response.data) {
-              dispatch(
-                chatApi.util.updateQueryData(
-                  "getSingleChat",
-                  { chat_ids: [id] },
-                  updateMessage(response?.data?.message?.id),
-                ),
-              );
-            }
-            logger.log(response, "callback response outside");
-          });
-          logger.log("messege sent...");
-          // await sendMessage(newMessage).unwrap();
-        }
-
-        scrollToBottom();
-      } catch (error) {
-        // showToast("error some thin went wrong", "error")
-
-        logger.log(error, "error in sending message");
-      }
-
-      // setMessages([...messages, newMessage]);
-      setInputText("");
-      // inputRef.current = null
-      if (input) input.value = "";
-      // inputRef.current = null
-      // }
-    },
-    [
-      id,
-      chat_type,
-      dispatch,
-      memberIds,
-      replyMessage,
-      // inputText,
-      chatDetails,
-      socket,
-      scrollToBottom,
-      user_id,
-    ],
-  );
-
-  const uploadChunks = useCallback(
-    async (id: string) => {
-      try {
-        if (!file) return;
-        const totalChunk = Math.ceil(file.size / CHUNK_SIZE);
-
-        for (let i = currentChunk; i < totalChunk; i++) {
-          if (pausedRef.current === true) {
-            return;
-          }
-
-          const chunk = file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-          //  logger.log();
-          const form = new FormData();
-          form.append("uploadId", id);
-          form.append("chunk", chunk);
-          form.append("index", i.toString());
-
-          await fetch(
-            `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/upload`,
-            {
-              method: "POST",
-              body: form,
-              signal: controllerRef.current?.signal,
-            },
-          );
-          setCurrentChunk(i + 1);
-          setProgress(Math.round(((i + 1) / totalChunk) * 100));
-        }
-
-        const done = await fetch(
-          `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/finish`,
-          {
-            method: "POST",
-            headers: { "Content-type": "application/json" },
-            body: JSON.stringify({
-              uploadId: id,
-              extension: file.name.split(".").pop(),
-            }),
-          },
-        );
-
-        if (done.ok) {
-          const result = await done.json();
-
-          const media = {
-            file_name: "imagefile",
-            url: result.data.url,
-            file_type: result.data.resource_type,
-            file_size: result.data.bytes.toString(),
-          };
-
-          await handleSendMessage(media);
-
-          logger.log(result);
-          // alert("upload completed");
-        } else {
-          alert("error in uploading");
-        }
-      } catch (error) {
-        // alert("error in uploading");
-        logger.log(error, "error in uploaddd.");
-        showToast("error in uploading", "error");
-        // setMessages((prev) =>
-        //   prev.filter((p) => p.id !== prev[prev.length - 1].id),
-        // );
-        dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [id] },
-            (draft) => {
-              const items = draft?.data?.getChatById?.data?.items;
-
-              if (!items) return;
-              draft.data.getChatById.data.items = items.filter(
-                (p: Message) => p.id !== items[items.length - 1].id,
-              );
-              // items.filter((p) => p.id !== items[items.length - 1].id);
-              // update existing
-            },
-          ),
-        );
-      }
-      setProgress(0);
-      setInputText("");
-      setUploadId("");
-      setCurrentChunk(0);
-      inputRef.current = null;
-      setFile(null);
-      // setMessages(prev => prev.filter(pf => pf.id !== prev[prev.length - 1].id))
-    },
-    [file, CHUNK_SIZE, currentChunk, showToast, handleSendMessage, dispatch],
-  );
-  const startUpload = useCallback(async () => {
-    // debugger;
-    if (!file || currentChunk > 0 || !user_id) {
-      logger.debug("data is bklank", file, currentChunk);
-      showToast("data file is blank", "warning");
-      return;
-    }
-
-    let pathResult;
-
-    const url = URL.createObjectURL(file);
-    if (inputRef.current) {
-      pathResult = dispatch(
-        chatApi.util.updateQueryData(
-          "getSingleChat",
-          { chat_ids: [id] },
-          addMessage(inputRef.current.value, user_id, replyMessage, url),
-        ),
-      );
-    }
-
-    // logger.log(messages, "messageeeeeeee", inputText)
-
-    try {
-      controllerRef.current = new AbortController();
-      const upload = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN + ":" + process.env.NEXT_PUBLIC_SELF_PORT}/api/upload/start`,
-        {
-          method: "POST",
-          headers: {
-            "Content-type": "application/json",
-          },
-        },
-      );
-
-      const data = await upload.json();
-      logger.log(data, "data....");
-      const uid = data.uploadId;
-      setUploadId(uid);
-
-      uploadChunks(uid);
-    } catch (error) {
-      pathResult?.undo();
-    }
-  }, [
-    currentChunk,
-    dispatch,
-    file,
-    // setMessages,
-    replyMessage,
-    id,
-    showToast,
-    user_id,
-    uploadChunks,
-    // inputText,
-  ]);
-
-  const cancelUpload = useCallback(async () => {
-    controllerRef.current?.abort();
-
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_DOMAIN}/api/upload/cancel`,
-        {
-          method: "POST",
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify({
-            uploadId: uploadId,
-          }),
-        },
-      );
-
-      setProgress(0);
-      setCurrentChunk(0);
-      setUploadId("");
-      if (res.ok) {
-        return "success";
-      }
-    } catch (error) {
-      //  logger.log(error, "errorrrrr");
-    }
-  }, [uploadId]);
 
   const handler = useMemo(
     () => ({
@@ -785,92 +471,73 @@ const ChatPage = ({ id }: { id: number }) => {
         selectedMessages={selectedMessages}
         chatDetails={chatDetails}
       />
-
-      <Suspense
-        fallback={
-          <div className="h-screen w-full flex  justify-center items-center">
-            <SpinLoader height={"50px"} width={"50px"} />
-          </div>
-        }
-      >
-        <VirtualChatlistGrouped
-          setSelectedMessages={setSelectedMessages}
-          setCursor={setCursor}
-          isFetching={isFetching}
-          data={groupedMessages}
-          nextCursor={nextCursor}
-          hasMore={hasMore}
-          setMenu={setMenu}
-          selectedMessages={selectedMessages}
-          pausedRef={pausedRef}
-          progress={progress}
-          uploadChunks={uploadChunks}
-          cancelUpload={cancelUpload}
-          startUpload={startUpload}
-          timerRef={timerRef}
-          emojis={emojis}
-          chat_id={id}
-          user_id={user_id}
-          setShow={setShow}
-          setReplyMessage={setReplyMessage}
-          uploadId={uploadId}
-          messages={messages}
-          setFile={setFile}
-          show={show}
-          menu={menu}
-          chatDetails={chatDetails}
-        />
-      </Suspense>
-
-      {typing && (
-        <div className="flex  items-center gap-1.5 px-6 py-2">
-          <div
-            className="flex items-center gap-1 px-3 py-2 rounded-2xl"
-            style={
-              {
-                // background: "rgba(255,255,255,0.07)",
-                // border: "1px solid rgba(255,255,255,0.08)",
-              }
+      <ChatProvider chatDetails={chatDetails}>
+        <>
+          {" "}
+          <Suspense
+            fallback={
+              <div className="h-screen w-full flex  justify-center items-center">
+                <SpinLoader height={"50px"} width={"50px"} />
+              </div>
             }
           >
-            <span className="text-xs text-slate-400  mr-1">Typing</span>
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className="typing-dot w-1.5 h-1.5  rounded-full bg-violet-400 inline-block"
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* <VirtualChatlist /> */}
-
-      {/* Input */}
-
-      <Inputbox
-        chatDetails={chatDetails}
-        replyMessage={replyMessage}
-        setReplyMessage={setReplyMessage}
-        setFile={setFile}
-        setInputText={setInputText}
-        // inputText={inputRef.current}
-        inputRef={inputRef}
-        file={file}
-        reciever_ids={
-          chat_type === "group" ? memberIds : [chatDetails?.user_id]
-        }
-        handleSendMessage={handleSendMessage}
-        // setMessages={setMessages}
-        scrollToBottom={scrollToBottom}
-        chat_id={id}
-        pausedRef={pausedRef}
-        progress={progress}
-        uploadId={uploadId}
-        uploadChunks={uploadChunks}
-        cancelUpload={cancelUpload}
-        startUpload={startUpload}
-      />
+            <VirtualChatlistGrouped
+              setSelectedMessages={setSelectedMessages}
+              setCursor={setCursor}
+              isFetching={isFetching}
+              data={groupedMessages}
+              nextCursor={nextCursor}
+              hasMore={hasMore}
+              setMenu={setMenu}
+              selectedMessages={selectedMessages}
+              // pausedRef={pausedRef}
+              // progress={progress}
+              // uploadChunks={uploadChunks}
+              // cancelUpload={cancelUpload}
+              // startUpload={startUpload}
+              timerRef={timerRef}
+              emojis={emojis}
+              chat_id={id}
+              user_id={user_id}
+              // setShow={setShow}
+              setReplyMessage={setReplyMessage}
+              // uploadId={uploadId}
+              messages={messages}
+              // setFile={setFile}
+              // show={show}
+              menu={menu}
+              chatDetails={chatDetails}
+            />
+          </Suspense>
+          {typing && (
+            <div className="flex  items-center gap-1.5 px-6 py-2">
+              <div
+                className="flex items-center gap-1 px-3 py-2 rounded-2xl"
+                style={
+                  {
+                    // background: "rgba(255,255,255,0.07)",
+                    // border: "1px solid rgba(255,255,255,0.08)",
+                  }
+                }
+              >
+                <span className="text-xs text-slate-400  mr-1">Typing</span>
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="typing-dot w-1.5 h-1.5  rounded-full bg-violet-400 inline-block"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          <Inputbox
+            messages={messages}
+            reciever_ids={
+              chat_type === "group" ? memberIds : [chatDetails?.user_id]
+            }
+          />
+        </>
+      </ChatProvider>
 
       <Modal values={showModal} setModal={setShowModal}>
         {showModal.type === "delete" && (

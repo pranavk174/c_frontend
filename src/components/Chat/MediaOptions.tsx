@@ -1,5 +1,5 @@
 "use client";
-
+import { useParams } from "next/navigation";
 import React, {
   Dispatch,
   RefObject,
@@ -8,7 +8,6 @@ import React, {
   useState,
 } from "react";
 import {
-  Paperclip,
   Image as Pic,
   FileText,
   Camera,
@@ -17,40 +16,32 @@ import {
   User,
 } from "lucide-react";
 import Uploader from "../Uploader/Uploader";
-import { mediaUploads, Message, modalValue, valueProps } from "@/lib/dummy";
+import { Message, modalValue, valueProps } from "@/lib/dummy";
 import Modal from "../HOComponents/Modal";
 import MediaPreviewContent from "../ModalChilds/MediaPreviewContent";
 
-interface mediaOptionsProps extends mediaUploads {
+interface mediaOptionsProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-
-  pausedRef: React.RefObject<boolean>;
-
-  progress: number;
-
-  uploadId: string;
   messages: Message[];
-  inputRef: RefObject<HTMLInputElement | null>;
-  setInputText: Dispatch<SetStateAction<string>>;
 }
 import { useToast } from "../Utility/Toast";
 import { logger } from "@/lib/utils";
+import { useChat } from "@/Context/ChatContext";
 
 const MediaOptions = ({
-  setInputText,
-  inputRef,
-  file,
   open,
 
-  setFile,
-  startUpload,
   setOpen,
 }: mediaOptionsProps) => {
   const [show, setShow] = useState<valueProps>(modalValue);
   const imageRef = useRef<HTMLInputElement>(null);
   const documentRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLInputElement>(null);
+
+  const { setFile, file, sendMedia, continueUpload, inputRef } = useChat();
+
+  logger.debug(inputRef, "inputREf....");
 
   const { showToast } = useToast();
 
@@ -196,17 +187,15 @@ const MediaOptions = ({
         {file && show.type === "preview" && (
           <MediaPreviewContent
             file={file}
-            // inputText={}
             inputRef={inputRef}
-            setInputText={setInputText}
-            onSend={(data) => {
-              startUpload();
-              // setInputText(data.caption);
-              // logger.log(data, "dataaa detailllllllll");
-              setShow({
-                type: null,
-                open: false,
-              });
+            onSend={async (data) => {
+              const res = await sendMedia();
+
+              if (res)
+                setShow({
+                  type: null,
+                  open: false,
+                });
             }}
           />
         )}

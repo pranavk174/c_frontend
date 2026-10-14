@@ -4,14 +4,12 @@ export interface errors {
   error?: string;
   message: string;
   success?: boolean;
-  status: number
-  code: string | number
-
+  status: number;
+  code: string | number;
 }
 
-
 export interface errorConfig {
-  data: errors | null
+  data: errors | null;
   status: number;
 }
 
@@ -57,7 +55,8 @@ export interface selectedProp {
   sender_id: number;
 }
 
-export interface chatListProps extends mediaUploads {
+export interface chatListProps {
+  // extends mediaUploads
   menu: boolean;
 
   setMenu: Dispatch<SetStateAction<boolean>>;
@@ -67,10 +66,10 @@ export interface chatListProps extends mediaUploads {
   setCursor: Dispatch<SetStateAction<number | null>>;
   // setSelected: Dispatch<SetStateAction<number[] | null>>;
   hasMore: boolean;
-  setShow: Dispatch<SetStateAction<string | number | null>>;
+  // setShow: Dispatch<SetStateAction<string | number | null>>;
   // setActive: Dispatch<SetStateAction<string | number | null>>;
   emojis: emoji[];
-  show: string | number | null;
+  // show: string | number | null;
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
   setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
@@ -82,10 +81,10 @@ export interface chatListProps extends mediaUploads {
 
   // setMessages?: Dispatch<SetStateAction<Message[]>>;
   messages: Message[];
-  pausedRef: React.RefObject<boolean>;
+  // pausedRef: React.RefObject<boolean>;
 
-  progress: number;
-  uploadId: string;
+  // progress: number;
+  // uploadId: string;
 }
 export enum delete_type {
   onlyme,
@@ -263,25 +262,25 @@ export interface MessageboxProps {
   msg: MessageItem;
   repliedMessage: Message | null;
   setActive: Dispatch<SetStateAction<string | number | null>>;
-  show: string | number | null;
+  // show: string | number | null;
   selectionMode: boolean;
   toggleSelection: (id: number) => void;
   isSelected: boolean;
   user_id: number | null;
   active: string | number | null;
   // startUpload: () => Promise<void>;
-  setShow: Dispatch<SetStateAction<string | number | null>>;
+  // setShow: Dispatch<SetStateAction<string | number | null>>;
   handleLike: (id: number, react_id: number) => void;
-  pausedRef: RefObject<boolean>;
-  progress: number;
-  uploadId: string;
+  // pausedRef: RefObject<boolean>;
+  // progress: number;
+  // uploadId: string;
   // mappedMessages: Map<number, MessageItem>;
-  cancelUpload: () => Promise<"success" | undefined>;
-  uploadChunks: (id: string) => Promise<void>;
+  // cancelUpload: () => Promise<"success" | undefined>;
+  // uploadChunks: (id: string) => Promise<void>;
   chatDetails: Chat;
   // data: Message[];
   icons: emoji[];
-  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
+  // setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
   emojis: emoji[];
 }
 
@@ -324,5 +323,4 @@ export interface mediaUploads {
   uploadChunks: (id: string) => Promise<void>;
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   file?: File | null;
-
 }

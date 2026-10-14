@@ -3,7 +3,7 @@
 import { useToast } from "@/components/Utility/Toast";
 import { Notification } from "@/lib/dummy";
 import {
-  CONNECTION_ERROR, 
+  CONNECTION_ERROR,
   ERROR,
   NEW_NOTIFICATION,
   ONLINE_USERS,
@@ -28,7 +28,6 @@ import {
 } from "react";
 import { io, Socket } from "socket.io-client";
 import { logger } from "@/lib/utils";
-
 
 type SocketContextType = {
   chatSocket: Socket;
@@ -97,6 +96,7 @@ export const SocketProvider = ({ children }: Props) => {
         showToast(data, "error");
       },
       [NEW_NOTIFICATION]: (data: Notification) => {
+        showToast(data.message, "success");
         logger.log(data, "data recieved in notication");
         dispatch(
           NotificationApi.util.updateQueryData(
@@ -111,7 +111,7 @@ export const SocketProvider = ({ children }: Props) => {
           ),
         );
       },
-      [SEEN_NOTIFICATION]: (data: any) => {
+      [SEEN_NOTIFICATION]: (data: number[]) => {
         dispatch(
           NotificationApi.util.updateQueryData(
             "getNotifications",

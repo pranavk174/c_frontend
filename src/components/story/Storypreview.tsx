@@ -166,13 +166,10 @@ const StoryViewer = ({
 
   const handler = useMemo(
     () => ({
-      [STORY_SEEN]: (data: storySeen, callback: (
-        {
-          message,
-          status,
-          success,
-        }: socketCallback
-      ) => void) => {
+      [STORY_SEEN]: (
+        data: storySeen,
+        callback: ({ message, status, success }: socketCallback) => void,
+      ) => {
         if (!data) {
           return callback({
             message: "no data recieved",
@@ -384,6 +381,7 @@ const StoryViewer = ({
           STORY_LIKE,
           { id: currentStory.id, like },
           (response: socketResponse) => {
+            logger.debug(response, "response from story slikeee");
             resolve(response);
           },
         );

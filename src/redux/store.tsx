@@ -2,7 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import { persistStore, persistReducer } from "redux-persist";
 import onlineUsersSlice from "./slices/onLineUsers";
-
+import ChatSlice from "./slices/ChatSlice";
 import userSlice from "./slices/User";
 
 import { BaseApi } from "./Apis/BaseApi";
@@ -19,6 +19,7 @@ const rootReducer = combineReducers({
   [BaseApi.reducerPath]: BaseApi.reducer,
   userSlice: userSlice,
   onlineUsersSlice: onlineUsersSlice,
+  ChatSlice: ChatSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

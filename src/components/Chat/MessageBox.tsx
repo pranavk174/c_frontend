@@ -4,6 +4,11 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { emoji, MessageboxProps } from "@/lib/dummy";
 import { logger } from "@/lib/utils";
+import { setShow } from "@/redux/slices/ChatSlice";
+import { useAppDispatch } from "@/lib/hooks";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useChat } from "@/Context/ChatContext";
 
 const MessageBox = memo(
   ({
@@ -11,32 +16,33 @@ const MessageBox = memo(
     cancelPressTimer,
     msg,
     setActive,
-    show,
+    // show,
     selectionMode,
     toggleSelection,
     isSelected,
     user_id,
     active,
-    setShow,
+    // setShow,
     handleLike,
-    pausedRef,
-    progress,
-    uploadId,
+    // pausedRef,
+    // progress,
+    // uploadId,
     // mappedMessages,
-    uploadChunks,
+    // uploadChunks,
     chatDetails,
-    cancelUpload,
+    // cancelUpload,
     repliedMessage,
     // data,
     icons,
-    setReplyMessage,
+    // setReplyMessage,
     emojis,
   }: MessageboxProps) => {
     // logger.log("message box triggereddddd");
 
-
-
+    const dispatch = useAppDispatch();
     // if (msg.kind === 'header') return
+
+    const { typing, show } = useSelector((state: RootState) => state.ChatSlice);
 
     return (
       <motion.div
@@ -86,7 +92,7 @@ const MessageBox = memo(
             className="text-gray-500 hover:text-white transition p-1 rounded-full hover:bg-[#ffffff14]"
             onClick={(e) => {
               e.stopPropagation();
-              setShow(msg?.id);
+              dispatch(setShow(msg?.id));
             }}
           >
             <svg
@@ -145,16 +151,16 @@ const MessageBox = memo(
             <Messages
               msg={msg}
               // mappedMessages={mappedMessages}
-              pausedRef={pausedRef}
-              progress={progress}
-              uploadId={uploadId}
-              uploadChunks={uploadChunks}
-              chatDetails={chatDetails}
-              cancelUpload={cancelUpload}
+              // pausedRef={pausedRef}
+              // progress={progress}
+              // uploadId={uploadId}
+              // uploadChunks={uploadChunks}
+
+              // cancelUpload={cancelUpload}
               user_id={user_id}
               repliedMessage={repliedMessage ?? undefined}
               emojis={icons}
-              setReplyMessage={setReplyMessage}
+              // setReplyMessage={setReplyMessage}
             />
           )}
         </div>

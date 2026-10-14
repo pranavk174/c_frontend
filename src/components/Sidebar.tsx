@@ -126,20 +126,6 @@ export default function Sidebar() {
           }),
         );
       },
-      [SEEN_NOTIFICATION]: (data: any) => {
-        dispatch(
-          NotificationApi.util.updateQueryData(
-            "getNotifications",
-            null,
-            (draft) => {
-              draft.data.getNotification.data.items = [];
-              // if (notification) {
-              //   notification.isSeen = data.isSeen
-              // }
-            },
-          ),
-        );
-      },
     }),
     [dispatch],
   );
