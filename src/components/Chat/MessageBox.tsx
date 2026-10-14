@@ -16,33 +16,20 @@ const MessageBox = memo(
     cancelPressTimer,
     msg,
     setActive,
-    // show,
     selectionMode,
     toggleSelection,
     isSelected,
-    user_id,
     active,
-    // setShow,
     handleLike,
-    // pausedRef,
-    // progress,
-    // uploadId,
-    // mappedMessages,
-    // uploadChunks,
-    chatDetails,
-    // cancelUpload,
     repliedMessage,
-    // data,
     icons,
-    // setReplyMessage,
     emojis,
   }: MessageboxProps) => {
-    // logger.log("message box triggereddddd");
-
     const dispatch = useAppDispatch();
-    // if (msg.kind === 'header') return
 
     const { typing, show } = useSelector((state: RootState) => state.ChatSlice);
+
+    const { id: user_id } = useSelector((state: RootState) => state.userSlice);
 
     return (
       <motion.div

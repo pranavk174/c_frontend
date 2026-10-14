@@ -1,18 +1,6 @@
 "use client";
-
-import {
-  useState,
-  useRef,
-  useEffect,
-  Suspense,
-  useMemo,
-  useCallback,
-} from "react";
-
-import dynamic from "next/dynamic";
-
+import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSelector } from "react-redux";
-// import { chatApi } from "../../../../redux/Apis/User";
 import {
   chatApi,
   useGetMembersQuery,
@@ -20,7 +8,6 @@ import {
 } from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
-
 import {
   Chat,
   ChatItem,
@@ -32,14 +19,12 @@ import {
   socketResponse,
   valueProps,
 } from "@/lib/dummy";
-
 import Modal from "@/components/HOComponents/Modal";
 import {
   useGetAllChatsQuery,
   useGetEmojisQuery,
   useGetSingleChatQuery,
 } from "@/redux/Apis/Chat";
-import { current } from "@reduxjs/toolkit";
 import { useSocket } from "@/layouts/SocketWrapper";
 import {
   CHAT_JOINED,
@@ -48,62 +33,32 @@ import {
   MESSAGE_REACTION,
   MESSAGE_SEEN,
   REFETCH_CHATS,
-  REPLY_MESSAGE,
-  SEND_MESSAGE,
   START_TYPING,
   STOP_TYPING,
 } from "@/lib/events";
-
-// import VirtualChatlist from "@/components/Chat/VirtualChatList";
-
 import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
-import { useToast } from "@/components/Utility/Toast";
-import { usePathname, useSearchParams } from "next/navigation";
 import SpinLoader from "@/components/Utility/SpinLoader";
 import {
-  addMessage,
   editMessage,
   reactMessage,
   refetchChat,
   seenMessage,
-  updateAllChatcache,
-  updateMessage,
 } from "@/lib/cacaheupdateutils";
-import Loader from "@/components/Utility/Loader";
 import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
 
 import { logger } from "@/lib/utils";
-import { useUpload } from "@/lib/useUploadHook";
-import { useSendMessage } from "@/lib/useSendMessage";
 import { setTyping } from "@/redux/slices/ChatSlice";
 import { ChatProvider, useChat } from "@/Context/ChatContext";
-
-interface mediaProps {
-  file_name: string;
-  url: string;
-  file_type: string;
-  file_size: string;
-}
+import { useSearchParams } from "next/navigation";
 
 const ChatPage = ({ id }: { id: number }) => {
-  const [show, setShow] = useState<number | string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  // const [file, setFile] = useState<File | null>(null);
-  // const [progress, setProgress] = useState(0);
-  // const [uploadId, setUploadId] = useState<string>("");
-  // const [currentChunk, setCurrentChunk] = useState(0);
-  const controllerRef = useRef<AbortController | null>(null);
+
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
-  const [sendMessage] = useSendMessageMutation();
-  const CHUNK_SIZE = 1024 * 1024;
-  // const pausedRef = useRef(false);
-
   const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
-
-  const [replyMessage, setReplyMessage] = useState<MessageItem | null>(null);
   const [cursor, setCursor] = useState<number | null>(null);
   const [showModal, setShowModal] = useState<valueProps>({
     open: false,
@@ -117,9 +72,6 @@ const ChatPage = ({ id }: { id: number }) => {
   // const messagesEndRef = useRef<HTMLDivElement>(null);
   // const [typing, setTyping] = useState<boolean>(false);
   const [menu, setMenu] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
   const { typing } = useSelector((state: RootState) => state.ChatSlice);
 
@@ -127,7 +79,6 @@ const ChatPage = ({ id }: { id: number }) => {
     {},
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
-        // logger.log(typeof id, "type of ...", id)
         return {
           data: data?.data?.getAllChats?.data?.items?.filter(
             (item: Chat) => item.chat_id === id,
@@ -221,9 +172,6 @@ const ChatPage = ({ id }: { id: number }) => {
       refetchOnMountOrArgChange: true,
     },
   );
-
-  // const [messages, setMessages] = useState<Message[]>(data || []);
-
   const { emojis } = useGetEmojisQuery(
     {},
     {
@@ -481,7 +429,7 @@ const ChatPage = ({ id }: { id: number }) => {
               </div>
             }
           >
-            <VirtualChatlistGrouped
+            {/* <VirtualChatlistGrouped
               setSelectedMessages={setSelectedMessages}
               setCursor={setCursor}
               isFetching={isFetching}
@@ -490,24 +438,14 @@ const ChatPage = ({ id }: { id: number }) => {
               hasMore={hasMore}
               setMenu={setMenu}
               selectedMessages={selectedMessages}
-              // pausedRef={pausedRef}
-              // progress={progress}
-              // uploadChunks={uploadChunks}
-              // cancelUpload={cancelUpload}
-              // startUpload={startUpload}
               timerRef={timerRef}
               emojis={emojis}
-              chat_id={id}
-              user_id={user_id}
-              // setShow={setShow}
-              setReplyMessage={setReplyMessage}
-              // uploadId={uploadId}
+              // chat_id={id}
+              // user_id={user_id}
+
               messages={messages}
-              // setFile={setFile}
-              // show={show}
               menu={menu}
-              chatDetails={chatDetails}
-            />
+            /> */}
           </Suspense>
           {typing && (
             <div className="flex  items-center gap-1.5 px-6 py-2">

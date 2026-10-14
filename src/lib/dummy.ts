@@ -262,25 +262,15 @@ export interface MessageboxProps {
   msg: MessageItem;
   repliedMessage: Message | null;
   setActive: Dispatch<SetStateAction<string | number | null>>;
-  // show: string | number | null;
+
   selectionMode: boolean;
   toggleSelection: (id: number) => void;
   isSelected: boolean;
-  user_id: number | null;
+
   active: string | number | null;
-  // startUpload: () => Promise<void>;
-  // setShow: Dispatch<SetStateAction<string | number | null>>;
+
   handleLike: (id: number, react_id: number) => void;
-  // pausedRef: RefObject<boolean>;
-  // progress: number;
-  // uploadId: string;
-  // mappedMessages: Map<number, MessageItem>;
-  // cancelUpload: () => Promise<"success" | undefined>;
-  // uploadChunks: (id: string) => Promise<void>;
-  chatDetails: Chat;
-  // data: Message[];
   icons: emoji[];
-  // setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
   emojis: emoji[];
 }
 

@@ -27,16 +27,14 @@ import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
 import MessageBox from "./MessageBox";
 import { logger } from "@/lib/utils";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { useChat } from "@/Context/ChatContext";
 
 const VirtualChatlistGrouped = memo(
   ({
-    // cancelUpload,
-    // uploadChunks,
-    // pausedRef,
-    // progress,
-    // uploadId,
     setMenu,
-    chat_id,
+    // chat_id,
     setSelectedMessages,
     setCursor,
     isFetching,
@@ -49,7 +47,7 @@ const VirtualChatlistGrouped = memo(
     timerRef,
 
     emojis,
-    user_id,
+    // user_id,
     // setShow,
 
     setReplyMessage,
@@ -70,7 +68,11 @@ const VirtualChatlistGrouped = memo(
 
     const initialScrollDone = useRef(false);
 
+    const {
+      chatDetails: { chat_id },
+    } = useChat();
     const hasMountedRef = useRef(false);
+    const { id: user_id } = useSelector((state: RootState) => state.userSlice);
 
     useEffect(() => {
       if (!hasMountedRef.current && data.length > 0) {
@@ -111,11 +113,6 @@ const VirtualChatlistGrouped = memo(
     }, [data.length, isFetching, rowVirtualizer]);
 
     const [selectionMode, setSelectionMode] = useState(false);
-    // const messagesEndRef = useRef<HTMLDivElement>(null);
-    // const scrollToBottom = () => {
-    //     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    // };
-
     const { url } = useGetWallpaperQuery(null, {
       selectFromResult: ({ data, isLoading }) => {
         return {
@@ -147,11 +144,8 @@ const VirtualChatlistGrouped = memo(
       );
 
       if (topSentinelRef.current) observer.observe(topSentinelRef.current);
-
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
-
-    // logger.log(typing, " typing ======== dataaaaa ");
 
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {
@@ -394,27 +388,14 @@ const VirtualChatlistGrouped = memo(
                     startPressTimer={startPressTimer}
                     cancelPressTimer={cancelPressTimer}
                     msg={msg}
-                    // startUpload={startUpload}
-                    // mappedMessages={messageMap}
                     setActive={setActive}
-                    // show={show}
                     selectionMode={selectionMode}
                     toggleSelection={toggleSelection}
                     isSelected={isSelected}
-                    user_id={user_id}
                     active={active}
-                    // setShow={setShow}
                     repliedMessage={repliedMessage}
                     handleLike={handleLike}
-                    // pausedRef={pausedRef}
-                    // progress={progress}
-                    // uploadId={uploadId}
-                    // uploadChunks={uploadChunks}
-                    chatDetails={chatDetails}
-                    // cancelUpload={cancelUpload}
-                    // data={data}
                     icons={icons}
-                    // setReplyMessage={setReplyMessage}
                     emojis={emojis}
                   />
                 </div>
