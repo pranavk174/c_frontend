@@ -327,6 +327,7 @@ export const updateSeenMessage = ({
   user_id: number | null;
   dispatch: AppDispatch;
 }) => {
+  if (!user_id) return;
   socket.emit(
     MESSAGE_SEEN,
     {
