@@ -56,35 +56,17 @@ export interface selectedProp {
 }
 
 export interface chatListProps {
-  // extends mediaUploads
   menu: boolean;
-
   setMenu: Dispatch<SetStateAction<boolean>>;
-  chat_id: number;
-  chatDetails: Chat;
-  setSelectedMessages: Dispatch<SetStateAction<number[]>>;
   setCursor: Dispatch<SetStateAction<number | null>>;
-  // setSelected: Dispatch<SetStateAction<number[] | null>>;
   hasMore: boolean;
-  // setShow: Dispatch<SetStateAction<string | number | null>>;
-  // setActive: Dispatch<SetStateAction<string | number | null>>;
-  emojis: emoji[];
-  // show: string | number | null;
+
   nextCursor: number;
   timerRef: RefObject<NodeJS.Timeout | null>;
-  setReplyMessage: Dispatch<SetStateAction<MessageItem | null>>;
   data: ChatItem[];
-  // active: string | number | null;
   isFetching: boolean;
-  selectedMessages: number[];
-  user_id: number | null;
-
-  // setMessages?: Dispatch<SetStateAction<Message[]>>;
   messages: Message[];
-  // pausedRef: React.RefObject<boolean>;
-
-  // progress: number;
-  // uploadId: string;
+  cursor: number | null;
 }
 export enum delete_type {
   onlyme,

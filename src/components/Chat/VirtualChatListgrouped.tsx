@@ -1,19 +1,30 @@
 "use client";
 import {
-  ChatItem,
+  Chat,
   chatListProps,
   emoji,
   Message,
-  MessageItem,
-  reaction,
+  message_reactions,
+  seen_user,
   socketResponse,
 } from "@/lib/dummy";
-import { MESSAGE_REACTION, START_TYPING, STOP_TYPING } from "@/lib/events";
+import {
+  EDIT_MESSAGE,
+  MESSAGE_REACTION,
+  MESSAGE_SEEN,
+  REFETCH_CHATS,
+  START_TYPING,
+  STOP_TYPING,
+} from "@/lib/events";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 // import { useReactMessageMutation } from "@/redux/Apis/User";
-import { chatApi, useGetWallpaperQuery } from "@/redux/Apis/Chat";
+import {
+  chatApi,
+  useGetEmojisQuery,
+  useGetWallpaperQuery,
+} from "@/redux/Apis/Chat";
 import { useVirtualizer } from "@tanstack/react-virtual";
-
+import { setSelectedMessages, setTyping } from "@/redux/slices/ChatSlice";
 import React, {
   memo,
   useCallback,
@@ -30,46 +41,85 @@ import { logger } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useChat } from "@/Context/ChatContext";
+import {
+  refetchChat,
+  reactMessage,
+  seenMessage,
+  editMessage,
+  handleLikes,
+  updateSeenMessage,
+} from "@/lib/cacaheupdateutils";
 
 const VirtualChatlistGrouped = memo(
   ({
     setMenu,
-    // chat_id,
-    setSelectedMessages,
     setCursor,
     isFetching,
     data,
     nextCursor,
     hasMore,
-    chatDetails,
-    selectedMessages,
     messages,
     timerRef,
 
-    emojis,
-    // user_id,
-    // setShow,
-
-    setReplyMessage,
-    // show,
+    cursor,
   }: chatListProps) => {
-    const { chatSocket: socket, notificationSocket } = useSocket();
+    const { chatSocket: socket } = useSocket();
     const parentRef = React.useRef<HTMLDivElement | null>(null);
-    const [typing, setTyping] = useState<boolean>(false);
     const topSentinelRef = useRef<HTMLDivElement | null>(null);
     const [active, setActive] = useState<number | string | null>(null);
+    const { selectedMessages } = useSelector(
+      (state: RootState) => state.ChatSlice,
+    );
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop =
+          chatContainerRef.current.scrollHeight;
+      }
+    }, [messages, nextCursor]);
+
+    const { emojis } = useGetEmojisQuery(
+      {},
+      {
+        selectFromResult: ({ data, isLoading, isSuccess }) => {
+          return {
+            emojis: data?.data?.getEmojis?.data?.items,
+            emjojiLoading: isLoading,
+            emojiCallSuccess: isSuccess,
+          };
+        },
+      },
+    );
+
     const rowVirtualizer = useVirtualizer({
       count: data.length,
+
+      // Ye function actual scrollable element return karta hai.
+      // Virtualizer is element ki scroll position ke basis par calculate karta hai ki kaun-se items render hone chahiye.
       getScrollElement: () => parentRef.current,
-      estimateSize: () => 20,
+
+      // Ye har item ki estimated height pixels mein batata hai.
+      //Isse fast scrolling ke waqt items achanak appear hone ya blank space dikhne ka risk kam ho sakta hai.
+      estimateSize: () => 10,
+
+      //Viewport ke upar aur neeche additional items render karne deta hai.
       overscan: 10,
+
+      // Ye actual rendered item ki height measure karta hai.
+      // Virtualizer inki actual heights ke basis par item positions aur total size ko update kar sakta hai.
       measureElement: (el) => el.getBoundingClientRect().height,
     });
-
     const initialScrollDone = useRef(false);
+    useEffect(() => {
+      if (selectedMessages.length === 0) {
+        setSelectionMode(false);
+        setMenu(false);
+      }
+    }, [selectedMessages, setMenu]);
 
     const {
-      chatDetails: { chat_id },
+      chatDetails,
+      chatDetails: { chat_id, user_id: chat_user_id },
     } = useChat();
     const hasMountedRef = useRef(false);
     const { id: user_id } = useSelector((state: RootState) => state.userSlice);
@@ -121,9 +171,7 @@ const VirtualChatlistGrouped = memo(
         };
       },
     });
-
     const dispatch = useAppDispatch();
-
     useEffect(() => {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -142,110 +190,38 @@ const VirtualChatlistGrouped = memo(
           threshold: 0,
         },
       );
-
       if (topSentinelRef.current) observer.observe(topSentinelRef.current);
       return () => observer.disconnect();
     }, [data, nextCursor, hasMore, isFetching, setCursor]);
-
     const handleLike = useCallback(
       async (msg_id: number, react_id: number) => {
-        logger.log(user_id);
-
-        const pathResult = dispatch(
-          chatApi.util.updateQueryData(
-            "getSingleChat",
-            { chat_ids: [chat_id] },
-            (draft) => {
-              const message = draft.data.getChatById.data.items.find(
-                (item: Message) => item.id === msg_id,
-              );
-
-              if (!message) return;
-
-              const reaction = message.reactions.find(
-                (d: reaction) => d.user_id === user_id,
-              );
-
-              if (reaction) {
-                reaction.react_id = react_id;
-              } else {
-                message.reactions.push({
-                  user_id,
-                  react_id,
-                });
-              }
-            },
-          ),
-        );
-
-        logger.log(chat_id, "chat_iddddddddd");
-        try {
-          socket.emit(
-            MESSAGE_REACTION,
-            {
-              chat_ids: [chat_id],
-              message_ids: [msg_id],
-              react_id,
-              reciever_ids: [chatDetails.user_id],
-            },
-            (response: socketResponse) => {
-              // agar backend fail
-              if (!response.success) {
-                // rollback
-                pathResult.undo();
-
-                logger.log(response, "callback response");
-              }
-              logger.log(response, "callback response outside");
-            },
-          );
-
-          // await reactMessage({
-          //     chat_ids: [chat_id],
-          //     message_ids: [msg_id],
-          //     react_id,
-          // });
-        } catch {
-          pathResult.undo();
-        }
+        handleLikes({
+          msg_id,
+          react_id,
+          socket,
+          user_id,
+          chat_id,
+          dispatch,
+          chat_user_id,
+        });
       },
-      [chatDetails, user_id, chat_id, dispatch, socket],
+      [user_id, chat_id, dispatch, socket, chat_user_id],
     );
 
     const toggleSelection = useCallback(
-      (ids: number) => {
-        // debugger;
-        setSelectedMessages((prev) => {
-          logger.log(
-            typeof prev[0],
-            "type of fddddd",
-            prev,
-            prev.includes(ids),
-            ids,
-          );
-          if (prev.includes(ids)) {
-            const filtered = prev.filter((item) => item !== ids);
+      (id: number) => {
+        const updated = selectedMessages.includes(id)
+          ? selectedMessages.filter((item) => item !== id)
+          : [...selectedMessages, id];
 
-            // if (filtered.length < 1) {
-            //   setSelectionMode(false);
-            // }
-
-            //   logger.log(filtered, "filteredddddd");
-            return filtered;
-          }
-
-          return [...prev, ids];
-        });
+        dispatch(setSelectedMessages(updated));
       },
-      [setSelectedMessages],
+      [dispatch, selectedMessages],
     );
 
     const handleLongPress = useCallback(() => {
-      // logger.log("Long Press Triggered");
-      //   setSelected((p) => [...p, id]);
       setMenu(true);
       setSelectionMode(true);
-      // toggleSelection(id);
     }, [setMenu]);
 
     const startPressTimer = useCallback(
@@ -265,9 +241,89 @@ const VirtualChatlistGrouped = memo(
       }
     }, [timerRef]);
 
-    const messageMap = useMemo(() => {
-      return new Map(data.map((m: ChatItem) => [m.id, m]));
-    }, [data]);
+    const pendingSeenRef = useRef<Set<number>>(new Set());
+
+    useEffect(() => {
+      if (!user_id || !messages?.length) return;
+      // Queue me saare unseen messages add karo
+      messages.forEach((msg: Message) => {
+        if (msg.sender_id !== user_id && !msg.seen_users.includes(user_id)) {
+          pendingSeenRef.current.add(msg.id);
+        }
+      });
+      // Har naye message pe timer reset hoga
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = setTimeout(() => {
+        const message_ids = [...pendingSeenRef.current];
+        pendingSeenRef.current.clear();
+        timerRef.current = null;
+        if (!message_ids.length) return;
+        logger.log("Sending Seen Batch:", message_ids);
+        updateSeenMessage({
+          chatDetails,
+          cursor,
+          message_ids,
+          user_id,
+          dispatch,
+          socket,
+        });
+      }, 300); // 300ms tak koi naya message nahi aaya to batch bhej do
+
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      };
+    }, [
+      messages,
+      user_id,
+      chatDetails?.chat_id,
+      socket,
+      chatDetails,
+      timerRef,
+      cursor,
+      dispatch,
+    ]);
+    const handler = useMemo(
+      () => ({
+        [START_TYPING]: () => {
+          dispatch(setTyping(true));
+        },
+        [STOP_TYPING]: () => {
+          dispatch(setTyping(false));
+        },
+        [REFETCH_CHATS]: (data: Message[]) => {
+          // logger.log(data, "chats dataaaa.... new wala...");
+          if (!data) {
+            return;
+          }
+          refetchChat(dispatch, data, chatDetails?.chat_id);
+        },
+
+        [MESSAGE_REACTION]: (data: message_reactions) => {
+          if (!data || !user_id) {
+            return;
+          }
+          reactMessage(dispatch, data, chatDetails?.chat_id);
+        },
+        [MESSAGE_SEEN]: (data: seen_user[]) => {
+          if (!data) {
+            return;
+          }
+          seenMessage(dispatch, chatDetails?.chat_id, data);
+        },
+
+        [EDIT_MESSAGE]: (data: Message) => {
+          logger.log(data, "data from edit message ");
+          editMessage(dispatch, chatDetails?.chat_id, data);
+        },
+      }),
+      [dispatch, user_id, chatDetails],
+    );
+
+    useSocketEvents(socket, handler);
 
     return (
       <div
@@ -279,11 +335,12 @@ const VirtualChatlistGrouped = memo(
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           height: "83vh",
-          overflow: "auto",
+          overflowY: "auto",
         }}
       >
         <div
           style={{
+            // Yahan getTotalSize() virtual list ki total estimated/measured height deta hai.
             height: `${rowVirtualizer.getTotalSize()}px`,
             width: "100%",
             position: "relative",
@@ -320,22 +377,23 @@ const VirtualChatlistGrouped = memo(
           {rowVirtualizer.getVirtualItems().map((virtualItem) => {
             const msg = data[virtualItem.index];
 
+            const properties = {
+              style: {
+                position: "absolute" as const,
+                top: 80,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${virtualItem.start}px)`,
+              },
+              "data-index": virtualItem.index,
+              ref: (el: HTMLDivElement | null) => {
+                if (el) rowVirtualizer.measureElement(el);
+              },
+            };
+
             if (msg.kind === "header") {
               return (
-                <div
-                  key={virtualItem.index}
-                  style={{
-                    position: "absolute",
-                    top: 80,
-                    left: 0,
-                    width: "100%",
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                  data-index={virtualItem.index}
-                  ref={(el) => {
-                    if (el) rowVirtualizer.measureElement(el);
-                  }}
-                >
+                <div key={virtualItem.index} {...properties}>
                   <div className="flex justify-center">
                     <p className="text-xs p-1 bg-wa-header  dark:bg-wa-header-dark rounded-md">
                       {msg.date}
@@ -344,14 +402,6 @@ const VirtualChatlistGrouped = memo(
                 </div>
               );
             }
-
-            // if (msg.type === "header") {
-            //   return (
-            //     <div key={msg.id}>
-            //       <p>{msg.date}</p>
-            //     </div>
-            //   );
-            // }
 
             if (msg.kind === "message") {
               const icons = emojis?.filter((emoji: emoji) =>
@@ -364,26 +414,11 @@ const VirtualChatlistGrouped = memo(
                       (md) => md.id === msg.reply_to_message_id,
                     ) ?? null)
                   : null;
-              // logger.log(msg, "msggggggg");
 
               const isSelected = selectedMessages.includes(msg?.id);
 
               return (
-                <div
-                  key={virtualItem.index}
-                  style={{
-                    position: "absolute",
-                    top: 80,
-                    left: 0,
-                    width: "100%",
-                    // height: `${virtualItem.size}px`,
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
-                  data-index={virtualItem.index}
-                  ref={(el) => {
-                    if (el) rowVirtualizer.measureElement(el);
-                  }}
-                >
+                <div key={virtualItem.index} {...properties}>
                   <MessageBox
                     startPressTimer={startPressTimer}
                     cancelPressTimer={cancelPressTimer}

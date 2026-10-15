@@ -32,12 +32,12 @@ export const chatApi = BaseApi.injectEndpoints({
         // logger.log(result, "result.......");
         return result
           ? [
-            ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
-              type: "chats" as const,
-              id: msg.id,
-            })),
-            { type: "chats", id: "LIST" },
-          ]
+              ...result.data?.getChatById?.data?.items?.map((msg: Message) => ({
+                type: "chats" as const,
+                id: msg.id,
+              })),
+              { type: "chats", id: "LIST" },
+            ]
           : [{ type: "chats", id: "LIST" }];
       },
       serializeQueryArgs: ({ queryArgs, endpointName }) => {
@@ -99,11 +99,9 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-
           chat_ids,
           message_ids,
           reaction_id: parseInt(react_id),
-
         },
       }),
       invalidatesTags: ["chats"],
@@ -154,11 +152,9 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-
           message_ids,
           content,
           chat_ids,
-
         },
       }),
       invalidatesTags: ["chats"],
@@ -168,11 +164,9 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "",
         method: "POST",
         body: {
-
           message_ids: [message_id],
           chat_ids: chat_id,
           content,
-
         },
       }),
     }),

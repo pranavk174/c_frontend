@@ -23,7 +23,6 @@ import MediaPreviewContent from "../ModalChilds/MediaPreviewContent";
 interface mediaOptionsProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  messages: Message[];
 }
 import { useToast } from "../Utility/Toast";
 import { logger } from "@/lib/utils";

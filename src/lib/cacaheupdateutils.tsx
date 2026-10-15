@@ -6,12 +6,12 @@ import {
   seen_user,
   socketResponse,
 } from "./dummy";
-import { Draft, current } from "@reduxjs/toolkit";
+import { Draft } from "@reduxjs/toolkit";
 import { chatApi } from "@/redux/Apis/Chat";
-import { MESSAGE_SEEN } from "./events";
+import { MESSAGE_REACTION, MESSAGE_SEEN } from "./events";
 import { AppDispatch } from "@/redux/store";
 import { Socket } from "socket.io-client";
-import { } from "./utils";
+import {} from "./utils";
 import { logger } from "@/lib/utils";
 
 export interface GetChatByIdResponse {
@@ -23,7 +23,7 @@ export interface GetChatByIdResponse {
     };
   };
 }
- 
+
 export interface GetAllChatResponse {
   data: {
     getAllChats: {
@@ -41,28 +41,28 @@ export const addMessage =
     replyMessage: Message | null,
     url: string | null = null,
   ) =>
-    (draft: Draft<GetChatByIdResponse>) => {
-      const items = draft?.data?.getChatById?.data?.items;
+  (draft: Draft<GetChatByIdResponse>) => {
+    const items = draft?.data?.getChatById?.data?.items;
 
-      if (!items) return;
+    if (!items) return;
 
-      items.push({
-        id: (items[items.length - 1]?.id || 0) + 1,
-        sender_id: user_id ?? 2,
-        created_at: Date.now().toString(),
-        seen_at: null,
-        story_id: null,
-        seen_users: [],
-        content: inputText,
-        preview: url,
-        reply_to_message_id: replyMessage?.id ?? null,
-        is_forwarded: false,
-        is_edited: false,
-        is_deleted: false,
-        reactions: [],
-        isLocal: true,
-      });
-    };
+    items.push({
+      id: (items[items.length - 1]?.id || 0) + 1,
+      sender_id: user_id ?? 2,
+      created_at: Date.now().toString(),
+      seen_at: null,
+      story_id: null,
+      seen_users: [],
+      content: inputText,
+      preview: url,
+      reply_to_message_id: replyMessage?.id ?? null,
+      is_forwarded: false,
+      is_edited: false,
+      is_deleted: false,
+      reactions: [],
+      isLocal: true,
+    });
+  };
 
 export const updateMessage =
   (message_id?: number | null) => (draft: Draft<GetChatByIdResponse>) => {
@@ -94,14 +94,9 @@ export const refetchChat = (
   dispatch: AppDispatch,
   data: Message[],
   id: number,
-  user_id: number,
-  chatDetails: Chat,
-  socket: Socket,
-  cursor: number | null,
 ) => {
-  const chatPatchResult = dispatch(
+  dispatch(
     chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-      const items = draft.data.getAllChats.data.items;
       draft.data.getAllChats.data.items.forEach((item: Chat) => {
         if (item.chat_id === id) {
           item.last_message = data[0]?.content ? data[0]?.content : "image";
@@ -112,7 +107,7 @@ export const refetchChat = (
     }),
   );
 
-  const patchResult = dispatch(
+  dispatch(
     chatApi.util.updateQueryData(
       "getSingleChat",
       { chat_ids: [id] },
@@ -142,83 +137,6 @@ export const refetchChat = (
           ...draft.data.getChatById.data.items,
           ...data,
         ];
-
-        const unseenNewMessages = draft.data.getChatById.data.items
-          .filter(
-            (m: Message) =>
-              m.sender_id !== user_id &&
-              (!m.seen_users || m.seen_users.length === 0),
-          )
-          .map((m: Message) => m.id);
-
-        logger.log(
-          unseenNewMessages,
-          // current(draft.data.getChatById.data.items),
-          " <<<<====in reftech message unseen new messagessssssss===>>>>",
-        );
-
-        if (unseenNewMessages.length > 0) {
-          logger.log("eejhkdsahf kdfdthis unseeed message", unseenNewMessages);
-          // socket.emit(
-          //   MESSAGE_SEEN,
-          //   {
-          //     chat_id: id,
-          //     message_ids: unseenNewMessages,
-          //     reciever_id: chatDetails?.user_id,
-          //   },
-          //   (response: socketResponse) => {
-          //     const patchResult3 = dispatch(
-          //       chatApi.util.updateQueryData(
-          //         "getSingleChat",
-          //         { chat_ids: [id], cursor, limit: 20 },
-          //         (draft) => {
-          //           // draft?.data?.getChatById?.data?.items?.forEach(
-          //           //   (chat: Message) => {
-          //           //     if (
-          //           //       user_id &&
-          //           //       chat.sender_id !== user_id &&
-          //           //       !chat.seen_users.includes(user_id) &&
-          //           //       unseenNewMessages.includes(chat.id)
-          //           //     ) {
-          //           //       logger.log("ye condition true hai");
-          //           //       chat.seen_users = [...chat.seen_users, user_id];
-          //           //     }
-          //           //     logger.log("ye condition false hai......");
-          //           //   },
-          //           // );
-
-
-          //           const items = draft?.data?.getChatById?.data?.items ?? [];
-
-          //           draft.data.getChatById.data.items = items.map((chat: Message) => {
-          //             if (
-          //               user_id &&
-          //               chat.sender_id !== user_id &&
-          //               !chat.seen_users.includes(user_id) &&
-          //               unseenNewMessages.includes(chat.id)
-          //             ) {
-          //               chat.seen_users.push(user_id); // direct mutation
-          //             }
-
-          //             return chat;
-          //           });
-
-          //         },
-          //       ),
-          //     );
-          //     // agar backend fail
-          //     if (!response.success) {
-          //       // rollback
-          //       patchResult.undo();
-          //       patchResult3.undo();
-          //       chatPatchResult.undo();
-
-          //       logger.log(response, "callback response");
-          //     }
-          //     logger.log(response, "callback response outside");
-          //   },
-          // );
-        }
       },
     ),
   );
@@ -229,7 +147,7 @@ export const reactMessage = (
   data: message_reactions,
   id: number,
 ) => {
-  const patchResult = dispatch(
+  dispatch(
     chatApi.util.updateQueryData(
       "getSingleChat",
       { chat_ids: [id] },
@@ -298,7 +216,7 @@ export const editMessage = (
   id: number,
   data: Message,
 ) => {
-  const patchResult = dispatch(
+  dispatch(
     chatApi.util.updateQueryData(
       "getSingleChat",
       { chat_ids: [id] },
@@ -315,5 +233,142 @@ export const editMessage = (
         });
       },
     ),
+  );
+};
+
+export const handleLikes = async ({
+  msg_id,
+  react_id,
+  socket,
+  user_id,
+  chat_id,
+  dispatch,
+  chat_user_id,
+}: {
+  msg_id: number;
+  react_id: number;
+  socket: Socket;
+  user_id: number | null;
+  chat_id: number;
+  dispatch: AppDispatch;
+  chat_user_id: number;
+}) => {
+  logger.log(user_id);
+  const pathResult = dispatch(
+    chatApi.util.updateQueryData(
+      "getSingleChat",
+      { chat_ids: [chat_id] },
+      (draft) => {
+        const message = draft.data.getChatById.data.items.find(
+          (item: Message) => item.id === msg_id,
+        );
+
+        if (!message) return;
+
+        const reaction = message.reactions.find(
+          (d: reaction) => d.user_id === user_id,
+        );
+
+        if (reaction) {
+          reaction.react_id = react_id;
+        } else {
+          message.reactions.push({
+            user_id,
+            react_id,
+          });
+        }
+      },
+    ),
+  );
+
+  logger.log(chat_id, "chat_iddddddddd");
+  try {
+    socket.emit(
+      MESSAGE_REACTION,
+      {
+        chat_ids: [chat_id],
+        message_ids: [msg_id],
+        react_id,
+        reciever_ids: [chat_user_id],
+      },
+      (response: socketResponse) => {
+        // agar backend fail
+        if (!response.success) {
+          // rollback
+          pathResult.undo();
+          logger.log(response, "callback response");
+        }
+        logger.log(response, "callback response outside");
+      },
+    );
+
+    // await reactMessage({
+    //     chat_ids: [chat_id],
+    //     message_ids: [msg_id],
+    //     react_id,
+    // });
+  } catch {
+    pathResult.undo();
+  }
+};
+
+export const updateSeenMessage = ({
+  chatDetails,
+  cursor,
+  message_ids,
+  user_id,
+  dispatch,
+  socket,
+}: {
+  cursor: number | null;
+  chatDetails: Chat;
+  message_ids: number[];
+  socket: Socket;
+  user_id: number | null;
+  dispatch: AppDispatch;
+}) => {
+  socket.emit(
+    MESSAGE_SEEN,
+    {
+      chat_id: chatDetails?.chat_id,
+      message_ids,
+      reciever_id: chatDetails?.user_id,
+    },
+    (response: socketResponse) => {
+      if (!response.success) return;
+
+      dispatch(
+        chatApi.util.updateQueryData(
+          "getSingleChat",
+          { chat_ids: [chatDetails?.chat_id], cursor, limit: 20 },
+          (draft) => {
+            draft?.data?.getChatById?.data?.items?.forEach((chat: Message) => {
+              if (
+                message_ids.includes(chat.id) &&
+                chat.sender_id !== user_id &&
+                !chat.seen_users.includes(user_id)
+              ) {
+                chat.seen_users.push(user_id);
+              }
+            });
+          },
+        ),
+      );
+
+      dispatch(
+        chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
+          const item = draft.data.getAllChats.data.items.find(
+            (c: Chat) => c.chat_id === chatDetails?.chat_id,
+          );
+
+          if (item) {
+            item.unread_count = Math.max(
+              0,
+              item.unread_count - message_ids.length,
+            );
+          }
+        }),
+      );
+    },
   );
 };

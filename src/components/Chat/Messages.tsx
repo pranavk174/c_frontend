@@ -78,14 +78,24 @@ const Messages = ({
   } = useChat();
   // logger.log(repliedMessage, "replite message/...")
 
+  const date = new Date(parseInt(msg.created_at));
+
+  console.log(
+    date.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    }),
+
+    date,
+  );
+
   return (
     <div
       className={cn(
-        "    flex mb-2 px-2 justify-end",
+        "    flex mb-2 px-2 justify-end min-w-0 ",
         msg.sender_id === user_id ? "justify-end" : "justify-start",
       )}
     >
-      <div className="relative flex items-center ">
+      <div className="relative flex items-center min-w-0 ">
         {/* Reply Icon While Dragging */}
         <motion.div
           style={{
@@ -103,11 +113,11 @@ const Messages = ({
           dragConstraints={{ left: 0, right: 120 }}
           style={{ x }}
           onDragEnd={handleDragEnd}
-          className="cursor-grab active:cursor-grabbing"
+          className="cursor-grab active:cursor-grabbing min-w-0"
         >
           <div
             className={cn(
-              "relative rounded-2xl px-3 py-2 shadow-sm text-sm wrap-break-word transition-all",
+              "relative rounded-2xl px-3 py-2 shadow-sm text-sm wrap-anywhere transition-all",
               msg.sender_id == user_id
                 ? "bg-wa-msg-sent dark:bg-wa-msg-sent-dark rounded-br-md text-wa-bg-dark dark:text-wa-divider"
                 : "bg-white dark:bg-[#202c33] rounded-bl-md text-wa-bg-dark dark:text-wa-divider",
@@ -161,7 +171,7 @@ const Messages = ({
             )}
 
             {/* Main Message */}
-            <div className="whitespace-pre-wrap wrap-break-word ">
+            <div className="whitespace-pre-wrap wrap-anywhere ">
               {msg.preview && (
                 <div
                   onClick={() =>
@@ -262,7 +272,9 @@ const Messages = ({
                   )}
                 </div>
               )}
-              {msg.content}
+              <div className="whitespace-pre-wrap wrap-anywhere ">
+                {msg.content}
+              </div>
             </div>
 
             {/* Time + Tick */}
@@ -273,7 +285,11 @@ const Messages = ({
                 </span>
               )}
               <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                {msg.created_at}
+                {/* {msg.created_at} */}
+                {date.toLocaleTimeString()}
+                {/* {date.toLocaleString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                })} */}
               </span>
 
               {msg.sender_id === user_id && (

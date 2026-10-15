@@ -30,8 +30,9 @@ export const ChatSlice = createSlice({
     setShow: (state, action) => {
       state.show = action.payload;
     },
-    setSelectedMessages: (state, action) =>
-      (state.selectedMessages = action.payload),
+    setSelectedMessages: (state, action) => {
+      state.selectedMessages = action.payload;
+    },
     // removeOnlineUsers: (state, action) => {
     //   state.onlineUsers = state.onlineUsers.filter((d) => d !== action.payload);
     // },

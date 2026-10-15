@@ -1,56 +1,28 @@
 "use client";
 import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSelector } from "react-redux";
-import {
-  chatApi,
-  useGetMembersQuery,
-  useSendMessageMutation,
-} from "@/redux/Apis/Chat";
+import { useGetMembersQuery } from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
-import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import {
   Chat,
   ChatItem,
   memberProps,
   Message,
-  message_reactions,
-  MessageItem,
-  seen_user,
   socketResponse,
   valueProps,
 } from "@/lib/dummy";
 import Modal from "@/components/HOComponents/Modal";
-import {
-  useGetAllChatsQuery,
-  useGetEmojisQuery,
-  useGetSingleChatQuery,
-} from "@/redux/Apis/Chat";
+import { useGetAllChatsQuery, useGetSingleChatQuery } from "@/redux/Apis/Chat";
 import { useSocket } from "@/layouts/SocketWrapper";
-import {
-  CHAT_JOINED,
-  CHAT_LEAVED,
-  EDIT_MESSAGE,
-  MESSAGE_REACTION,
-  MESSAGE_SEEN,
-  REFETCH_CHATS,
-  START_TYPING,
-  STOP_TYPING,
-} from "@/lib/events";
+import { CHAT_JOINED, CHAT_LEAVED } from "@/lib/events";
 import Inputbox from "@/components/Chat/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import SpinLoader from "@/components/Utility/SpinLoader";
-import {
-  editMessage,
-  reactMessage,
-  refetchChat,
-  seenMessage,
-} from "@/lib/cacaheupdateutils";
 import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
-
 import { logger } from "@/lib/utils";
-import { setTyping } from "@/redux/slices/ChatSlice";
-import { ChatProvider, useChat } from "@/Context/ChatContext";
+
+import { ChatProvider } from "@/Context/ChatContext";
 import { useSearchParams } from "next/navigation";
 
 const ChatPage = ({ id }: { id: number }) => {
@@ -58,24 +30,21 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const pathname = useSearchParams();
   const chat_type = pathname.get("chat_type");
-  const [selectedMessages, setSelectedMessages] = useState<number[]>([]);
+
   const [cursor, setCursor] = useState<number | null>(null);
   const [showModal, setShowModal] = useState<valueProps>({
     open: false,
     type: null,
   });
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const dispatch = useAppDispatch();
 
-  const { chatSocket: socket, notificationSocket } = useSocket();
-
-  // const messagesEndRef = useRef<HTMLDivElement>(null);
-  // const [typing, setTyping] = useState<boolean>(false);
+  const { chatSocket: socket } = useSocket();
   const [menu, setMenu] = useState(false);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
-  const { typing } = useSelector((state: RootState) => state.ChatSlice);
+  const { typing, selectedMessages } = useSelector(
+    (state: RootState) => state.ChatSlice,
+  );
 
-  const { data: chatDetails } = useGetAllChatsQuery(
+  const { data: chatDetails, isLoading: isChatLoading } = useGetAllChatsQuery(
     {},
     {
       selectFromResult: ({ data, isLoading, isSuccess }) => {
@@ -101,8 +70,6 @@ const ChatPage = ({ id }: { id: number }) => {
     { chat_ids: [id], cursor, limit: 20 },
     {
       selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
-        // const res = new Map();
-
         const result: Record<string, Message[]> =
           data?.data?.getChatById?.data?.items.reduce(
             (acc: Record<string, Message[]>, idx: Message) => {
@@ -137,7 +104,6 @@ const ChatPage = ({ id }: { id: number }) => {
             {} as Record<string, Message[]>,
           ) ?? [];
 
-        // logger.log("result daataaa.", result);
         const flatData: ChatItem[] = Object.entries(result).flatMap(
           ([date, messages]) => [
             {
@@ -151,8 +117,6 @@ const ChatPage = ({ id }: { id: number }) => {
             })),
           ],
         );
-
-        // logger.log(flatData, "result daataaa.", result);
 
         const mappedMessages = new Map(
           data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
@@ -172,18 +136,6 @@ const ChatPage = ({ id }: { id: number }) => {
       refetchOnMountOrArgChange: true,
     },
   );
-  const { emojis } = useGetEmojisQuery(
-    {},
-    {
-      selectFromResult: ({ data, isLoading, isSuccess }) => {
-        return {
-          emojis: data?.data?.getEmojis?.data?.items,
-          emjojiLoading: isLoading,
-          emojiCallSuccess: isSuccess,
-        };
-      },
-    },
-  );
 
   const { members, memberIds } = useGetMembersQuery(
     { chat_id: id },
@@ -201,74 +153,6 @@ const ChatPage = ({ id }: { id: number }) => {
       skip: chat_type !== "group",
     },
   );
-
-  const bottomRef = useRef(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isFetching) {
-          // logger.log(entries, "entriesssssssss");
-          setCursor(() => nextCursor);
-        }
-      },
-      {
-        rootMargin: "500px",
-        threshold: 0,
-      },
-    );
-
-    if (bottomRef.current) observer.observe(bottomRef.current);
-
-    logger.log("= data =================", messages);
-    return () => observer.disconnect();
-  }, [messages, nextCursor, hasMore, isFetching]);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  }, [messages, nextCursor]);
-
-  const handler = useMemo(
-    () => ({
-      [START_TYPING]: (data: boolean) => {
-        setTyping(true);
-      },
-      [STOP_TYPING]: (data: boolean) => {
-        setTyping(false);
-      },
-      [REFETCH_CHATS]: (data: Message[]) => {
-        // logger.log(data, "chats dataaaa.... new wala...");
-        if (!data) {
-          return;
-        }
-        if (!user_id) return;
-        refetchChat(dispatch, data, id, user_id, chatDetails, socket, cursor);
-      },
-
-      [MESSAGE_REACTION]: (data: message_reactions) => {
-        if (!data || !user_id) {
-          return;
-        }
-        reactMessage(dispatch, data, id);
-      },
-      [MESSAGE_SEEN]: (data: seen_user[]) => {
-        if (!data) {
-          return;
-        }
-        seenMessage(dispatch, id, data);
-      },
-
-      [EDIT_MESSAGE]: (data: Message) => {
-        logger.log(data, "data from edit message ");
-        editMessage(dispatch, id, data);
-      },
-    }),
-    [dispatch, id, socket, user_id, chatDetails, cursor],
-  );
-
-  useSocketEvents(socket, handler);
 
   const selecteds = useMemo(() => {
     return {
@@ -308,88 +192,7 @@ const ChatPage = ({ id }: { id: number }) => {
     };
   }, [user_id, socket, id]);
 
-  const pendingSeenRef = useRef<Set<number>>(new Set());
-
-  useEffect(() => {
-    if (!user_id || !messages?.length) return;
-
-    // Queue me saare unseen messages add karo
-    messages.forEach((msg: Message) => {
-      if (msg.sender_id !== user_id && !msg.seen_users.includes(user_id)) {
-        pendingSeenRef.current.add(msg.id);
-      }
-    });
-
-    // Har naye message pe timer reset hoga
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    timerRef.current = setTimeout(() => {
-      const message_ids = [...pendingSeenRef.current];
-
-      pendingSeenRef.current.clear();
-      timerRef.current = null;
-
-      if (!message_ids.length) return;
-
-      logger.log("Sending Seen Batch:", message_ids);
-
-      socket.emit(
-        MESSAGE_SEEN,
-        {
-          chat_id: id,
-          message_ids,
-          reciever_id: chatDetails?.user_id,
-        },
-        (response: socketResponse) => {
-          if (!response.success) return;
-
-          dispatch(
-            chatApi.util.updateQueryData(
-              "getSingleChat",
-              { chat_ids: [id], cursor, limit: 20 },
-              (draft) => {
-                draft?.data?.getChatById?.data?.items?.forEach(
-                  (chat: Message) => {
-                    if (
-                      message_ids.includes(chat.id) &&
-                      chat.sender_id !== user_id &&
-                      !chat.seen_users.includes(user_id)
-                    ) {
-                      chat.seen_users.push(user_id);
-                    }
-                  },
-                );
-              },
-            ),
-          );
-
-          dispatch(
-            chatApi.util.updateQueryData("getAllChats", {}, (draft) => {
-              const item = draft.data.getAllChats.data.items.find(
-                (c: Chat) => c.chat_id === id,
-              );
-
-              if (item) {
-                item.unread_count = Math.max(
-                  0,
-                  item.unread_count - message_ids.length,
-                );
-              }
-            }),
-          );
-        },
-      );
-    }, 300); // 300ms tak koi naya message nahi aaya to batch bhej do
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [messages, user_id, id, socket, chatDetails, cursor, dispatch]);
-  if (isLoading) {
+  if (isLoading || isChatLoading) {
     return (
       <div className="h-screen w-full flex flex-col justify-center items-center">
         <SpinLoader height={"100px"} width={"100px"} />
@@ -416,7 +219,6 @@ const ChatPage = ({ id }: { id: number }) => {
         memberIds={memberIds}
         setShowModal={setShowModal}
         selected={selecteds}
-        selectedMessages={selectedMessages}
         chatDetails={chatDetails}
       />
       <ChatProvider chatDetails={chatDetails}>
@@ -429,23 +231,18 @@ const ChatPage = ({ id }: { id: number }) => {
               </div>
             }
           >
-            {/* <VirtualChatlistGrouped
-              setSelectedMessages={setSelectedMessages}
+            <VirtualChatlistGrouped
               setCursor={setCursor}
               isFetching={isFetching}
               data={groupedMessages}
               nextCursor={nextCursor}
               hasMore={hasMore}
               setMenu={setMenu}
-              selectedMessages={selectedMessages}
               timerRef={timerRef}
-              emojis={emojis}
-              // chat_id={id}
-              // user_id={user_id}
-
               messages={messages}
               menu={menu}
-            /> */}
+              cursor={cursor}
+            />
           </Suspense>
           {typing && (
             <div className="flex  items-center gap-1.5 px-6 py-2">
@@ -479,13 +276,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
       <Modal values={showModal} setModal={setShowModal}>
         {showModal.type === "delete" && (
-          <DeleteMessage
-            setShowModal={setShowModal}
-            // setSelected={setSelected}
-            setSelectedMessages={setSelectedMessages}
-            selectedMessages={selectedMessages}
-            chat_id={id}
-          />
+          <DeleteMessage setShowModal={setShowModal} chat_id={id} />
         )}
       </Modal>
     </div>

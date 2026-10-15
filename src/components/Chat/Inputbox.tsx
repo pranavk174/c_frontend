@@ -66,11 +66,7 @@ const Inputbox = memo(({ reciever_ids, messages }: inputBoxProps) => {
         </button>
 
         <div>
-          <MediaOptions
-            open={open}
-            messages={messages ?? []}
-            setOpen={setOpen}
-          />
+          <MediaOptions open={open} setOpen={setOpen} />
           <button
             onClick={() => setOpen((p) => !p)}
             className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"

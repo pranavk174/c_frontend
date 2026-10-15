@@ -4,26 +4,22 @@ import { useAppDispatch } from "@/lib/hooks";
 import { useDeleteMessagesMutation, chatApi } from "@/redux/Apis/Chat";
 import React, { Dispatch, SetStateAction } from "react";
 import { logger } from "@/lib/utils";
-
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { setSelectedMessages } from "@/redux/slices/ChatSlice";
 
 interface deleteMessageProps {
   setShowModal: Dispatch<SetStateAction<valueProps>>;
-  // setSelected: Dispatch<SetStateAction<number[] | null>>;
-  selectedMessages: number[];
+
   chat_id: number;
-  setSelectedMessages: Dispatch<SetStateAction<number[]>>;
 }
 
-const DeleteMessage = ({
-  setShowModal,
-  // setSelected,
-  setSelectedMessages,
-  selectedMessages,
-  chat_id,
-}: deleteMessageProps) => {
+const DeleteMessage = ({ setShowModal, chat_id }: deleteMessageProps) => {
   const dispatch = useAppDispatch();
   const [deleteMessages] = useDeleteMessagesMutation();
-
+  const { selectedMessages } = useSelector(
+    (state: RootState) => state.ChatSlice,
+  );
   const deleteMessage = async (delete_type: string) => {
     const pathResult = dispatch(
       chatApi.util.updateQueryData(
@@ -50,7 +46,7 @@ const DeleteMessage = ({
         open: false,
       });
       // setSelected([]);
-      setSelectedMessages([]);
+      dispatch(setSelectedMessages([]));
     } catch (error) {
       pathResult.undo();
       logger.log(error, "error in deeltion.");
@@ -61,7 +57,7 @@ const DeleteMessage = ({
     <div className="w-[320px] rounded-2xl bg-white dark:bg-[#202c33] shadow-2xl overflow-hidden border border-gray-200 dark:border-[#2f3b43]">
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-200 dark:border-[#2f3b43]">
-        <h2 className="text-lg font-semibold text-[#111b21] dark:text-white">
+        <h2 className="text-lg font-semibold text-wa-bg-dark dark:text-white">
           Delete Message
         </h2>
 
@@ -75,9 +71,9 @@ const DeleteMessage = ({
         {/* Delete for me */}
         <button
           onClick={() => deleteMessage("onlyme")}
-          className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-all"
+          className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-wa-search-input-dark transition-all"
         >
-          <p className="text-sm font-medium text-[#111b21] dark:text-white">
+          <p className="text-sm font-medium text-wa-bg-dark dark:text-white">
             Delete for me
           </p>
 
@@ -103,7 +99,7 @@ const DeleteMessage = ({
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-gray-200 dark:border-[#2f3b43] flex justify-end">
-        <button className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a3942] transition-all">
+        <button className="px-4 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-wa-search-input-dark transition-all">
           Cancel
         </button>
       </div>

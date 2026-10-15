@@ -24,19 +24,11 @@ interface mediaProps {
   file_size: string;
 }
 interface uploadHookProps {
-  //   inputRef: RefObject<HTMLInputElement | null>;
-  //   user_id: number | null;
-  //   //   replyMessage: MessageItem | null;
-  //   id: number;
   chatDetails: Chat;
-  //   handleSendMessage: (e: mediaProps | FormEvent<Element>) => Promise<void>;
 }
 
 export interface sendMessageProps {
-  //   inputRef: RefObject<HTMLInputElement | null>;
   id: number;
-  //   chat_type: string | null;
-  //   memberIds: number[];
   chatDetails: Chat;
   //   scrollToBottom: () => void;
 }

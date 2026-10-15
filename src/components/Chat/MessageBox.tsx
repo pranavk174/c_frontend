@@ -27,7 +27,7 @@ const MessageBox = memo(
   }: MessageboxProps) => {
     const dispatch = useAppDispatch();
 
-    const { typing, show } = useSelector((state: RootState) => state.ChatSlice);
+    const { show } = useSelector((state: RootState) => state.ChatSlice);
 
     const { id: user_id } = useSelector((state: RootState) => state.userSlice);
 
@@ -45,12 +45,12 @@ const MessageBox = memo(
           }
         }}
         className={cn(
-          "group relative flex items-center  px-2 py-0.5  justify-end  transition-all duration-200",
+          "group relative  flex items-center my-class     mt-2 justify-end  transition-all duration-200",
           // msg.type === "header" ? "justify-end" : "justify-center",
 
-          msg?.sender_id == user_id ? "" : "flex-row-reverse",
+          msg?.sender_id == user_id ? "" : "flex-row-reverse ",
 
-          isSelected && "bg-[#ffffff0f] dark:bg-[#ffffff08]",
+          isSelected && "bg-[#ffffff0f] ",
         )}
       >
         {/* Selection Checkbox */}
@@ -70,17 +70,46 @@ const MessageBox = memo(
 
         {/* Message Actions */}
         <div
+          onMouseLeave={() => {
+            dispatch(setShow(null));
+          }}
           className={cn(
-            "flex items-center gap-2 mx-2 transition-opacity duration-200",
+            "flex items-center group relative gap-2 mx-2 group-hover:text-white transition-opacity duration-200",
             active === msg?.id ? "opacity-100" : "opacity-0",
           )}
         >
+          {show === msg.id && (
+            <ol
+              className={cn(
+                " top-0 z-50 flex gap-1 bg-white dark:bg-[#202c33] shadow-xl rounded-full px-2 py-1 border dark:border-[#2f3b43] transition-all",
+
+                show === msg?.id
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-95 pointer-events-none",
+              )}
+            >
+              {emojis?.map((em: emoji) => (
+                <li
+                  key={em.react_id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+
+                    logger.log(msg?.id, "messgae id ", em.react_id);
+                    handleLike(msg?.id, em.react_id);
+                  }}
+                  className="cursor-pointer hover:scale-125 transition-transform"
+                >
+                  {em.emoji}
+                </li>
+              ))}
+            </ol>
+          )}
           <button
-            className="text-gray-500 hover:text-white transition p-1 rounded-full hover:bg-[#ffffff14]"
             onClick={(e) => {
               e.stopPropagation();
-              dispatch(setShow(msg?.id));
+              dispatch(setShow(show === msg?.id ? null : msg?.id));
             }}
+            className="text-gray-500  float-end size-3 group-hover:text-white transition p-1 rounded-full hover:bg-[#ffffff14] cursor-pointer"
           >
             <svg
               className="size-3"
@@ -100,36 +129,12 @@ const MessageBox = memo(
           </button>
 
           {/* Emoji Picker */}
-          <ol
-            className={cn(
-              "absolute top-0 z-50 flex gap-1 bg-white dark:bg-[#202c33] shadow-xl rounded-full px-2 py-1 border dark:border-[#2f3b43] transition-all",
-
-              show === msg?.id
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-95 pointer-events-none",
-            )}
-          >
-            {emojis?.map((em: emoji) => (
-              <li
-                key={em.react_id}
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  logger.log(msg?.id, "messgae id ", em.react_id);
-                  handleLike(msg?.id, em.react_id);
-                }}
-                className="cursor-pointer hover:scale-125 transition-transform"
-              >
-                {em.emoji}
-              </li>
-            ))}
-          </ol>
         </div>
 
         {/* Message */}
         <div
           className={cn(
-            "transition-all duration-200  max-w-[70%]  ",
+            "transition-all duration-200  min-w-0 max-w-2xl  whitespace-pre-wrap wrap-anywhere ",
 
             selectionMode && "ml-8",
           )}
@@ -137,17 +142,9 @@ const MessageBox = memo(
           {msg && (
             <Messages
               msg={msg}
-              // mappedMessages={mappedMessages}
-              // pausedRef={pausedRef}
-              // progress={progress}
-              // uploadId={uploadId}
-              // uploadChunks={uploadChunks}
-
-              // cancelUpload={cancelUpload}
               user_id={user_id}
               repliedMessage={repliedMessage ?? undefined}
               emojis={icons}
-              // setReplyMessage={setReplyMessage}
             />
           )}
         </div>
