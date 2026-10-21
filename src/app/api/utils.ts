@@ -13,6 +13,34 @@ export const backendRequests = async (
 ) => {
   const cookie = req.headers.get("cookie");
 
+  const accessToken = cookie
+    ?.split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith("accessToken="))
+    ?.slice("accessToken=".length);
+
+  // if (!cookie) {
+  //   return NextResponse.json({
+  //     message: "Cookie dats not available",
+  //     status: 401,
+  //     success: false,
+  //   });
+  // }
+
+  // const cookies = Object.fromEntries(
+  //   cookie
+  //     .split(";")
+  //     .filter(Boolean)
+  //     .map((item) => {
+  //       const index = item.indexOf("=");
+  //       const key = item.slice(0, index).trim();
+  //       const value = item.slice(index + 1).trim();
+
+  //       return [key, value];
+  //     }),
+  // );
+
+  // logger.debug("cookie data", accessToken, cookies);
   const response = await api({
     ...config,
     url: "/graphql",
@@ -20,7 +48,7 @@ export const backendRequests = async (
     headers: {
       ...config.headers,
       "Content-Type": "application/json",
-      Cookie: cookie ?? "",
+      Cookie: cookie,
     },
   });
 
@@ -113,62 +141,59 @@ export const asyncHandlerBackendApis =
     fn: (...args: Args) => Promise<Response>,
     options?: AsyncHandlerOptions,
   ) =>
-    async (...args: Args): Promise<Response | NextResponse> => {
-      try {
-        return await fn(...args);
-      } catch (error: unknown) {
-        options?.onError?.(error);
+  async (...args: Args): Promise<Response | NextResponse> => {
+    try {
+      return await fn(...args);
+    } catch (error: unknown) {
+      options?.onError?.(error);
 
-        const gqlError = error as GqlError;
-        const aggregateError = error as AggregateErrorType;
-        const axiosError = error as AxiosError;
+      const gqlError = error as GqlError;
+      const aggregateError = error as AggregateErrorType;
+      const axiosError = error as AxiosError;
 
-        const status = gqlError.extensions?.status ?? 500;
+      const status = gqlError.extensions?.status ?? 500;
 
-        const code =
-          gqlError.extensions?.code ?? aggregateError.code ?? axiosError.code;
+      const code =
+        gqlError.extensions?.code ?? aggregateError.code ?? axiosError.code;
 
-        const message =
-          gqlError.message ??
-          axiosError.message ??
-          aggregateError.message ??
-          "Something went wrong";
+      const message =
+        gqlError.message ??
+        axiosError.message ??
+        aggregateError.message ??
+        "Something went wrong";
 
-        logger.log(
-          aggregateError.code,
+      logger.log(
+        aggregateError.code,
+        message,
+        code,
+        status,
+        "error data",
+        aggregateError.name,
+        gqlError?.path?.[0],
+        error,
+      );
+
+      const res = NextResponse.json(
+        {
+          success: false,
           message,
-          code,
+          error: message,
           status,
-          "error data",
-          aggregateError.name,
-          gqlError?.path?.[0],
-          error
-        );
+          code,
+          api: gqlError?.path?.[0],
+        },
+        { status },
+      );
 
-        const res = NextResponse.json(
-          {
-            success: false,
-            message,
-            error: message,
-            status,
-            code,
-            api: gqlError?.path?.[0]
-          },
-          { status },
-        );
-
-
-        if (gqlError?.path?.[0] === 'logout') {
-          res.cookies.delete("accessToken");
-          res.cookies.delete("refreshToken");
-        }
-
-
-
-        logger.info(res, "response in api")
-
-        return res
-      } finally {
-        options?.onFinally?.();
+      if (gqlError?.path?.[0] === "logout") {
+        res.cookies.delete("accessToken");
+        res.cookies.delete("refreshToken");
       }
-    };
+
+      logger.info(res, "response in api");
+
+      return res;
+    } finally {
+      options?.onFinally?.();
+    }
+  };

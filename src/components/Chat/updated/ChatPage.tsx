@@ -189,6 +189,7 @@ const ChatPage = ({ id }: { id: number }) => {
             }
           > */}
           <VirtualChatlistGrouped
+            key={id}
             setCursor={setCursor}
             isFetching={isFetching}
             data={groupedMessages}

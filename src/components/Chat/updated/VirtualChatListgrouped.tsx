@@ -57,6 +57,9 @@ import {
 import { useChatSocketSync } from "./UseChatSocketSync";
 import MessageBox from "../MessageBox";
 
+// List ke upar encrypted notice ke liye reserved height (px)
+const NOTICE_SPACE = 80;
+
 const VirtualChatlistGrouped = memo(
   ({
     setMenu,
@@ -73,7 +76,6 @@ const VirtualChatlistGrouped = memo(
   }: chatListProps) => {
     const { chatSocket: socket } = useSocket();
     const parentRef = React.useRef<HTMLDivElement | null>(null);
-    const topSentinelRef = useRef<HTMLDivElement | null>(null);
     const [active, setActive] = useState<number | string | null>(null);
     const { selectedMessages } = useSelector(
       (state: RootState) => state.ChatSlice,
@@ -120,18 +122,36 @@ const VirtualChatlistGrouped = memo(
 
       getItemKey: (index) => data[index].id,
 
+      // List ke upar encrypted notice ke liye jagah — ye totalSize mein count hota hai
+      paddingStart: NOTICE_SPACE,
+      scrollPaddingStart: NOTICE_SPACE,
+
       // Ye har item ki estimated height pixels mein batata hai.
-      //Isse fast scrolling ke waqt items achanak appear hone ya blank space dikhne ka risk kam ho sakta hai.
-      estimateSize: () => 10,
+      // Real height ke kareeb rakho, warna measure hone par content shift hota hai.
+      estimateSize: (index) => (data[index]?.kind === "header" ? 32 : 72),
 
       //Viewport ke upar aur neeche additional items render karne deta hai.
       overscan: 10,
 
-      // Ye actual rendered item ki height measure karta hai.
-      // Virtualizer inki actual heights ke basis par item positions aur total size ko update kar sakta hai.
-      measureElement: (el) => el.getBoundingClientRect().height,
+      // measureElement ka default (ResizeObserver) use ho raha hai —
+      // content ki height badalne par (image load, reaction) row khud re-measure hoti hai.
     });
-    const initialScrollDone = useRef(false);
+
+    // virtualizer ka current last index (rAF callbacks mein bhi fresh rahe)
+    const lastIndex = useCallback(
+      () => rowVirtualizer.options.count - 1,
+      [rowVirtualizer],
+    );
+
+    const [initialScrollDone, setInitialScrollDone] = useState(false);
+    // user abhi bottom ke paas hai ya nahi — onScroll mein update hota hai
+    const atBottomRef = useRef(true);
+    // purane messages load karte waqt jo item screen par tha, uski position
+    const prependAnchorRef = useRef<{
+      key: string | number;
+      offset: number;
+      sawFetching: boolean;
+    } | null>(null);
     useEffect(() => {
       if (selectedMessages.length === 0) {
         setSelectionMode(false);
@@ -143,34 +163,42 @@ const VirtualChatlistGrouped = memo(
     //   chatDetails,
     //   chatDetails: { chat_id, user_id: chat_user_id },
     // } = useChat();
-    const hasMountedRef = useRef(false);
+
     const { id: user_id } = useSelector((state: RootState) => state.userSlice);
 
-    useEffect(() => {
-      if (!hasMountedRef.current && data.length > 0) {
-        rowVirtualizer.scrollToIndex(data.length - 1, {
-          align: "end",
-        });
-        hasMountedRef.current = true;
-      }
-    }, [data.length, rowVirtualizer]);
-
-    const prevTotalSizeRef = useRef(0);
-
-    useEffect(() => {
-      if (isFetching) {
-        prevTotalSizeRef.current = rowVirtualizer.getTotalSize();
-      }
-    }, [isFetching, rowVirtualizer]);
-
+    // Pehli baar bottom par le jao. Pehla scroll estimated sizes par hota hai,
+    // items measure hone ke baad height badalti hai — isliye agle frame mein dobara.
     useLayoutEffect(() => {
-      if (!isFetching && parentRef.current) {
-        const diff = rowVirtualizer.getTotalSize() - prevTotalSizeRef.current;
-        if (diff > 0) {
-          parentRef.current.scrollTop += diff;
-        }
+      if (initialScrollDone || data.length === 0) return;
+      rowVirtualizer.scrollToIndex(lastIndex(), { align: "end" });
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        rowVirtualizer.scrollToIndex(lastIndex(), { align: "end" });
+        raf2 = requestAnimationFrame(() => setInitialScrollDone(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }, [data.length, initialScrollDone, rowVirtualizer, lastIndex]);
+
+    // Purane messages upar add hone ke baad wahi item wapas usi jagah dikhao.
+    // Sirf tab chalta hai jab humne load-more trigger kiya ho (anchor set ho)
+    // aur woh fetch complete ho gaya ho — naya message / typing isko trigger nahi karta.
+    useLayoutEffect(() => {
+      const anchor = prependAnchorRef.current;
+      if (!anchor) return;
+      if (isFetching) {
+        anchor.sawFetching = true;
+        return;
       }
-    }, [data.length, isFetching, rowVirtualizer]);
+      if (!anchor.sawFetching) return;
+      prependAnchorRef.current = null;
+
+      const idx = data.findIndex((item) => item.id === anchor.key);
+      const item = idx >= 0 ? rowVirtualizer.measurementsCache[idx] : undefined;
+      if (item) rowVirtualizer.scrollToOffset(item.start - anchor.offset);
+    }, [data, isFetching, rowVirtualizer]);
 
     const [selectionMode, setSelectionMode] = useState(false);
     const { url } = useGetWallpaperQuery(null, {
@@ -214,30 +242,46 @@ const VirtualChatlistGrouped = memo(
       setSelectionMode(true);
     }, [setMenu]);
 
+    // Load more: jab pehla item (index 0) render range mein aa jaye.
+    // overscan ki wajah se ye top se ~10 items pehle hi trigger ho jata hai.
+    const firstRenderedIndex = rowVirtualizer.getVirtualItems()[0]?.index;
 
-     useEffect(() => {
-          const observer = new IntersectionObserver(
-            (entries) => {
-              if (
-                entries[0].isIntersecting &&
-                hasMore &&
-                !isFetching &&
-                initialScrollDone.current
-              ) {
-                logger.debug("scrolleddd.")
-                setCursor(nextCursor);
-              }
-            },
-            {
-              root: parentRef.current,
-              rootMargin: "100px",
-              threshold: 0,
-            },
-          );
-          if (topSentinelRef.current) observer.observe(topSentinelRef.current);
-          return () => observer.disconnect();
-        }, [data, nextCursor, hasMore, isFetching, setCursor]);
-     
+    useEffect(() => {
+      if (
+        firstRenderedIndex !== 0 ||
+        !initialScrollDone ||
+        !hasMore ||
+        isFetching ||
+        prependAnchorRef.current ||
+        nextCursor == null ||
+        nextCursor === cursor
+      )
+        return;
+
+      // jo item abhi viewport ke top par dikh raha hai use anchor bana lo
+      const el = parentRef.current;
+      const scrollTop = el?.scrollTop ?? 0;
+      const visible = rowVirtualizer
+        .getVirtualItems()
+        .find((item) => item.end > scrollTop);
+      if (visible) {
+        prependAnchorRef.current = {
+          key: visible.key as string | number,
+          offset: visible.start - scrollTop,
+          sawFetching: false,
+        };
+      }
+      setCursor(nextCursor);
+    }, [
+      firstRenderedIndex,
+      initialScrollDone,
+      hasMore,
+      isFetching,
+      nextCursor,
+      cursor,
+      setCursor,
+      rowVirtualizer,
+    ]);
 
     const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
     const seenTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -296,24 +340,52 @@ const VirtualChatlistGrouped = memo(
 
     const lastMessageId = messages?.at(-1)?.id;
 
-    const scrollToEndIfNeeded = useEffectEvent(() => {
+    const handleScroll = useCallback(() => {
       const el = parentRef.current;
+      if (!el) return;
+      atBottomRef.current =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+    }, []);
+
+    const scrollToBottom = useEffectEvent(() => {
+      rowVirtualizer.scrollToIndex(lastIndex(), { align: "end" });
+      // naye item ki real height measure hone ke baad dobara end tak
+      requestAnimationFrame(() =>
+        rowVirtualizer.scrollToIndex(lastIndex(), { align: "end" }),
+      );
+    });
+
+    // Naya message: apna ho ya user pehle se bottom par tha, tabhi neeche le jao.
+    // atBottomRef naye message render hone se PEHLE ki position batata hai.
+    const scrollToEndIfNeeded = useEffectEvent(() => {
       const last = messages?.at(-1);
-      if (!el || !last) return;
-      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-      if (last.sender_id === user_id || nearBottom) {
-        rowVirtualizer.scrollToIndex(data.length - 1, { align: "end" });
-      }
+      if (!last || !initialScrollDone) return;
+      scrollToBottom();
     });
 
     useEffect(() => {
       scrollToEndIfNeeded();
     }, [lastMessageId]);
 
+    logger.debug(lastMessageId, "last message id...");
+
+    // Typing indicator aaye to bottom par hone par dikhao, warna wo neeche chhupa rehta hai
+    const scrollForTyping = useEffectEvent(() => {
+      if (initialScrollDone && atBottomRef.current) scrollToBottom();
+    });
+
+    useEffect(() => {
+      if (typing) scrollForTyping();
+    }, [typing]);
+
+    // pagination wala fetch (cursor set hai) — reconnect refetch par spinner nahi
+    const loadingOlder = isFetching && cursor !== null;
+
     return (
       <div
         ref={parentRef}
-        className=" relative flex flex-col h-full p-1 z-10  object-contain bg-no-repeat  hide-scrollbar"
+        onScroll={handleScroll}
+        className=" relative  h-full p-1 z-10  object-contain bg-no-repeat  hide-scrollbar"
         style={{
           backgroundImage: `url(${url})`,
           backgroundSize: "cover",
@@ -330,24 +402,9 @@ const VirtualChatlistGrouped = memo(
             width: "100%",
             position: "relative",
           }}
-          className={`  relative  mx-auto flex-1 min-h-0 overflow-y-auto  `}
         >
-          {/* Top Sentinel for Load More */}
-          <div
-            ref={topSentinelRef}
-            style={{
-              backgroundColor:'red',
-              position: "absolute",
-              top: 0,
-              zIndex:222,
-              height: "1px",
-              width: "100%",
-            }}
-          />
-
-          {/* Encrypted Notice */}
-
-          <div className="flex relative justify-center mb-4">
+          {/* Encrypted Notice — paddingStart (NOTICE_SPACE) wali jagah mein */}
+          <div className="absolute top-0 inset-x-0 flex justify-center">
             <div className="bg-[#ffeecd] dark:bg-[#182229] text-wa-icon dark:text-[#8696a0] text-xs px-4 py-2 rounded-lg text-center shadow-sm max-w-[60%]">
               <span className="inline-block mr-1">🔒</span>
               Messages and calls are end-to-end encrypted. No one outside of
@@ -355,8 +412,9 @@ const VirtualChatlistGrouped = memo(
             </div>
           </div>
 
-          {isFetching && (
-            <div className="h-50 w-full flex justify-center ">
+          {/* absolute — layout shift nahi karta */}
+          {loadingOlder && (
+            <div className="absolute top-2 inset-x-0 z-20 flex justify-center pointer-events-none">
               <SpinLoader height={"40px"} width={"40px"} />
             </div>
           )}
@@ -367,15 +425,14 @@ const VirtualChatlistGrouped = memo(
             const properties = {
               style: {
                 position: "absolute" as const,
-                top: 80,
+                top: 0,
                 left: 0,
                 width: "100%",
                 transform: `translateY(${virtualItem.start}px)`,
               },
               "data-index": virtualItem.index,
-              ref: (el: HTMLDivElement | null) => {
-                if (el) rowVirtualizer.measureElement(el);
-              },
+              // stable ref — har render par naya callback nahi
+              ref: rowVirtualizer.measureElement,
             };
 
             if (msg.kind === "header") {

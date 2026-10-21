@@ -18,7 +18,7 @@ import {
 
 import { Message, modalValue, valueProps } from "@/lib/dummy";
 import Modal from "@/components/HOComponents/Modal";
-import MediaPreviewContent from "@/components/ModalChilds/MediaPreviewContent";
+import MediaPreviewContent from "@/components/ModalChilds/updated/MediaPreviewContent";
 
 interface mediaOptionsProps {
   open: boolean;

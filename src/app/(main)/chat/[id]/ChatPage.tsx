@@ -66,7 +66,7 @@ const ChatPage = ({ id }: { id: number }) => {
 
   const { messages, nextCursor, hasMore, isLoading, isFetching, refetch } =
     useGetSingleChatQuery(
-      { chat_ids: [id], cursor, limit: 20 },
+      { chat_ids: [id], cursor, limit: 30 },
       {
         // sirf cache ke references lautao — yahan naya array/object MAT banao
         selectFromResult: ({ data, isLoading, isFetching }) => ({
@@ -188,6 +188,7 @@ const ChatPage = ({ id }: { id: number }) => {
             }
           > */}
           <VirtualChatlistGrouped
+            key={id}
             setCursor={setCursor}
             isFetching={isFetching}
             data={groupedMessages}
