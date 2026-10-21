@@ -7,6 +7,7 @@ import { useBlockUserMutation } from "@/redux/Apis/Users";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { CHAT_LEAVED } from "@/lib/events";
 import { logger } from "@/lib/utils";
+import { socketcallBack } from "@/lib/updated/socket";
 
 
 type BlockUserProps = {
@@ -47,9 +48,7 @@ const BlockUser = ({ name, userId, setOpen, open, chatId }: BlockUserProps) => {
       socket.emit(
         CHAT_LEAVED,
         { chat_id: chatId, user_id: userId },
-        (response: socketResponse) => {
-          logger.log("user left ", response);
-        },
+        socketcallBack,
       );
       setOpen({
         type: null,

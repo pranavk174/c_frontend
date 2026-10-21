@@ -18,6 +18,7 @@ import { useSelector } from "react-redux";
 import Uploader from "../Utility/Uploader";
 import { useSearchParams } from "next/navigation";
 import { logger } from "@/lib/utils";
+import { socketcallBack } from "@/lib/updated/socket";
 
 interface whatsappProfileProps {
   profile: profileProps;
@@ -97,9 +98,7 @@ const WhatsappProfile = ({
       socket.emit(
         CHAT_JOINED,
         { chat_id: formData?.chat_id, user_id },
-        (response: socketResponse) => {
-          logger.log("user joined ", response);
-        },
+        socketcallBack,
       );
       setOpen({
         type: "null",

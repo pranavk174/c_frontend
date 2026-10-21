@@ -1,3 +1,5 @@
+export const ACK_TIMEOUT = 8000;
+
 export const ALERT = "ALERT";
 export const REFETCH_CHATS = "REFETCH_CHATS";
 export const ERROR = "ERROR";
@@ -58,4 +60,4 @@ export const CALL_ENDED = "CALL_ENDED";
 // Notifications
 export const NEW_MESSAGE_ALERT = "NEW_MESSAGE_ALERT";
 export const NEW_NOTIFICATION = "NEW_NOTIFICATION";
-export const SEEN_NOTIFICATION = "SEEN_NOTIFICATION"
+export const SEEN_NOTIFICATION = "SEEN_NOTIFICATION";

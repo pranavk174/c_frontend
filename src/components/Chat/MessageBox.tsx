@@ -1,5 +1,5 @@
 import { memo } from "react";
-import Messages from "./Messages";
+import Messages from "./updated/Messages";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { emoji, MessageboxProps } from "@/lib/dummy";

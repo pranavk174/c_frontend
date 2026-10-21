@@ -5,6 +5,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import type { IncomingMessage, ServerResponse } from "http";
 import { loadEnvConfig } from "@next/env";
 import type { Socket } from "node:net";
+import { logger } from "@/lib/utils";
 // Load .env before anything else so BASE_URL is available
 loadEnvConfig(process.cwd());
 
@@ -51,6 +52,6 @@ app.prepare().then(() => {
 
   const port = process.env.PORT || 3000;
   server.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`);
+    logger.log(`> Ready on http://localhost:${port}`);
   });
 });

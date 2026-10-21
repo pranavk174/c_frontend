@@ -1,12 +1,14 @@
 "use client";
 import {
   Chat,
+  ChatItem,
   chatListProps,
   emoji,
   Message,
   message_reactions,
   seen_user,
   socketResponse,
+  typingItem,
 } from "@/lib/dummy";
 import {
   EDIT_MESSAGE,
@@ -37,7 +39,7 @@ import React, {
 import { useSocket } from "@/layouts/SocketWrapper";
 import SpinLoader from "../Utility/SpinLoader";
 import MessageBox from "./MessageBox";
-import { logger } from "@/lib/utils";
+import { cn, logger } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useChat } from "@/Context/ChatContext";
@@ -55,7 +57,7 @@ const VirtualChatlistGrouped = memo(
     setMenu,
     setCursor,
     isFetching,
-    data,
+    data: MessageData,
     nextCursor,
     hasMore,
     messages,
@@ -90,6 +92,18 @@ const VirtualChatlistGrouped = memo(
         },
       },
     );
+    const { typing } = useSelector((state: RootState) => state.ChatSlice);
+
+    const data: ChatItem[] = useMemo(() => {
+      return [
+        ...MessageData,
+        {
+          kind: "typing",
+          id: crypto.randomUUID(),
+          typing,
+        } as typingItem,
+      ];
+    }, [typing, MessageData]);
 
     const rowVirtualizer = useVirtualizer({
       count: data.length,
@@ -240,7 +254,6 @@ const VirtualChatlistGrouped = memo(
         clearTimeout(timerRef.current);
       }
     }, [timerRef]);
-
     const pendingSeenRef = useRef<Set<number>>(new Set());
 
     useEffect(() => {
@@ -398,6 +411,37 @@ const VirtualChatlistGrouped = memo(
                     <p className="text-xs p-1 bg-wa-header  dark:bg-wa-header-dark rounded-md">
                       {msg.date}
                     </p>
+                  </div>
+                </div>
+              );
+            }
+
+            if (msg.kind === "typing" && msg.typing) {
+              return (
+                <div
+                  className="px-2 py-1 pb-2"
+                  key={virtualItem.index}
+                  {...properties}
+                >
+                  <div
+                    className={cn(
+                      "relative rounded-2xl px-3 w-30 py-3 shadow-sm text-sm wrap-anywhere transition-all",
+                      msg.sender_id == user_id
+                        ? "bg-wa-msg-sent dark:bg-wa-msg-sent-dark rounded-br-md text-wa-bg-dark dark:text-wa-divider"
+                        : "bg-white dark:bg-[#202c33] rounded-bl-md text-wa-bg-dark dark:text-wa-divider",
+                    )}
+                    // className="flex items-center gap-1 px-3 bg-none py-2 rounded-2xl"
+                  >
+                    <span className="text-xs text-slate-400   mr-1">
+                      Typing
+                    </span>
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        style={{ animationDelay: `${i * i * 50}ms` }}
+                        className="typing-dot w-1.5 h-1.5 ml-1 animate-bounce rounded-full bg-violet-400 inline-block"
+                      />
+                    ))}
                   </div>
                 </div>
               );

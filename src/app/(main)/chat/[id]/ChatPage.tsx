@@ -3,6 +3,10 @@ import { useState, useRef, useEffect, Suspense, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useGetMembersQuery } from "@/redux/Apis/Chat";
 import { RootState } from "@/redux/store";
+import { ChatMetaProvider } from "@/Context/ChatMetaContext";
+import { ChatActionProvider } from "@/Context/ChatActionContext";
+import { groupMessagesByDate } from "@/lib/updated/chatGrouping";
+
 import {
   Chat,
   ChatItem,
@@ -13,17 +17,21 @@ import {
 } from "@/lib/dummy";
 import Modal from "@/components/HOComponents/Modal";
 import { useGetAllChatsQuery, useGetSingleChatQuery } from "@/redux/Apis/Chat";
-import { useSocket } from "@/layouts/SocketWrapper";
+
 import { CHAT_JOINED, CHAT_LEAVED } from "@/lib/events";
-import Inputbox from "@/components/Chat/Inputbox";
+import Inputbox from "@/components/Chat/updated/Inputbox";
 import DeleteMessage from "@/components/ModalChilds/DeleteMessage";
 import Chathead from "@/components/Chat/Chathead";
 import SpinLoader from "@/components/Utility/SpinLoader";
-import VirtualChatlistGrouped from "@/components/Chat/VirtualChatListgrouped";
+import VirtualChatlistGrouped from "@/components/Chat/updated/VirtualChatListgrouped";
 import { logger } from "@/lib/utils";
 
 import { ChatProvider } from "@/Context/ChatContext";
 import { useSearchParams } from "next/navigation";
+import { useChatRoom } from "@/lib/updated/useChatRoom";
+import { resetChatUi } from "@/redux/slices/updated/ChatSlice";
+import { useAppDispatch } from "@/lib/hooks";
+import { useChatSocketSync } from "@/components/Chat/updated/UseChatSocketSync";
 
 const ChatPage = ({ id }: { id: number }) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -37,115 +45,51 @@ const ChatPage = ({ id }: { id: number }) => {
     type: null,
   });
 
-  const { chatSocket: socket } = useSocket();
   const [menu, setMenu] = useState(false);
   const { id: user_id } = useSelector((state: RootState) => state.userSlice);
-  const { typing, selectedMessages } = useSelector(
+  const { selectedMessages } = useSelector(
     (state: RootState) => state.ChatSlice,
   );
 
   const { data: chatDetails, isLoading: isChatLoading } = useGetAllChatsQuery(
     {},
     {
-      selectFromResult: ({ data, isLoading, isSuccess }) => {
-        return {
-          data: data?.data?.getAllChats?.data?.items?.filter(
-            (item: Chat) => item.chat_id === id,
-          )[0],
-          isLoading,
-          isSuccess,
-        };
-      },
+      selectFromResult: ({ data, isLoading }) => ({
+        // find() cache ka hi object lautata hai → reference stable
+        data: data?.data?.getAllChats?.data?.items?.find(
+          (item: Chat) => item.chat_id === id,
+        ) as Chat | undefined,
+        isLoading,
+      }),
     },
   );
 
-  const {
-    data: messages,
-    groupedMessages,
-    isLoading,
-    isFetching,
-    nextCursor,
-    hasMore,
-  } = useGetSingleChatQuery(
-    { chat_ids: [id], cursor, limit: 20 },
-    {
-      selectFromResult: ({ data, isLoading, isSuccess, isFetching }) => {
-        const result: Record<string, Message[]> =
-          data?.data?.getChatById?.data?.items.reduce(
-            (acc: Record<string, Message[]>, idx: Message) => {
-              const date = new Date(Number(idx.created_at));
-
-              const today = new Date();
-              const yesterday = new Date();
-              yesterday.setDate(today.getDate() - 1);
-
-              let key = "";
-
-              if (date.toDateString() === today.toDateString()) {
-                key = "Today";
-              } else if (date.toDateString() === yesterday.toDateString()) {
-                key = "Yesterday";
-              } else {
-                key = date.toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                });
-              }
-
-              if (!acc[key]) {
-                acc[key] = [];
-              }
-
-              acc[key].push(idx);
-
-              return acc;
-            },
-            {} as Record<string, Message[]>,
-          ) ?? [];
-
-        const flatData: ChatItem[] = Object.entries(result).flatMap(
-          ([date, messages]) => [
-            {
-              kind: "header",
-              id: crypto.randomUUID(),
-              date,
-            },
-            ...messages.map((msg) => ({
-              ...msg,
-              kind: "message" as const,
-            })),
-          ],
-        );
-
-        const mappedMessages = new Map(
-          data?.data?.getChatById?.data?.items.map((m: Message) => [m.id, m]),
-        );
-
-        return {
-          data: data?.data?.getChatById?.data?.items,
-          groupedMessages: flatData,
-          mappedMessages,
+  const { messages, nextCursor, hasMore, isLoading, isFetching, refetch } =
+    useGetSingleChatQuery(
+      { chat_ids: [id], cursor, limit: 20 },
+      {
+        // sirf cache ke references lautao — yahan naya array/object MAT banao
+        selectFromResult: ({ data, isLoading, isFetching }) => ({
+          messages: data?.data?.getChatById?.data?.items as
+            | Message[]
+            | undefined,
           nextCursor: data?.data?.getChatById?.data?.nextCursor,
           hasMore: data?.data?.getChatById?.data?.hasMore,
           isLoading,
-          isSuccess,
           isFetching,
-        };
+        }),
+        refetchOnMountOrArgChange: true,
       },
-      refetchOnMountOrArgChange: true,
-    },
-  );
+    );
 
-  const { members, memberIds } = useGetMembersQuery(
+  const { members } = useGetMembersQuery(
     { chat_id: id },
     {
       selectFromResult: ({ data, isLoading, error }) => {
         return {
-          members: data?.data?.getMembers?.data?.items,
-          memberIds: data?.data?.getMembers?.data?.items.map(
-            (d: memberProps) => d.member_id,
-          ),
+          members: data?.data?.getMembers?.data?.items as
+            | memberProps[]
+            | undefined,
           isLoading,
           error,
         };
@@ -153,44 +97,58 @@ const ChatPage = ({ id }: { id: number }) => {
       skip: chat_type !== "group",
     },
   );
+  const memberIds = useMemo(
+    () => members?.map((m) => m.member_id) ?? [],
+    [members],
+  );
+
+  const groupedMessages = useMemo(
+    () => groupMessagesByDate(messages ?? []),
+    [messages],
+  );
+  const messageMap = useMemo(
+    () => new Map((messages ?? []).map((m) => [m.id, m])),
+    [messages],
+  );
 
   const selecteds = useMemo(() => {
+    const selected = messageMap.get(selectedMessages[0]);
     return {
-      message: messages?.find((msg: Message) => msg.id === selectedMessages[0])
-        ?.content,
-      sender_id: messages?.find(
-        (msg: Message) => msg.id === selectedMessages[0],
-      )?.sender_id,
-      id: messages?.find((msg: Message) => msg.id === selectedMessages[0])?.id,
+      message: selected?.content,
+      sender_id: selected?.sender_id,
+      id: selected?.id,
     };
-  }, [messages, selectedMessages]);
+  }, [messageMap, selectedMessages]);
+
+  const recieverIds = useMemo(
+    () =>
+      chat_type === "group"
+        ? memberIds
+        : chatDetails
+          ? [chatDetails.user_id]
+          : [],
+    [chat_type, memberIds, chatDetails],
+  );
+  useChatRoom({
+    chatId: id,
+    userId: user_id,
+    onReconnect: () => {
+      // cursor null = latest page. Agar user ne purane messages load kiye the,
+      // to cursor null karne se forceRefetch + merge latest page se replace kar dega
+      if (cursor === null) refetch();
+      else setCursor(null);
+    },
+  });
+
+  useChatSocketSync(id);
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (user_id) {
-      socket.emit(
-        CHAT_JOINED,
-        {
-          chat_id: id,
-          user_id,
-        },
-        (response: socketResponse) => {
-          logger.log(response, "chat join response....");
-        },
-      );
-    }
-
     return () => {
-      if (user_id) {
-        socket.emit(
-          CHAT_LEAVED,
-          { chat_id: id, user_id, socketId: socket.id },
-          (response: socketResponse) => {
-            logger.log(response, "chat leave response....");
-          },
-        );
-      }
+      dispatch(resetChatUi());
     };
-  }, [user_id, socket, id]);
+  }, [id, dispatch]);
 
   if (isLoading || isChatLoading) {
     return (
@@ -201,7 +159,7 @@ const ChatPage = ({ id }: { id: number }) => {
     );
   }
 
-  if (!messages) {
+  if (!messages || !chatDetails) {
     return (
       <div className="flex-1 h-screen flex items-center font-bold text-xl uppercase justify-center text-gray-500">
         Chat not found
@@ -212,68 +170,44 @@ const ChatPage = ({ id }: { id: number }) => {
   return (
     <div className="flex flex-col  w-full chat-bg relative">
       {/* Header */}
-
-      <Chathead
-        menu={menu}
-        members={members}
-        memberIds={memberIds}
-        setShowModal={setShowModal}
-        selected={selecteds}
-        chatDetails={chatDetails}
-      />
-      <ChatProvider chatDetails={chatDetails}>
-        <>
-          {" "}
-          <Suspense
+      <ChatMetaProvider chatDetails={chatDetails} recieverIds={recieverIds}>
+        <ChatActionProvider>
+          <Chathead
+            menu={menu}
+            members={members}
+            memberIds={memberIds}
+            setShowModal={setShowModal}
+            selected={selecteds}
+            chatDetails={chatDetails}
+          />{" "}
+          {/* <Suspense
             fallback={
               <div className="h-screen w-full flex  justify-center items-center">
                 <SpinLoader height={"50px"} width={"50px"} />
               </div>
             }
-          >
-            <VirtualChatlistGrouped
-              setCursor={setCursor}
-              isFetching={isFetching}
-              data={groupedMessages}
-              nextCursor={nextCursor}
-              hasMore={hasMore}
-              setMenu={setMenu}
-              timerRef={timerRef}
-              messages={messages}
-              menu={menu}
-              cursor={cursor}
-            />
-          </Suspense>
-          {typing && (
-            <div className="flex  items-center gap-1.5 px-6 py-2">
-              <div
-                className="flex items-center gap-1 px-3 py-2 rounded-2xl"
-                style={
-                  {
-                    // background: "rgba(255,255,255,0.07)",
-                    // border: "1px solid rgba(255,255,255,0.08)",
-                  }
-                }
-              >
-                <span className="text-xs text-slate-400  mr-1">Typing</span>
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="typing-dot w-1.5 h-1.5  rounded-full bg-violet-400 inline-block"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          > */}
+          <VirtualChatlistGrouped
+            setCursor={setCursor}
+            isFetching={isFetching}
+            data={groupedMessages}
+            nextCursor={nextCursor}
+            hasMore={hasMore}
+            setMenu={setMenu}
+            messages={messages}
+            menu={menu}
+            messageMap={messageMap}
+            cursor={cursor}
+          />
+          {/* </Suspense> */}
           <Inputbox
             messages={messages}
             reciever_ids={
               chat_type === "group" ? memberIds : [chatDetails?.user_id]
             }
           />
-        </>
-      </ChatProvider>
-
+        </ChatActionProvider>
+      </ChatMetaProvider>
       <Modal values={showModal} setModal={setShowModal}>
         {showModal.type === "delete" && (
           <DeleteMessage setShowModal={setShowModal} chat_id={id} />

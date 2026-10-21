@@ -108,11 +108,17 @@ type HeaderItem = {
   date: string;
 };
 
+export type typingItem = Message & {
+  kind: "typing";
+  id: string;
+  typing: boolean;
+};
+
 export type MessageItem = Message & {
   kind: "message";
 };
 
-export type ChatItem = MessageItem | HeaderItem;
+export type ChatItem = MessageItem | HeaderItem | typingItem;
 
 export interface seen_user {
   message_id: number;
@@ -296,3 +302,5 @@ export interface mediaUploads {
   setFile: React.Dispatch<React.SetStateAction<File | null>>;
   file?: File | null;
 }
+
+//  ai suggested code

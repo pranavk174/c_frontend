@@ -7,6 +7,7 @@ import { logger } from "@/lib/utils";
 import { useEffect } from "react";
 import { useSocket } from "@/layouts/SocketWrapper";
 import { SEEN_NOTIFICATION } from "@/lib/events";
+import { socketcallBack } from "@/lib/updated/socket";
 
 export default function NotificationUI({
   notifications,
@@ -28,9 +29,7 @@ export default function NotificationUI({
           notificationSocket.emit(
             SEEN_NOTIFICATION,
             { notification_ids },
-            (response: socketResponse) => {
-              console.log("notifications een successfully....", response);
-            },
+            socketcallBack,
           );
         } catch (error) {
           console.log(error);

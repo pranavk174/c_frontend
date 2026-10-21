@@ -2,12 +2,6 @@ import { Message } from "@/lib/dummy";
 import { BaseApi } from "./BaseApi";
 import { logger } from "@/lib/utils";
 
-import {
-  editMessageMutation,
-  replyMessageMutation,
-  sendMessageMutation,
-} from "@/graphql/Modules/Chat/Chat.mutation";
-
 export const chatApi = BaseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAllChats: builder.query({
@@ -15,7 +9,7 @@ export const chatApi = BaseApi.injectEndpoints({
         url: "/chat/all-chats",
         method: "GET",
       }),
-      providesTags: ["chats"],
+      providesTags: [{ type: "chats", id: "ALL_CHATS" }],
     }),
 
     getSingleChat: builder.query({

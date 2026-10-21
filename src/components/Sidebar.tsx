@@ -29,6 +29,9 @@ import { useGetAllChatsQuery } from "@/redux/Apis/Chat";
 import { useSelector } from "react-redux";
 import WhatsappProfile from "./User/WhatsappProfile";
 import Modal from "./HOComponents/Modal";
+import { disconnectSockets } from "@/lib/updated/socket";
+import { BaseApi } from "@/redux/Apis/BaseApi";
+import { removeUser } from "@/redux/slices/User";
 import WhatsAppNotificationUI from "./Notifications/Notification";
 import {
   NotificationApi,
@@ -38,7 +41,7 @@ import { useToast } from "./Utility/Toast";
 import { useAppDispatch, useSocketEvents } from "@/lib/hooks";
 import { addUser } from "@/redux/slices/User";
 import { NEW_MESSAGE_ALERT, SEEN_NOTIFICATION } from "@/lib/events";
-import { useSocket } from "@/layouts/SocketWrapper";
+import { useSocket } from "@/layouts/updated/SocketWrapper";
 import { current } from "@reduxjs/toolkit";
 import NewChat from "./Chat/NewChat";
 import SoundToggle from "./Utility/Togglebuton";
@@ -153,9 +156,18 @@ export default function Sidebar() {
 
   const handleLogout = asyncHandler(async () => {
     await logout(null).unwrap();
+    disconnectSockets();
+    dispatch(BaseApi.util.resetApiState()); // agla user login kare to purani chats cache mein na dikhe
+    dispatch(removeUser());
     document.documentElement.classList.remove("dark", "light");
     route.replace("/login");
   });
+
+  // const handleLogout = asyncHandler(async () => {
+  //   await logout(null).unwrap();
+  //   document.documentElement.classList.remove("dark", "light");
+  //   route.replace("/login");
+  // });
 
   return (
     <aside

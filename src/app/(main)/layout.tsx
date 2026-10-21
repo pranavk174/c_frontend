@@ -2,7 +2,7 @@ import Sidebar from "@/components/Sidebar";
 // import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Authlayout from "@/layouts/Authlayout";
-import { SocketProvider } from "@/layouts/SocketWrapper";
+import { SocketProvider } from "@/layouts/updated/SocketWrapper";
 export default function MainLayout({
   children,
 }: {

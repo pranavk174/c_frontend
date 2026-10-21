@@ -1,0 +1,318 @@
+import { Dispatch, RefObject, SetStateAction } from "react";
+
+export interface errors {
+  error?: string;
+  message: string;
+  success?: boolean;
+  status: number;
+  code: string | number;
+}
+
+export interface errorConfig {
+  data: errors | null;
+  status: number;
+}
+
+export interface deviceConfig {
+  device_id: string;
+  ip_address: string;
+  location: {
+    city: string;
+    region: string;
+    country: string;
+    latitude: string;
+    longitude: string;
+  } | null;
+  device_name: string;
+}
+
+export type Chat = {
+  // id: string;
+  name: string;
+  // avatar: string;
+  // lastMessage: string;
+  // time: string;
+  unread_count: number;
+  isOnline?: boolean;
+  chat_id: number;
+  blocked: boolean;
+  chat_type: string;
+  user_id: number;
+  profile_pic: string;
+  last_message_id: number;
+  last_message: string;
+  last_message_at: string;
+};
+
+export type emoji = {
+  react_id: number;
+  emoji: string;
+};
+
+export interface selectedProp {
+  message: string | null | undefined;
+  id: number | undefined;
+  sender_id: number | undefined;
+}
+
+export interface chatListProps {
+  menu: boolean;
+  setMenu: Dispatch<SetStateAction<boolean>>;
+  setCursor: Dispatch<SetStateAction<number | null>>;
+  hasMore: boolean;
+
+  nextCursor: number;
+  messageMap: Map<number, Message>;
+  data: ChatItem[];
+  isFetching: boolean;
+  messages: Message[];
+  cursor: number | null;
+}
+export enum delete_type {
+  onlyme,
+  ONLYME,
+  OnlyMe,
+  Everyone,
+  everyone,
+  EVERYONE,
+}
+
+export interface reaction {
+  react_id: number;
+  user_id: number;
+}
+
+export interface Message {
+  id: number;
+  type?: "message" | "header";
+  date?: string;
+  sender_id: number;
+  created_at: string;
+  preview: string | null;
+  seen_at: string | null;
+  is_forwarded: boolean;
+  seen_users: number[];
+  content: string | null;
+  story_item?: string;
+  story_id: number | null;
+  is_edited: boolean;
+  reply_to_message_id: number | null;
+  is_deleted: boolean;
+  reactions: reaction[];
+  chat_id?: number; // backend REFETCH_CHATS mein bheje to galat chat mein message nahi jayega
+  client_msg_id?: string | null;
+  send_status?: "sending" | "sent" | "failed";
+  isLocal: boolean;
+}
+
+type HeaderItem = {
+  kind: "header";
+  id: string;
+  date: string;
+};
+
+export type typingItem = Message & {
+  kind: "typing";
+  id: string;
+  typing: boolean;
+};
+
+export type MessageItem = Message & {
+  kind: "message";
+};
+
+export type ChatItem = MessageItem | HeaderItem | typingItem;
+
+export interface seen_user {
+  message_id: number;
+  seen_user: number;
+  seen_at: string;
+}
+
+export interface message_reactions {
+  react_id: number;
+  user_id: number;
+  message_id: number;
+}
+
+export interface socketResponse {
+  message: string;
+  success: boolean;
+  status: number;
+  error: string;
+  data?: {
+    message?: Message;
+    notification?: Notification;
+  };
+}
+
+export interface profileProps {
+  id?: number;
+  profile_pic?: string;
+  cover_pic?: string;
+  name?: string;
+  bio?: string;
+  mobile?: string;
+  email?: string;
+  role?: string | unknown;
+
+  theme?: "dark" | "light";
+  blocked?: boolean;
+  chat_id?: number;
+  user_id?: number;
+}
+
+export interface groupProps {
+  profile_pic?: string;
+  cover_pic?: string;
+  name?: string;
+  bio?: string;
+  role?: string | unknown;
+  members?: number[];
+  groupName?: string;
+  id?: number;
+}
+
+export interface StoryItem {
+  id: number;
+  user_id: number;
+  text_data: string;
+  content: string;
+  created_at: string;
+  expires_at: string;
+}
+
+export interface interactions {
+  id: number;
+  name: string;
+  seen: boolean;
+  liked: boolean;
+  seen_at: string;
+  liked_at?: string | null;
+  profile_pic?: string;
+}
+
+export interface StoryContent {
+  id: number;
+  text_data: string;
+  content: string;
+  created_at: string;
+  seen: boolean;
+  liked: boolean;
+  expires_at: string;
+  likes_count: number;
+  interactions: interactions[] | null;
+}
+
+export interface valueProps {
+  type: string | null;
+  open: boolean;
+}
+
+export interface UserStories {
+  user_id: number;
+  name: string;
+  profile_pic: string | null;
+  isOwn: boolean;
+  stories: StoryContent[];
+}
+
+export const modalValue = {
+  type: null,
+  open: false,
+};
+
+export interface Notification {
+  notification_id: number;
+
+  reference_id: number | null;
+  notification_type: "new_message" | "story_like" | "post_like" | "follow";
+
+  name: string;
+
+  message: string;
+
+  profile_pic: string;
+
+  time: string;
+  color?: string;
+}
+
+// export type Message = {
+//   id: string;
+//   senderId: string;
+//   text: string;
+//   timestamp: string;
+//   isRead?: boolean;
+//   isSentByMe: boolean;
+// };
+
+export interface MessageboxProps {
+  startPressTimer: () => void;
+  cancelPressTimer: () => void;
+  msg: MessageItem;
+  repliedMessage: Message | null;
+  setActive: Dispatch<SetStateAction<string | number | null>>;
+
+  selectionMode: boolean;
+  toggleSelection: (id: number) => void;
+  isSelected: boolean;
+
+  active: string | number | null;
+
+  handleLike: (id: number, react_id: number) => void;
+  icons: emoji[];
+  emojis: emoji[];
+}
+
+export interface User {
+  id: number;
+  name: string;
+  chat_id: number | null;
+  username: string;
+  profile_pic?: string;
+}
+
+export interface NewChatProps {
+  users: User[];
+  setModal: Dispatch<SetStateAction<valueProps>>;
+  // onSelectUser: (user: User) => void;
+}
+
+export interface memberProps {
+  member_id: number;
+  role: "admin" | "member";
+}
+
+export interface storySeen {
+  story_id: number;
+  user_id: number;
+  profile_pic?: string;
+  name: string;
+  seen_at: string;
+}
+
+export interface socketCallback {
+  message: string;
+  status: number;
+  success: boolean;
+}
+
+export interface mediaUploads {
+  startUpload: () => Promise<void>;
+  cancelUpload: () => Promise<"success" | undefined>;
+  uploadChunks: (id: string) => Promise<void>;
+  setFile: React.Dispatch<React.SetStateAction<File | null>>;
+  file?: File | null;
+}
+
+//  ai suggested code
+
+export interface AddMessageArgs {
+  tempId: number;
+  clientMsgId: string;
+  content: string;
+  user_id: number;
+  replyMessage: Message | null;
+  url?: string | null;
+}

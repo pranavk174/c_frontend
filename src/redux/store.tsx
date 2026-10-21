@@ -2,11 +2,12 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import { persistStore, persistReducer } from "redux-persist";
 import onlineUsersSlice from "./slices/onLineUsers";
-import ChatSlice from "./slices/ChatSlice";
+import ChatSlice from "./slices/updated/ChatSlice";
 import userSlice from "./slices/User";
 
 import { BaseApi } from "./Apis/BaseApi";
 import { errorMiddleware } from "./middlewares/erroreMiddleware";
+import UploadSlice from "./slices/UploadSlice";
 
 const persistConfig = {
   key: "root",
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   userSlice: userSlice,
   onlineUsersSlice: onlineUsersSlice,
   ChatSlice: ChatSlice,
+  UploadSlice: UploadSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

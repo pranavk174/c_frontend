@@ -6,7 +6,7 @@ import {
   selectedProp,
   socketResponse,
   valueProps,
-} from "@/lib/dummy";
+} from "@/lib/updated/dummy";
 import {
   ArrowLeft,
   CornerUpLeft,
@@ -30,7 +30,7 @@ import Popups from "../HOComponents/Popups";
 
 import ChatWallpaperSelector from "../Utility/Wallpapers";
 import EditMessage from "./Editmessage";
-import { useSocket } from "@/layouts/SocketWrapper";
+import { useSocket } from "@/layouts/updated/SocketWrapper";
 import { useAppDispatch } from "@/lib/hooks";
 import { chatApi, useGetMembersQuery } from "@/redux/Apis/Chat";
 import { EDIT_MESSAGE } from "@/lib/events";
@@ -39,17 +39,16 @@ import { useSearchParams } from "next/navigation";
 import { logger } from "@/lib/utils";
 import UserList from "./UserList";
 
-
 interface chatHeadProps {
   menu: boolean;
   setShowModal: Dispatch<SetStateAction<valueProps>>;
   chatDetails: Chat;
-  members: {
+  members?: {
     member_id: number;
     role: "admin" | "member";
   }[];
   selectedMessages?: number[];
-  selected: selectedProp | null;
+  selected?: selectedProp | null;
   memberIds: number[];
 }
 
@@ -57,7 +56,7 @@ const Chathead = memo(
   ({
     menu,
     members = [],
-    memberIds = [],
+    // memberIds = [],
     setShowModal,
     chatDetails,
     selectedMessages,
@@ -123,7 +122,7 @@ const Chathead = memo(
           users: data?.data?.getUsers?.data?.items,
         };
       },
-      skip: chatDetails?.chat_type !== "group" && open.type !== 'forward',
+      skip: chatDetails?.chat_type !== "group" && open.type !== "forward",
     });
 
     // const [editMessage, { isLoading }] = useEditMessageMutation();
@@ -188,10 +187,15 @@ const Chathead = memo(
               <button className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition hidden sm:block">
                 <CornerUpLeft className="w-5 h-5" />
               </button>
-              <button onClick={() => setOpen({
-                type: "forward",
-                open: true,
-              })} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition">
+              <button
+                onClick={() =>
+                  setOpen({
+                    type: "forward",
+                    open: true,
+                  })
+                }
+                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
                 <CornerUpRight className="w-5 h-5" />
               </button>
               <div className="w-px h-6 bg-wa-divider dark:bg-wa-divider-dark mx-1"></div>
@@ -341,7 +345,7 @@ const Chathead = memo(
                   open: false,
                 });
               }}
-              onCancel={() => { }}
+              onCancel={() => {}}
             />
           )}
 
@@ -355,11 +359,13 @@ const Chathead = memo(
             />
           )}
 
-
           {open.type === "forward" && (
-            <UserList users={users} open={open}
+            <UserList
+              users={users}
+              open={open}
               selectedMessages={selectedMessages}
-              setOpen={setOpen} />
+              setOpen={setOpen}
+            />
           )}
         </Modal>
         {/* <Modal open={block} values setModal={setBlock}>

@@ -12,6 +12,7 @@ import { RootState } from "@/redux/store";
 import { useChat } from "@/Context/ChatContext";
 import { setReplyMessage } from "@/redux/slices/ChatSlice";
 import { useAppDispatch } from "@/lib/hooks";
+import { socketcallBack } from "@/lib/updated/socket";
 
 interface inputBoxProps {
   messages?: Message[];
@@ -45,7 +46,7 @@ const Inputbox = memo(({ reciever_ids, messages }: inputBoxProps) => {
     }
     if (!typingRef.current) {
       typingRef.current = true;
-      socket.emit(START_TYPING, { chat_id, reciever_ids });
+      socket.emit(START_TYPING, { chat_id, reciever_ids },socketcallBack);
     }
 
     // Har key press par timer reset
@@ -54,7 +55,7 @@ const Inputbox = memo(({ reciever_ids, messages }: inputBoxProps) => {
     }
     timeoutRef.current = setTimeout(() => {
       typingRef.current = false;
-      socket.emit(STOP_TYPING, { chat_id, reciever_ids });
+      socket.emit(STOP_TYPING, { chat_id, reciever_ids },socketcallBack);
     }, 1500);
   };
 
